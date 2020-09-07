@@ -37,10 +37,7 @@ class _FolderListPageState extends State<FolderListPage> {
           await Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => CreatePage(
-                  dir: widget.dir,
-                  root: false,
-                ), //どこに作るか入れる
+                builder: (context) => CreatePage(tDir: widget.dir),
               )).then((returnWidget) {
             setState(() {
               //kokokesu

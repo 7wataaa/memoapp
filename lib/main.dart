@@ -14,8 +14,7 @@ import 'package:screen/screen.dart';
 
 import 'EditPage.dart';
 
-void main() async {
-  debugPrint('mainrunning');
+void main() {
   runApp(MyApp());
   Screen.keepOn(true); //完成したら消す
 }
@@ -57,38 +56,6 @@ class _HomeState extends State<Home> {
   // ignore: must_call_super
   void initState() {
     rootSet();
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      try {
-        //currentの管理
-        String path = await localPath();
-        Directory.current = Directory('$path/root');
-        Directory.current.list().listen((FileSystemEntity entity) {
-          if (entity is File) {
-            debugPrint('entitiy is File');
-            setState(() {
-              mainFileList.add(FileWidget(
-                name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
-                file: entity,
-              ));
-            });
-            debugPrint('FileList => $mainFileList');
-          } else if (entity is Directory) {
-            debugPrint('entitiy is Directory');
-            setState(() {
-              mainFolderList.add(FolderWidget(
-                name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
-                dir: entity,
-              ));
-            });
-            debugPrint('mainFolderList => $mainFolderList');
-          } else {
-            debugPrint('何も追加されてない');
-          }
-        });
-      } catch (error) {
-        debugPrint('$error err');
-      }
-    });
   }
 
   ///modeSwitch()
@@ -109,12 +76,13 @@ class _HomeState extends State<Home> {
             title: const Text('MEMO'),
             backgroundColor: const Color(0xFF212121),
             actions: <Widget>[
-              Checkbox(
-                checkColor: Color(0xFFFFFFFF),
-                hoverColor: Color(0xFF1E1F21),
-                value: mode,
-                onChanged: modeSwitch,
-              ),
+              IconButton(
+                  icon: Icon(Icons.refresh),
+                  onPressed: () {
+                    setState(() {
+                      debugPrint('refresh');
+                    });
+                  })
             ],
           ),
           body: mainListPage(),
@@ -127,14 +95,9 @@ class _HomeState extends State<Home> {
               await Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => CreatePage(
-                      dir: rootdir,
-                      root: true,
-                    ),
+                    builder: (context) => CreatePage(tDir: rootdir),
                   )).then((_) {
-                setState(() {
-                  debugPrint('更新');
-                });
+                setState(() {});
               });
             },
           ),
@@ -144,21 +107,48 @@ class _HomeState extends State<Home> {
   }
 
   Widget mainListPage() {
-    //mainListを開くとき、path/root/を参照して名前からwidgetを作る
-    mainList = [];
-    mainFolderList.sort((a, b) => a.name.compareTo(b.name));
-    mainFileList.sort((a, b) => a.name.compareTo(b.name));
-    mainFolderList.forEach((FolderWidget widget) => mainList.add(widget));
-    mainFileList.forEach((FileWidget widget) => mainList.add(widget));
+    localPath().then((path) {
+      try {
+        Directory('$path/root').list().listen((FileSystemEntity entity) {
+          //この中はstreamが来るたびに繰り返される?
+          if (entity is File) {
+            debugPrint('entitiy is File');
+            mainFileList.add(
+              FileWidget(
+                name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
+                file: entity,
+              ),
+            );
+            debugPrint('mainFileSet => $mainFileList');
+            mainFileList.sort((a, b) => a.name.compareTo(b.name));
+          } else if (entity is Directory) {
+            debugPrint('entitiy is Directory');
+            mainFolderList.add(
+              FolderWidget(
+                name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
+                dir: entity,
+              ),
+            );
+            mainFolderList.sort((a, b) => a.name.compareTo(b.name));
+            debugPrint('mainFolderSet => $mainFolderList');
+          }
+        });
+      } catch (error) {
+        debugPrint('catch $error');
+      }
+      mainList = [];
+      mainFolderList.forEach((FolderWidget widget) => mainList.add(widget));
+      mainFileList.forEach((FileWidget widget) => mainList.add(widget));
 
-    debugPrint(
-        'current => ${RegExp(r'([^/]+?)?$').stringMatch(Directory.current.path)}');
+      debugPrint('$mainList');
 
-    return ListView.builder(
-      itemCount: mainList.length,
-      itemBuilder: (BuildContext context, index) {
-        return mainList[index];
-      },
-    );
+      return ListView.builder(
+        itemCount: mainList.length,
+        itemBuilder: (BuildContext context, index) {
+          debugPrint('build');
+          return mainList[index];
+        },
+      );
+    });
   }
 }

@@ -2,13 +2,10 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 
-import 'fileHandling.dart';
-
 class CreatePage extends StatefulWidget {
-  final Directory dir;
-  final bool root;
+  final Directory tDir;
 
-  CreatePage({@required this.dir, this.root = false});
+  CreatePage({@required this.tDir});
 
   @override
   _CreatePageState createState() => _CreatePageState();
@@ -65,7 +62,7 @@ class _CreatePageState extends State<CreatePage> {
                       left: 10.0, right: 10.0, top: 5, bottom: 0),
                   child: TextField(
                     decoration: InputDecoration(
-                        labelText: '~${widget.dir.path}', //root以下を消す
+                        labelText: '~${widget.tDir.path}', //root以下を消す
                         hintText: '$type の名前を入力してください'),
                     onChanged: (str) => nameStr = str,
                   ),
@@ -101,25 +98,24 @@ class _CreatePageState extends State<CreatePage> {
               } else if (type == 'file') {
                 //fileを保存する
                 try {
-                  await File(widget.root
-                          ? '${await localPath()}/root/$nameStr'
-                          : '${widget.dir.path}/$nameStr')
-                      .create();
+                  await File('${widget.tDir.path}/$nameStr')
+                      .create()
+                      .then((value) => debugPrint('file created'));
                 } catch (error) {
                   debugPrint("$error");
                 }
                 Navigator.pop(context);
-                debugPrint('file created');
               } else if (type == 'folder') {
                 //folderを保存する
                 try {
-                  await Directory(widget.root
-                          ? '${await localPath()}/root/$nameStr'
-                          : '${widget.dir.path}/$nameStr')
-                      .create();
+                  await Directory('${widget.tDir.path}/$nameStr')
+                      .create()
+                      .then((value) => debugPrint('directory created'));
                 } catch (error) {
                   debugPrint('$error');
                 }
+                Navigator.pop(context);
+              } else {
                 Navigator.pop(context);
               }
             },
