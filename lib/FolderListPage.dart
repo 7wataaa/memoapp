@@ -66,7 +66,7 @@ class _FolderListPageState extends State<FolderListPage> {
     try {
       Directory.current = widget.dir;
       debugPrint(
-          'listPage => ${RegExp(r'([^/]+?)?$').stringMatch(Directory.current.path)}');
+          'current.path => ${RegExp(r'([^/]+?)?$').stringMatch(Directory.current.path)}');
       Directory.current.list().listen((FileSystemEntity entity) {
         if (entity is File) {
           setState(() {

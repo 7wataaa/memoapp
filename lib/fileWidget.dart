@@ -42,6 +42,12 @@ class _FileState extends State<FileWidget> {
                         await Navigator.of(context).pushNamed('~/Show');
                         Navigator.pop(context);
                       },
+                    ),
+                    SimpleDialogOption(
+                      child: Text('rename (未実装)'),
+                    ),
+                    SimpleDialogOption(
+                      child: Text('削除 (未実装)'),
                     )
                   ],
                 );
@@ -81,6 +87,26 @@ class _FolderState extends State<FolderWidget> {
               },
             ),
           );
+        },
+        onLongPress: () {
+          showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return SimpleDialog(
+                  title: Text('${widget.name}'),
+                  children: [
+                    SimpleDialogOption(
+                      child: Text('開く (未実装)'),
+                    ),
+                    SimpleDialogOption(
+                      child: Text('rename (未実装)'),
+                    ),
+                    SimpleDialogOption(
+                      child: Text('削除 (未実装)'),
+                    )
+                  ],
+                );
+              });
         },
       ),
     );
