@@ -163,3 +163,8 @@ class _HomeState extends State<Home> {
     );
   }
 }
+/*
+currentの管理
+  rootにいるときのcreateと
+  listPageにいるときのcreateを判別して、作る場所を決める
+*/
