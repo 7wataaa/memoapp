@@ -2,9 +2,11 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 
-import 'fileWidget.dart';
-
 import 'CreatePage.dart';
+
+import 'Widget/FileWidget.dart';
+
+import 'Widget/FolderWidget.dart';
 
 class FolderListPage extends StatefulWidget {
   final String name;
@@ -39,23 +41,7 @@ class _FolderListPageState extends State<FolderListPage> {
               MaterialPageRoute(
                 builder: (context) => CreatePage(tDir: widget.dir),
               )).then((returnWidget) {
-            setState(() {
-              //kokokesu
-              if (returnWidget.runtimeType == FolderWidget) {
-                debugPrint('folder add');
-                folderList.add(returnWidget);
-                folderList.sort((a, b) => a.name.compareTo(b.name));
-              } else if (returnWidget.runtimeType == FileWidget) {
-                debugPrint('file add');
-                fileList.add(returnWidget);
-                fileList.sort((a, b) => a.name.compareTo(b.name));
-              } else {
-                debugPrint('受け取ったWidgetの型が一致しないか、なにも返されなかった');
-              }
-              resultList = [];
-              folderList.forEach((w) => resultList.add(w));
-              fileList.forEach((w) => resultList.add(w));
-            });
+            setState(() {});
           }).catchError((e) => debugPrint('folderListPage $e'));
         },
       ),

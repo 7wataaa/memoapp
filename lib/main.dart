@@ -8,11 +8,13 @@ import 'package:memoapp/CreatePage.dart';
 
 import 'package:memoapp/fileHandling.dart';
 
-import 'package:memoapp/fileWidget.dart';
+import 'package:memoapp/Widget/FileWidget.dart';
 
 import 'package:screen/screen.dart';
 
 import 'EditPage.dart';
+
+import 'Widget/FolderWidget.dart';
 
 void main() {
   runApp(MyApp());
@@ -74,7 +76,6 @@ class _HomeState extends State<Home> {
       Directory('$path/root').listSync().forEach(
         (FileSystemEntity entity) {
           if (entity is File) {
-            debugPrint('entitiy is File');
             mainFileList.add(
               FileWidget(
                 name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
@@ -82,9 +83,8 @@ class _HomeState extends State<Home> {
               ),
             );
             mainFileList.sort((a, b) => a.name.compareTo(b.name));
-            debugPrint('mainFileList => $mainFileList');
+            debugPrint('entitiy is File.        mainFileList => $mainFileList');
           } else if (entity is Directory) {
-            debugPrint('entitiy is Directory');
             mainFolderList.add(
               FolderWidget(
                 name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
@@ -92,7 +92,8 @@ class _HomeState extends State<Home> {
               ),
             );
             mainFolderList.sort((a, b) => a.name.compareTo(b.name));
-            debugPrint('mainFolderList => $mainFolderList');
+            debugPrint(
+                'entitiy is Directory. mainFolderList => $mainFolderList');
           }
           mainList = [];
           mainFolderList.forEach((FolderWidget widget) => mainList.add(widget));
@@ -120,9 +121,7 @@ class _HomeState extends State<Home> {
               IconButton(
                   icon: Icon(Icons.refresh),
                   onPressed: () {
-                    setState(() {
-                      debugPrint('refresh');
-                    });
+                    setState(() {});
                   })
             ],
           ),
@@ -130,8 +129,9 @@ class _HomeState extends State<Home> {
               future: rootList(),
               builder: (BuildContext context, AsyncSnapshot snapshot) {
                 if (snapshot.hasData) {
-                  debugPrint('snapshot.dataにはいってたやつ ${snapshot.data}');
-                  return mainListPage(snapshot.data);
+                  return ListView(
+                    children: snapshot.data,
+                  );
                 } else {
                   debugPrint('hasData is false');
                   return Center(child: CircularProgressIndicator());
@@ -154,12 +154,6 @@ class _HomeState extends State<Home> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget mainListPage(List list) {
-    return ListView(
-      children: list,
     );
   }
 }
