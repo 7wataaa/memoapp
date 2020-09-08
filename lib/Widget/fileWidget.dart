@@ -36,7 +36,7 @@ class _FileState extends State<FileWidget> {
                     SimpleDialogOption(
                       child: Text('開く'),
                       onPressed: () async {
-                        debugPrint('編集が選択されました');
+                        //debugPrint('編集が選択されました');
                         await Navigator.of(context).pushNamed('~/Show');
                         Navigator.pop(context);
                       },

@@ -1,11 +1,13 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:memoapp/fileHandling.dart';
 
 class CreatePage extends StatefulWidget {
   final Directory tDir;
+  final bool isRoot;
 
-  CreatePage({@required this.tDir});
+  CreatePage({@required this.tDir, this.isRoot});
 
   @override
   _CreatePageState createState() => _CreatePageState();
@@ -14,9 +16,10 @@ class CreatePage extends StatefulWidget {
 class _CreatePageState extends State<CreatePage> {
   String nameStr = '';
   String type = 'file';
+  String path;
 
-  //btnIcon()
-  //-> typeごとの iconを 表示する
+  ///btnIcon()
+  ///-> typeごとの iconを 表示する
   Widget btnIcon() {
     if (type == 'file') {
       return Icon(Icons.insert_drive_file);
@@ -25,8 +28,8 @@ class _CreatePageState extends State<CreatePage> {
     }
   }
 
-  //typeSwitch()
-  //-> 'file'と'folder'を切り替える
+  ///typeSwitch()
+  ///-> 'file'と'folder'を切り替える
   void typeSwitch() {
     if (type == 'file') {
       setState(() {
@@ -91,6 +94,11 @@ class _CreatePageState extends State<CreatePage> {
             icon: Icon(Icons.check),
             label: Text('$type を保存'),
             onPressed: () async {
+              if (widget.isRoot) {
+                path = "${await localPath()}/root";
+              } else {
+                path = Directory.current.path;
+              }
               if (nameStr == '') {
                 // ignore: todo
                 //TODO 名前を勝手につけて保存する
@@ -98,9 +106,10 @@ class _CreatePageState extends State<CreatePage> {
               } else if (type == 'file') {
                 //fileを保存する
                 try {
-                  await File('${widget.tDir.path}/$nameStr')
-                      .create()
-                      .then((value) => debugPrint('file created'));
+                  await File('$path/$nameStr').create().then((file) {
+                    file.exists().then((value) =>
+                        value ? debugPrint('true') : debugPrint('false'));
+                  });
                 } catch (error) {
                   debugPrint("$error");
                 }
@@ -108,7 +117,7 @@ class _CreatePageState extends State<CreatePage> {
               } else if (type == 'folder') {
                 //folderを保存する
                 try {
-                  await Directory('${widget.tDir.path}/$nameStr')
+                  await Directory('$path/$nameStr')
                       .create()
                       .then((value) => debugPrint('directory created'));
                 } catch (error) {

@@ -83,7 +83,7 @@ class _HomeState extends State<Home> {
               ),
             );
             mainFileList.sort((a, b) => a.name.compareTo(b.name));
-            debugPrint('entitiy is File.        mainFileList => $mainFileList');
+            //debugPrint('entitiy is File.        mainFileList => $mainFileList');
           } else if (entity is Directory) {
             mainFolderList.add(
               FolderWidget(
@@ -92,8 +92,8 @@ class _HomeState extends State<Home> {
               ),
             );
             mainFolderList.sort((a, b) => a.name.compareTo(b.name));
-            debugPrint(
-                'entitiy is Directory. mainFolderList => $mainFolderList');
+            /*debugPrint(
+                'entitiy is Directory. mainFolderList => $mainFolderList');*/
           }
           mainList = [];
           mainFolderList.forEach((FolderWidget widget) => mainList.add(widget));
@@ -103,7 +103,7 @@ class _HomeState extends State<Home> {
     } catch (error) {
       debugPrint('catch $error');
     }
-    debugPrint('mainList ===> $mainList');
+    //debugPrint('mainList ===> $mainList');
 
     return mainList;
   }
@@ -146,7 +146,8 @@ class _HomeState extends State<Home> {
               await Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => CreatePage(tDir: rootdir),
+                    builder: (context) =>
+                        CreatePage(tDir: rootdir, isRoot: true),
                   )).then((_) {
                 setState(() {});
               });
@@ -157,8 +158,3 @@ class _HomeState extends State<Home> {
     );
   }
 }
-/*
-currentの管理
-  rootにいるときのcreateと
-  listPageにいるときのcreateを判別して、作る場所を決める
-*/

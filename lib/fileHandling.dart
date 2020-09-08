@@ -11,6 +11,13 @@ Future<String> localPath() async {
   return directory.path;
 }
 
+///localDir()
+///Android, iOS に対応するパスを返す
+Future<Directory> localDir() async {
+  final Directory directory = await getApplicationDocumentsDirectory();
+  return directory;
+}
+
 ///localPathSync()
 ///Android, iOS に対応するパスを同期的に取得
 String localPathSync() {

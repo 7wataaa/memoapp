@@ -23,6 +23,50 @@ class _FolderListPageState extends State<FolderListPage> {
   List<FolderWidget> folderList = [];
   List<FileWidget> fileList = [];
 
+  getList() {
+    try {
+      Directory.current = widget.dir;
+      debugPrint(
+          'current.path => ${RegExp(r'([^/]+?)?$').stringMatch(Directory.current.path)}');
+      fileList = [];
+      folderList = [];
+      Directory.current.listSync().forEach((FileSystemEntity entity) {
+        if (entity is File) {
+          fileList.add(
+            FileWidget(
+              name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
+              file: entity,
+            ),
+          );
+          fileList.sort((a, b) => a.name.compareTo(b.name));
+          debugPrint('listpage entity is File');
+        } else if (entity is Directory) {
+          folderList.add(
+            FolderWidget(
+              name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
+              dir: entity,
+            ),
+          );
+          folderList.sort((a, b) => a.name.compareTo(b.name));
+          debugPrint('listpage entity is Directory');
+        }
+        resultList = [];
+        folderList.forEach((FolderWidget widget) => resultList.add(widget));
+        fileList.forEach((FileWidget widget) => resultList.add(widget));
+      });
+    } catch (error) {
+      debugPrint('catch $error');
+    }
+
+    return resultList;
+  }
+
+  Widget body() {
+    return ListView(
+      children: getList(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -30,7 +74,7 @@ class _FolderListPageState extends State<FolderListPage> {
         title: Text('${widget.name}'),
         backgroundColor: const Color(0xFF212121),
       ),
-      body: listPageList(),
+      body: body(),
       floatingActionButton: FloatingActionButton(
         heroTag: 'PageBtn',
         backgroundColor: const Color(0xFF212121),
@@ -39,50 +83,15 @@ class _FolderListPageState extends State<FolderListPage> {
           await Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => CreatePage(tDir: widget.dir),
+                builder: (context) => CreatePage(
+                  tDir: widget.dir,
+                  isRoot: false,
+                ),
               )).then((returnWidget) {
             setState(() {});
-          }).catchError((e) => debugPrint('folderListPage $e'));
+          });
         },
       ),
-    );
-  }
-
-  Widget listPageList() {
-    try {
-      Directory.current = widget.dir;
-      debugPrint(
-          'current.path => ${RegExp(r'([^/]+?)?$').stringMatch(Directory.current.path)}');
-      Directory.current.list().listen((FileSystemEntity entity) {
-        if (entity is File) {
-          setState(() {
-            fileList.add(FileWidget(
-              name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
-              file: entity,
-            ));
-          });
-          debugPrint('fileList => $fileList');
-        } else if (entity is Directory) {
-          setState(() {
-            folderList.add(FolderWidget(
-              name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
-              dir: entity,
-            ));
-          });
-          debugPrint('folderList => $folderList');
-        } else {
-          debugPrint('何も追加されてない');
-        }
-      });
-    } catch (error) {
-      debugPrint('$error err');
-    }
-
-    return ListView.builder(
-      itemCount: resultList.length,
-      itemBuilder: (BuildContext context, index) {
-        return resultList[index];
-      },
     );
   }
 }
