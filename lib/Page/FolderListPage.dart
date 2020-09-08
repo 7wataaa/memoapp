@@ -62,8 +62,10 @@ class _FolderListPageState extends State<FolderListPage> {
   }
 
   Widget body() {
-    return ListView(
-      children: getList(),
+    return Scrollbar(
+      child: ListView(
+        children: getList(),
+      ),
     );
   }
 

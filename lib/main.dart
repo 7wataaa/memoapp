@@ -134,8 +134,10 @@ class _HomeState extends State<Home> {
               future: rootList(),
               builder: (BuildContext context, AsyncSnapshot snapshot) {
                 if (snapshot.hasData) {
-                  return ListView(
-                    children: snapshot.data,
+                  return Scrollbar(
+                    child: ListView(
+                      children: snapshot.data,
+                    ),
                   );
                 } else {
                   debugPrint('hasData is false');
