@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 
 import 'CreatePage.dart';
 
-import 'Widget/FileWidget.dart';
+import '../Widget/FileWidget.dart';
 
-import 'Widget/FolderWidget.dart';
+import '../Widget/FolderWidget.dart';
 
 class FolderListPage extends StatefulWidget {
   final String name;
