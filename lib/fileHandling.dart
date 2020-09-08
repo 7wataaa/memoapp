@@ -28,7 +28,7 @@ String localPathSync() {
 
 ///rootSet()
 ///rootディレクトリを確認して、なければ作る。
-Future<dynamic> rootSet() async {
+Future<void> rootSet() async {
   final path = await localPath();
   Directory rootFolder = Directory('$path/root');
   bool isThere = await rootFolder.exists();

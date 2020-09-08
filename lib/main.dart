@@ -100,6 +100,11 @@ class _HomeState extends State<Home> {
           mainFileList.forEach((FileWidget widget) => mainList.add(widget));
         },
       );
+    } on FileSystemException {
+      await rootSet();
+      Directory('$path/root')
+          .exists()
+          .then((bool b) => b ? rootList() : debugPrint('rootファイルを作ることができない'));
     } catch (error) {
       debugPrint('catch $error');
     }
@@ -158,3 +163,6 @@ class _HomeState extends State<Home> {
     );
   }
 }
+/*
+fileの内容を保存する
+ */
