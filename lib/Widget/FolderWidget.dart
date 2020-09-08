@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter/cupertino.dart';
 
-import 'package:memoapp/FolderListPage.dart';
+import 'package:memoapp/Page/FolderListPage.dart';
 
 class FolderWidget extends StatefulWidget {
   final String name;

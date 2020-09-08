@@ -4,7 +4,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'package:flutter/material.dart';
 
-import 'package:memoapp/CreatePage.dart';
+import 'package:memoapp/Page/CreatePage.dart';
 
 import 'package:memoapp/fileHandling.dart';
 
@@ -12,7 +12,7 @@ import 'package:memoapp/Widget/FileWidget.dart';
 
 import 'package:screen/screen.dart';
 
-import 'EditPage.dart';
+import 'Page/EditPage.dart';
 
 import 'Widget/FolderWidget.dart';
 
