@@ -44,9 +44,6 @@ class _FolderState extends State<FolderWidget> {
                   title: Text('${widget.name}'),
                   children: [
                     SimpleDialogOption(
-                      child: Text('開く (未実装)'),
-                    ),
-                    SimpleDialogOption(
                       child: Text('rename (未実装)'),
                     ),
                     SimpleDialogOption(
