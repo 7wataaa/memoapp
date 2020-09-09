@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'package:flutter/material.dart';
@@ -11,8 +12,6 @@ import 'package:memoapp/fileHandling.dart';
 import 'package:memoapp/Widget/FileWidget.dart';
 
 import 'package:screen/screen.dart';
-
-import 'Page/EditPage.dart';
 
 import 'Widget/FolderWidget.dart';
 
@@ -28,11 +27,12 @@ class MyApp extends StatelessWidget {
       initialRoute: '~/',
       routes: <String, WidgetBuilder>{
         '~/': (BuildContext context) => Home(),
-        '~/Show': (BuildContext context) => TextEditPage(),
       },
       localizationsDelegates: [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        DefaultCupertinoLocalizations.delegate
       ],
       supportedLocales: [
         Locale('ja', 'JP'),

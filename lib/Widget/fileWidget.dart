@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 
 import 'package:flutter/material.dart';
+import 'package:memoapp/Page/EditPage.dart';
 
 class FileWidget extends StatefulWidget {
   final String name;
@@ -24,7 +25,10 @@ class _FileState extends State<FileWidget> {
           leading: const Icon(Icons.insert_drive_file),
           onTap: () {
             // 保存する処理
-            Navigator.of(context).pushNamed('~/Show');
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => TextEditPage(file: widget.file)));
           },
           onLongPress: () {
             showDialog(
@@ -37,7 +41,11 @@ class _FileState extends State<FileWidget> {
                       child: Text('開く'),
                       onPressed: () async {
                         //debugPrint('編集が選択されました');
-                        await Navigator.of(context).pushNamed('~/Show');
+                        await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    TextEditPage(file: widget.file)));
                         Navigator.pop(context);
                       },
                     ),

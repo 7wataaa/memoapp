@@ -14,6 +14,8 @@ class CreatePage extends StatefulWidget {
 }
 
 class _CreatePageState extends State<CreatePage> {
+  //初期値を入れる
+  TextEditingController textEditingController;
   String nameStr = '';
   String type = 'file';
   String path;
@@ -64,6 +66,8 @@ class _CreatePageState extends State<CreatePage> {
                   padding: EdgeInsets.only(
                       left: 10.0, right: 10.0, top: 5, bottom: 0),
                   child: TextField(
+                    controller: textEditingController,
+                    autofocus: true,
                     decoration: InputDecoration(
                         labelText: '~${widget.tDir.path}', //root以下を消す
                         hintText: '$type の名前を入力してください'),
@@ -104,28 +108,36 @@ class _CreatePageState extends State<CreatePage> {
                 //TODO 名前を勝手につけて保存する
                 debugPrint('err 名前未入力');
               } else if (type == 'file') {
-                //fileを保存する
-                try {
-                  await File('$path/$nameStr').create().then((file) {
-                    file.exists().then((value) =>
-                        value ? debugPrint('true') : debugPrint('false'));
-                  });
-                } catch (error) {
-                  debugPrint("$error");
+                if (!File('$path/$nameStr').existsSync()) {
+                  try {
+                    await File('$path/$nameStr').create().then((file) {
+                      file.exists().then((value) =>
+                          value ? debugPrint('true') : debugPrint('false'));
+                    });
+                  } catch (error) {
+                    debugPrint("$error");
+                  }
+                  Navigator.pop(context);
+                } else {
+                  //上書きかどうかなどを選択させる
+                  debugPrint('そのファイルはすでに存在しています');
                 }
-                Navigator.pop(context);
               } else if (type == 'folder') {
-                //folderを保存する
-                try {
-                  await Directory('$path/$nameStr')
-                      .create()
-                      .then((value) => debugPrint('directory created'));
-                } catch (error) {
-                  debugPrint('$error');
+                if (!Directory('$path/$nameStr').existsSync()) {
+                  try {
+                    await Directory('$path/$nameStr')
+                        .create()
+                        .then((value) => debugPrint('directory created'));
+                  } catch (error) {
+                    debugPrint('$error');
+                  }
+                  Navigator.pop(context);
+                } else {
+                  //上書きかどうかなどを選択させる
+                  debugPrint('そのディレクトリはすでに存在しています');
                 }
-                Navigator.pop(context);
               } else {
-                Navigator.pop(context);
+                debugPrint('ファイルまたはディレクトリではない');
               }
             },
           ),
