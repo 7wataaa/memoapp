@@ -63,9 +63,9 @@ class _HomeState extends State<Home> {
 
   ///modeSwitch()
   ///false trueを切り替える
-  void modeSwitch(bool bool) {
+  void modeSwitch(bool bol) {
     setState(() {
-      mode = bool;
+      mode = bol;
     });
   }
 
@@ -131,19 +131,27 @@ class _HomeState extends State<Home> {
                   })
             ],
           ),
-          body: FutureBuilder(
-              future: rootList(),
-              builder: (BuildContext context, AsyncSnapshot snapshot) {
-                if (snapshot.hasData) {
-                  return Scrollbar(
-                    child: ListView(
-                      children: snapshot.data,
-                    ),
-                  );
-                } else {
-                  debugPrint('hasData is false');
-                  return Center(child: CircularProgressIndicator());
-                }
+          body: StreamBuilder(
+              stream: renameEvent.stream,
+              builder: (context, snapshot) {
+                return FutureBuilder(
+                    future: rootList(),
+                    builder: (BuildContext context, AsyncSnapshot snapshot) {
+                      if (snapshot.hasData) {
+                        return Scrollbar(
+                          child: ListView(
+                            children: snapshot.data,
+                          ),
+                        );
+                      } else {
+                        debugPrint('hasData is false');
+                        return Center(
+                          child: Container(
+                            child: CircularProgressIndicator(),
+                          ),
+                        );
+                      }
+                    });
               }),
           floatingActionButton: FloatingActionButton(
             heroTag: 'PageBtn',
@@ -166,6 +174,3 @@ class _HomeState extends State<Home> {
     );
   }
 }
-/*
-fileの内容を保存する
- */

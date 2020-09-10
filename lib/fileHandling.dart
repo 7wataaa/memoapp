@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -9,13 +10,6 @@ import 'package:path_provider/path_provider.dart';
 Future<String> localPath() async {
   final directory = await getApplicationDocumentsDirectory();
   return directory.path;
-}
-
-///localDir()
-///Android, iOS に対応するパスを返す
-Future<Directory> localDir() async {
-  final Directory directory = await getApplicationDocumentsDirectory();
-  return directory;
 }
 
 ///localPathSync()
@@ -41,3 +35,5 @@ Future<void> rootSet() async {
     debugPrint('${rootFolder.path} はすでに存在');
   }
 }
+
+var renameEvent = StreamController<String>.broadcast();

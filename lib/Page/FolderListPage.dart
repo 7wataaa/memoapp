@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:memoapp/fileHandling.dart';
 
 import 'CreatePage.dart';
 
@@ -62,11 +63,15 @@ class _FolderListPageState extends State<FolderListPage> {
   }
 
   Widget body() {
-    return Scrollbar(
-      child: ListView(
-        children: getList(),
-      ),
-    );
+    return StreamBuilder<Object>(
+        stream: renameEvent.stream,
+        builder: (context, snapshot) {
+          return Scrollbar(
+            child: ListView(
+              children: getList(),
+            ),
+          );
+        });
   }
 
   @override

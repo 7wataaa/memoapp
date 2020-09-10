@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 
 import 'package:memoapp/Page/FolderListPage.dart';
+import 'package:memoapp/fileHandling.dart';
 
 class FolderWidget extends StatefulWidget {
   final String name;
@@ -37,7 +38,6 @@ class _FolderState extends State<FolderWidget> {
                       child: const Text('リネーム'),
                       onPressed: () async {
                         Navigator.pop(context);
-                        //koko
                         return showDialog(
                             context: context,
                             builder: (context) {
@@ -61,6 +61,7 @@ class _FolderState extends State<FolderWidget> {
                                     onPressed: () {
                                       widget.dir.rename(
                                           '${widget.dir.parent.path}/$string');
+                                      renameEvent.sink.add('');
                                       Navigator.pop(context);
                                     },
                                   ),
