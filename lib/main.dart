@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
+
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'package:flutter/material.dart';
@@ -55,8 +56,8 @@ class _HomeState extends State<Home> {
   List<FileWidget> mainFileList = [];
 
   @override
-  // ignore: must_call_super
   void initState() {
+    super.initState();
     rootSet();
   }
 

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+
 import 'package:memoapp/fileHandling.dart';
 
 class CreatePage extends StatefulWidget {
@@ -14,7 +15,6 @@ class CreatePage extends StatefulWidget {
 }
 
 class _CreatePageState extends State<CreatePage> {
-  //初期値を入れる
   TextEditingController textEditingController;
   String nameStr = '';
   String type = 'file';
@@ -44,6 +44,15 @@ class _CreatePageState extends State<CreatePage> {
     }
   }
 
+  ///parentDecoration()
+  ///type, directory ごとのデコレーション
+  InputDecoration parentDecoration() {
+    return InputDecoration(
+      labelText: '${RegExp(r'([^/]+?)?$').stringMatch(widget.tDir.path)}',
+      hintText: '$type の名前を入力してください',
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -68,9 +77,7 @@ class _CreatePageState extends State<CreatePage> {
                   child: TextField(
                     controller: textEditingController,
                     autofocus: true,
-                    decoration: InputDecoration(
-                        labelText: '~${widget.tDir.path}', //root以下を消す
-                        hintText: '$type の名前を入力してください'),
+                    decoration: parentDecoration(),
                     onChanged: (str) => nameStr = str,
                   ),
                 ),
@@ -114,6 +121,8 @@ class _CreatePageState extends State<CreatePage> {
                       file.exists().then((value) =>
                           value ? debugPrint('true') : debugPrint('false'));
                     });
+                  } on FileSystemException catch (e) {
+                    debugPrint('$e');
                   } catch (error) {
                     debugPrint("$error");
                   }
@@ -134,7 +143,19 @@ class _CreatePageState extends State<CreatePage> {
                   Navigator.pop(context);
                 } else {
                   //上書きかどうかなどを選択させる
-                  debugPrint('そのディレクトリはすでに存在しています');
+                  showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: Text('Error'),
+                          content: Text('同じ名前のディレクトリは作成できません'),
+                          actions: [
+                            FlatButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: Text('戻る')),
+                          ],
+                        );
+                      });
                 }
               } else {
                 debugPrint('ファイルまたはディレクトリではない');
