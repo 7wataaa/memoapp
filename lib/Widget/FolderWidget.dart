@@ -36,6 +36,13 @@ class _FolderState extends State<FolderWidget> {
                   title: Text('${widget.name}'),
                   children: [
                     SimpleDialogOption(
+                      child: const Text('開く'),
+                      onPressed: () {
+                        Navigator.pop(context);
+                        openFolder();
+                      },
+                    ),
+                    SimpleDialogOption(
                       child: const Text('リネーム'),
                       onPressed: () {
                         Navigator.pop(context);
@@ -126,7 +133,8 @@ class _FolderState extends State<FolderWidget> {
                                             return AlertDialog(
                                               title: const Text('すべて削除'),
                                               content: const Text(
-                                                  'ファイルの内容もすべて削除されます。'),
+                                                'ファイルの内容もすべて削除されます。',
+                                              ),
                                               actions: [
                                                 FlatButton(
                                                   child: const Text('キャンセル'),
@@ -139,9 +147,10 @@ class _FolderState extends State<FolderWidget> {
                                                     Navigator.pop(context);
                                                     widget.dir
                                                         .delete(recursive: true)
-                                                        .then((_) =>
-                                                            fileSystemEvent.sink
-                                                                .add(''));
+                                                        .then((_) {
+                                                      fileSystemEvent.sink
+                                                          .add('');
+                                                    });
                                                   },
                                                 ),
                                               ],
@@ -158,23 +167,23 @@ class _FolderState extends State<FolderWidget> {
                 );
               });
         },
-        onTap: () async {
-          await Navigator.of(context).push(
-            CupertinoPageRoute(
-              builder: (context) {
-                return FolderListPage(
-                  name: '${widget.name}',
-                  dir: widget.dir,
-                );
-              },
-            ),
-          );
+        onTap: () {
+          openFolder();
         },
       ),
     );
   }
 
-  final SnackBar snackbar = SnackBar(
-    content: Text('空のファイルではありません'),
-  );
+  openFolder() {
+    Navigator.of(context).push(
+      CupertinoPageRoute(
+        builder: (context) {
+          return FolderListPage(
+            name: '${widget.name}',
+            dir: widget.dir,
+          );
+        },
+      ),
+    );
+  }
 }
