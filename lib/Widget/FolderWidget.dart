@@ -28,6 +28,9 @@ class _FolderState extends State<FolderWidget> {
       child: ListTile(
         title: Text('${widget.name}', style: TextStyle(fontSize: 18.5)),
         leading: const Icon(Icons.folder),
+        onTap: () {
+          openFolder();
+        },
         onLongPress: () async {
           await showDialog(
             context: context,
@@ -169,9 +172,6 @@ class _FolderState extends State<FolderWidget> {
               );
             },
           );
-        },
-        onTap: () {
-          openFolder();
         },
       ),
     );

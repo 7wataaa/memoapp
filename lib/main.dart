@@ -102,6 +102,13 @@ class _HomeState extends State<Home> {
     return mainList;
   }
 
+  bool selectMode = false;
+  selectModeSwitch() {
+    setState(() {
+      selectMode ? selectMode = false : selectMode = true;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -112,11 +119,9 @@ class _HomeState extends State<Home> {
             title: const Text('MEMO'),
             backgroundColor: const Color(0xFF212121),
             actions: <Widget>[
-              IconButton(
-                  icon: Icon(Icons.refresh),
-                  onPressed: () {
-                    setState(() {});
-                  })
+              Switch(
+                  value: selectMode,
+                  onChanged: (bool value) => selectModeSwitch())
             ],
           ),
           body: StreamBuilder(
@@ -126,6 +131,7 @@ class _HomeState extends State<Home> {
                     future: rootList(),
                     builder: (BuildContext context, AsyncSnapshot snapshot) {
                       if (snapshot.hasData) {
+                        //↓もしselectMode==trueだったらいい感じにwrap
                         return Scrollbar(
                           child: ListView(
                             children: snapshot.data,
