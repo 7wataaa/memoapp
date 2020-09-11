@@ -63,11 +63,92 @@ class _FolderState extends State<FolderWidget> {
                                       widget.dir
                                           .rename(
                                               '${widget.dir.parent.path}/$string')
-                                          .then(
-                                              (_) => renameEvent.sink.add(''));
+                                          .then((_) =>
+                                              fileSystemEvent.sink.add(''));
                                       Navigator.pop(context);
                                     },
                                   ),
+                                ],
+                              );
+                            });
+                      },
+                    ),
+                    SimpleDialogOption(
+                      child: const Text('削除'),
+                      onPressed: () {
+                        Navigator.pop(context);
+                        showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: const Text('削除'),
+                                content: const Text('この動作はもとに戻すことができません'),
+                                actions: [
+                                  FlatButton(
+                                    child: const Text('キャンセル'),
+                                    onPressed: () => Navigator.pop(context),
+                                  ),
+                                  FlatButton(
+                                    child: const Text('削除'),
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                      widget.dir
+                                          .delete()
+                                          .then((_) =>
+                                              fileSystemEvent.sink.add(''))
+                                          .catchError((_) {
+                                        showDialog(
+                                            context: context,
+                                            builder: (context) {
+                                              return AlertDialog(
+                                                title: const Text('ERROR'),
+                                                content: const Text(
+                                                    'ファイル内が空ではありません'),
+                                                actions: [
+                                                  FlatButton(
+                                                    child: const Text('OK'),
+                                                    onPressed: () =>
+                                                        Navigator.pop(context),
+                                                  ),
+                                                ],
+                                              );
+                                            });
+                                      });
+                                    },
+                                  ),
+                                  FlatButton(
+                                    child: const Text('すべて削除'),
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                      showDialog(
+                                          context: context,
+                                          builder: (context) {
+                                            return AlertDialog(
+                                              title: const Text('すべて削除'),
+                                              content: const Text(
+                                                  'ファイルの内容もすべて削除されます。'),
+                                              actions: [
+                                                FlatButton(
+                                                  child: const Text('キャンセル'),
+                                                  onPressed: () =>
+                                                      Navigator.pop(context),
+                                                ),
+                                                FlatButton(
+                                                  child: const Text('すべて削除'),
+                                                  onPressed: () {
+                                                    Navigator.pop(context);
+                                                    widget.dir
+                                                        .delete(recursive: true)
+                                                        .then((_) =>
+                                                            fileSystemEvent.sink
+                                                                .add(''));
+                                                  },
+                                                ),
+                                              ],
+                                            );
+                                          });
+                                    },
+                                  )
                                 ],
                               );
                             });
@@ -92,4 +173,8 @@ class _FolderState extends State<FolderWidget> {
       ),
     );
   }
+
+  final SnackBar snackbar = SnackBar(
+    content: Text('空のファイルではありません'),
+  );
 }

@@ -120,7 +120,7 @@ class _HomeState extends State<Home> {
             ],
           ),
           body: StreamBuilder(
-              stream: renameEvent.stream,
+              stream: fileSystemEvent.stream,
               builder: (context, snapshot) {
                 return FutureBuilder(
                     future: rootList(),

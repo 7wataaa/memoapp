@@ -36,4 +36,4 @@ Future<void> rootSet() async {
   }
 }
 
-var renameEvent = StreamController<String>.broadcast();
+var fileSystemEvent = StreamController<String>.broadcast();

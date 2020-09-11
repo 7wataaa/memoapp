@@ -78,7 +78,8 @@ class _FileState extends State<FileWidget> {
                                     widget.file
                                         .rename(
                                             '${widget.file.parent.path}/$newName')
-                                        .then((_) => renameEvent.sink.add(''));
+                                        .then((_) =>
+                                            fileSystemEvent.sink.add(''));
                                     Navigator.pop(context);
                                   },
                                 ),
@@ -89,7 +90,32 @@ class _FileState extends State<FileWidget> {
                       },
                     ),
                     SimpleDialogOption(
-                      child: Text('削除 (未実装)'),
+                      child: Text('削除'),
+                      onPressed: () {
+                        Navigator.pop(context);
+                        showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: Text('削除'),
+                                content: const Text('この動作はもとに戻すことができません'),
+                                actions: [
+                                  FlatButton(
+                                    child: Text('キャンセル'),
+                                    onPressed: () => Navigator.pop(context),
+                                  ),
+                                  FlatButton(
+                                    child: Text('削除'),
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                      widget.file.delete().then(
+                                          (_) => fileSystemEvent.sink.add(''));
+                                    },
+                                  ),
+                                ],
+                              );
+                            });
+                      },
                     )
                   ],
                 );

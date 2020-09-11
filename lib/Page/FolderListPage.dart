@@ -64,7 +64,7 @@ class _FolderListPageState extends State<FolderListPage> {
 
   Widget body() {
     return StreamBuilder<Object>(
-        stream: renameEvent.stream,
+        stream: fileSystemEvent.stream,
         builder: (context, snapshot) {
           return Scrollbar(
             child: ListView(
