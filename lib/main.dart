@@ -61,14 +61,6 @@ class _HomeState extends State<Home> {
     rootSet();
   }
 
-  ///modeSwitch()
-  ///false trueを切り替える
-  void modeSwitch(bool bol) {
-    setState(() {
-      mode = bol;
-    });
-  }
-
   Future rootList() async {
     String path = await localPath();
     try {
@@ -84,7 +76,6 @@ class _HomeState extends State<Home> {
               ),
             );
             mainFileList.sort((a, b) => a.name.compareTo(b.name));
-            //debugPrint('entitiy is File.        mainFileList => $mainFileList');
           } else if (entity is Directory) {
             mainFolderList.add(
               FolderWidget(
@@ -93,8 +84,6 @@ class _HomeState extends State<Home> {
               ),
             );
             mainFolderList.sort((a, b) => a.name.compareTo(b.name));
-            /*debugPrint(
-                'entitiy is Directory. mainFolderList => $mainFolderList');*/
           }
           mainList = [];
           mainFolderList.forEach((FolderWidget widget) => mainList.add(widget));
@@ -109,7 +98,6 @@ class _HomeState extends State<Home> {
     } catch (error) {
       debugPrint('catch $error');
     }
-    //debugPrint('mainList ===> $mainList');
 
     return mainList;
   }

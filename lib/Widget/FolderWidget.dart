@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 
 import 'package:memoapp/Page/FolderListPage.dart';
+
 import 'package:memoapp/fileHandling.dart';
 
 class FolderWidget extends StatefulWidget {
@@ -36,7 +37,7 @@ class _FolderState extends State<FolderWidget> {
                   children: [
                     SimpleDialogOption(
                       child: const Text('リネーム'),
-                      onPressed: () async {
+                      onPressed: () {
                         Navigator.pop(context);
                         return showDialog(
                             context: context,
@@ -46,22 +47,24 @@ class _FolderState extends State<FolderWidget> {
                                 content: TextField(
                                   autofocus: true,
                                   onChanged: (value) => string = value,
-                                  decoration: InputDecoration(
-                                      labelText: '新しいフォルダの名前を入力してください'),
+                                  decoration:
+                                      InputDecoration(labelText: '新しいフォルダ名'),
                                 ),
                                 actions: [
                                   FlatButton(
-                                    child: const Text('戻る'),
+                                    child: const Text('キャンセル'),
                                     onPressed: () {
                                       Navigator.pop(context);
                                     },
                                   ),
                                   FlatButton(
-                                    child: Text('変更'),
+                                    child: const Text('決定'),
                                     onPressed: () {
-                                      widget.dir.rename(
-                                          '${widget.dir.parent.path}/$string');
-                                      renameEvent.sink.add('');
+                                      widget.dir
+                                          .rename(
+                                              '${widget.dir.parent.path}/$string')
+                                          .then(
+                                              (_) => renameEvent.sink.add(''));
                                       Navigator.pop(context);
                                     },
                                   ),
