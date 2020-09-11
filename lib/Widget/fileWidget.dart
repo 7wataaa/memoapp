@@ -69,7 +69,7 @@ class _FileState extends State<FileWidget> {
                               ),
                               actions: [
                                 FlatButton(
-                                  child: Text('キャンセル'),
+                                  child: const Text('キャンセル'),
                                   onPressed: () => Navigator.pop(context),
                                 ),
                                 FlatButton(
@@ -90,22 +90,22 @@ class _FileState extends State<FileWidget> {
                       },
                     ),
                     SimpleDialogOption(
-                      child: Text('削除'),
+                      child: const Text('削除'),
                       onPressed: () {
                         Navigator.pop(context);
                         showDialog(
                             context: context,
                             builder: (BuildContext context) {
                               return AlertDialog(
-                                title: Text('削除'),
+                                title: const Text('削除'),
                                 content: const Text('この動作はもとに戻すことができません'),
                                 actions: [
                                   FlatButton(
-                                    child: Text('キャンセル'),
+                                    child: const Text('キャンセル'),
                                     onPressed: () => Navigator.pop(context),
                                   ),
                                   FlatButton(
-                                    child: Text('削除'),
+                                    child: const Text('削除'),
                                     onPressed: () {
                                       Navigator.pop(context);
                                       widget.file.delete().then(
@@ -125,3 +125,4 @@ class _FileState extends State<FileWidget> {
     );
   }
 }
+ const
