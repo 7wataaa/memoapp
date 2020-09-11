@@ -24,9 +24,9 @@ class _CreatePageState extends State<CreatePage> {
   ///-> typeごとの iconを 表示する
   Widget btnIcon() {
     if (type == 'file') {
-      return Icon(Icons.insert_drive_file);
+      return const Icon(Icons.insert_drive_file);
     } else {
-      return Icon(Icons.folder);
+      return const Icon(Icons.folder);
     }
   }
 
@@ -147,12 +147,12 @@ class _CreatePageState extends State<CreatePage> {
                       context: context,
                       builder: (BuildContext context) {
                         return AlertDialog(
-                          title: Text('Error'),
-                          content: Text('同じ名前のディレクトリは作成できません'),
+                          title: const Text('Error'),
+                          content: const Text('同じ名前のディレクトリは作成できません'),
                           actions: [
                             FlatButton(
                                 onPressed: () => Navigator.pop(context),
-                                child: Text('戻る')),
+                                child: const Text('戻る')),
                           ],
                         );
                       });

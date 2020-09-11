@@ -51,7 +51,7 @@ class _FolderState extends State<FolderWidget> {
                                 ),
                                 actions: [
                                   FlatButton(
-                                    child: Text('戻る'),
+                                    child: const Text('戻る'),
                                     onPressed: () {
                                       Navigator.pop(context);
                                     },
