@@ -44,12 +44,12 @@ class _FileState extends State<FileWidget> {
                     SimpleDialogOption(
                       child: Text('開く'),
                       onPressed: () async {
+                        Navigator.pop(context);
                         await Navigator.push(
                             context,
                             MaterialPageRoute(
                                 builder: (context) =>
                                     TextEditPage(file: widget.file)));
-                        Navigator.pop(context);
                       },
                     ),
                     SimpleDialogOption(
