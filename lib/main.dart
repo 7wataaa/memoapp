@@ -64,82 +64,6 @@ class _HomeState extends State<Home> {
     rootSet();
   }
 
-  Future<List> getRootList() async {
-    String path = await localPath();
-    try {
-      mainFileList = [];
-      mainFolderList = [];
-      mainFileCheckList = [];
-      mainFolderCheckList = [];
-      Directory('$path/root').listSync().forEach(
-        (FileSystemEntity entity) {
-          if (!selectMode) {
-            //ここでmainCheckListを操作する
-            if (entity is File) {
-              mainFileList.add(
-                FileWidget(
-                  name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
-                  file: entity,
-                ),
-              );
-              mainFileList.sort((a, b) => a.name.compareTo(b.name));
-            } else if (entity is Directory) {
-              mainFolderList.add(
-                FolderWidget(
-                  name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
-                  dir: entity,
-                ),
-              );
-              mainFolderList.sort((a, b) => a.name.compareTo(b.name));
-            }
-          } else {
-            //debugPrint('createCheckboxList called');
-
-            if (entity is File) {
-              mainFileCheckList.add(
-                FileCheckboxWidget(
-                  name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
-                  file: entity,
-                ),
-              );
-              mainFileCheckList.sort((a, b) => a.name.compareTo(b.name));
-            } else if (entity is Directory) {
-              mainFolderCheckList.add(
-                FolderCheckboxWidget(
-                  name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
-                  dir: entity,
-                ),
-              );
-              mainFolderCheckList.sort((a, b) => a.name.compareTo(b.name));
-            }
-          }
-        },
-      );
-      if (selectMode) {
-        mainCheckList = [];
-        mainFolderCheckList.forEach((widget) => mainCheckList.add(widget));
-        mainFileCheckList.forEach((widget) => mainCheckList.add(widget));
-
-        return mainCheckList;
-      } else {
-        mainList = [];
-        mainFolderList.forEach((widget) => mainList.add(widget));
-        mainFileList.forEach((widget) => mainList.add(widget));
-
-        return mainList;
-      }
-    } on FileSystemException {
-      //rootディレクトリがなかったときの処理
-      await rootSet();
-      //FileSystemException がもっと広いエラーだと終わらないかも
-      Directory('$path/root').exists().then(
-          (bool b) => b ? getRootList() : debugPrint('rootファイルを作ることができない'));
-    } catch (error) {
-      debugPrint('catch $error');
-    }
-    return [];
-  }
-
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -149,12 +73,12 @@ class _HomeState extends State<Home> {
           title: const Text('MEMO'),
           backgroundColor: const Color(0xFF212121),
           actions: <Widget>[
-            Switch(
-                value: selectMode,
-                onChanged: (bool value) {
+            IconButton(
+                icon: btnIcon(),
+                onPressed: () {
                   fileSystemEvent.sink.add('');
                   setState(() {
-                    selectMode = value;
+                    selectMode = selectMode ? false : true;
                   });
                 })
           ],
@@ -290,5 +214,89 @@ class _HomeState extends State<Home> {
               ),
       ),
     );
+  }
+
+  Widget btnIcon() {
+    if (selectMode) {
+      return const Icon(Icons.edit);
+    } else {
+      return const Icon(Icons.edit_outlined);
+    }
+  }
+
+  Future<List> getRootList() async {
+    String path = await localPath();
+    try {
+      mainFileList = [];
+      mainFolderList = [];
+      mainFileCheckList = [];
+      mainFolderCheckList = [];
+      Directory('$path/root').listSync().forEach(
+        (FileSystemEntity entity) {
+          if (!selectMode) {
+            //ここでmainCheckListを操作する
+            if (entity is File) {
+              mainFileList.add(
+                FileWidget(
+                  name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
+                  file: entity,
+                ),
+              );
+              mainFileList.sort((a, b) => a.name.compareTo(b.name));
+            } else if (entity is Directory) {
+              mainFolderList.add(
+                FolderWidget(
+                  name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
+                  dir: entity,
+                ),
+              );
+              mainFolderList.sort((a, b) => a.name.compareTo(b.name));
+            }
+          } else {
+            //debugPrint('createCheckboxList called');
+
+            if (entity is File) {
+              mainFileCheckList.add(
+                FileCheckboxWidget(
+                  name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
+                  file: entity,
+                ),
+              );
+              mainFileCheckList.sort((a, b) => a.name.compareTo(b.name));
+            } else if (entity is Directory) {
+              mainFolderCheckList.add(
+                FolderCheckboxWidget(
+                  name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
+                  dir: entity,
+                ),
+              );
+              mainFolderCheckList.sort((a, b) => a.name.compareTo(b.name));
+            }
+          }
+        },
+      );
+      if (selectMode) {
+        mainCheckList = [];
+        mainFolderCheckList.forEach((widget) => mainCheckList.add(widget));
+        mainFileCheckList.forEach((widget) => mainCheckList.add(widget));
+
+        return mainCheckList;
+      } else {
+        mainList = [];
+        mainFolderList.forEach((widget) => mainList.add(widget));
+        mainFileList.forEach((widget) => mainList.add(widget));
+
+        return mainList;
+      }
+    } on FileSystemException {
+      //rootディレクトリがなかったときの処理
+      await rootSet();
+      //FileSystemException がもっと広いエラーだと終わらないかも
+      Directory('$path/root').exists().then(
+          (bool b) => b ? getRootList() : debugPrint('rootファイルを作ることができない'));
+    } catch (error) {
+      debugPrint('catch $error');
+    }
+    return [];
   }
 }
