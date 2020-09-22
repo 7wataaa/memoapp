@@ -177,20 +177,75 @@ class _HomeState extends State<Home> {
                               ),
                             ),
                             Container(
-                              //color: Color(0xFFFFEE58),
-                              margin: EdgeInsets.only(bottom: 10),
-                              decoration: BoxDecoration(
-                                  border: Border(
-                                      top: BorderSide(color: Colors.black))),
-                              child: IconButton(
-                                iconSize: 35,
-                                icon: Icon(
-                                  Icons.delete,
-                                  color: const Color(0xFF484848),
+                              color: Color(0xFFeeeeee),
+                              child: Container(
+                                margin: EdgeInsets.only(
+                                  bottom: 13,
+                                  left: 10,
+                                  right: 10,
                                 ),
-                                onPressed: () {
-                                  //checkboxlisttileで判別したものの削除機能
-                                },
+                                decoration: BoxDecoration(
+                                  border: Border(
+                                    top: BorderSide(
+                                      width: 0.5,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    Container(
+                                      child: Stack(
+                                        overflow: Overflow.visible,
+                                        alignment: Alignment.bottomCenter,
+                                        children: [
+                                          IconButton(
+                                            iconSize: 35,
+                                            icon: const Icon(
+                                              Icons.forward,
+                                              color: const Color(0xFF484848),
+                                            ),
+                                            onPressed: () {},
+                                          ),
+                                          Positioned(
+                                            bottom: -8,
+                                            child: Text(
+                                              'move',
+                                              style: TextStyle(fontSize: 14),
+                                            ),
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                    Container(
+                                      child: Stack(
+                                        overflow: Overflow.visible,
+                                        alignment: Alignment.bottomCenter,
+                                        children: [
+                                          IconButton(
+                                            iconSize: 35,
+                                            icon: const Icon(
+                                              Icons.delete,
+                                              color: const Color(0xFF484848),
+                                            ),
+                                            onPressed: () {
+                                              //checkboxlisttileで判別したものの削除機能
+                                            },
+                                          ),
+                                          Positioned(
+                                            bottom: -8,
+                                            child: Text(
+                                              'delete',
+                                              style: TextStyle(fontSize: 14),
+                                            ),
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             )
                           ],
