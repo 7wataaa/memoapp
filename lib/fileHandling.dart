@@ -12,14 +12,6 @@ Future<String> localPath() async {
   return directory.path;
 }
 
-///localPathSync()
-///Android, iOS に対応するパスを同期的に取得
-String localPathSync() {
-  String path;
-  getApplicationDocumentsDirectory().then((dir) => path = dir.path);
-  return path;
-}
-
 ///rootSet()
 ///rootディレクトリを確認して、なければ作る。
 Future<void> rootSet() async {

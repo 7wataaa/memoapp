@@ -24,7 +24,7 @@ class _FolderState extends State<FolderWidget> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.only(left: 10.0, right: 10.0, top: 5, bottom: 0),
+      padding: EdgeInsets.only(left: 10.0, right: 0, top: 5, bottom: 0),
       child: ListTile(
         title: Text('${widget.name}', style: TextStyle(fontSize: 18.5)),
         leading: const Icon(Icons.folder),
@@ -185,6 +185,36 @@ class _FolderState extends State<FolderWidget> {
             name: '${widget.name}',
             dir: widget.dir,
           );
+        },
+      ),
+    );
+  }
+}
+
+class FolderCheckboxWidget extends StatefulWidget {
+  final String name;
+  final Directory dir;
+
+  FolderCheckboxWidget({this.name, this.dir});
+
+  @override
+  _FolderCheckboxWidgetState createState() => _FolderCheckboxWidgetState();
+}
+
+class _FolderCheckboxWidgetState extends State<FolderCheckboxWidget> {
+  bool isChecked = false;
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.only(left: 10.0, right: 0, top: 5, bottom: 0),
+      child: CheckboxListTile(
+        title: Text('${widget.name}', style: TextStyle(fontSize: 18.5)),
+        secondary: const Icon(Icons.folder),
+        value: isChecked,
+        onChanged: (value) {
+          setState(() {
+            isChecked = value;
+          });
         },
       ),
     );

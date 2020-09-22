@@ -47,9 +47,6 @@ class _TextEditPageState extends State<TextEditPage> {
         label: const Text('save'),
         backgroundColor: const Color(0xFF212121),
         onPressed: () {
-          // ignore: todo
-          //TODO ファイルに保存する
-          debugPrint('$str');
           widget.file.writeAsStringSync(str);
           Navigator.pop(context);
         },
@@ -57,7 +54,3 @@ class _TextEditPageState extends State<TextEditPage> {
     );
   }
 }
-/*
-fileのセーブ機能
-
-*/

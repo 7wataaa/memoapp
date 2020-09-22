@@ -4,6 +4,8 @@ import 'package:flutter/cupertino.dart';
 
 import 'package:flutter/material.dart';
 
+import 'package:memoapp/Page/SelectPage.dart';
+
 import 'package:memoapp/fileHandling.dart';
 
 import 'package:memoapp/Page/EditPage.dart';
@@ -24,7 +26,7 @@ class _FileState extends State<FileWidget> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.only(left: 10.0, right: 10.0, top: 5, bottom: 0),
+      padding: EdgeInsets.only(left: 10.0, right: 0, top: 5, bottom: 0),
       child: ListTile(
           title: Text('${widget.name}'),
           leading: const Icon(Icons.insert_drive_file),
@@ -90,6 +92,21 @@ class _FileState extends State<FileWidget> {
                       },
                     ),
                     SimpleDialogOption(
+                      child: const Text('移動'),
+                      onPressed: () {
+                        Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          CupertinoPageRoute(
+                            builder: (BuildContext context) {
+                              return Cdpage(file: widget.file);
+                            },
+                          ),
+                        );
+                        fileSystemEvent.add('');
+                      },
+                    ),
+                    SimpleDialogOption(
                       child: const Text('削除'),
                       onPressed: () {
                         Navigator.pop(context);
@@ -122,6 +139,36 @@ class _FileState extends State<FileWidget> {
               },
             );
           }),
+    );
+  }
+}
+
+class FileCheckboxWidget extends StatefulWidget {
+  final String name;
+  final File file;
+
+  FileCheckboxWidget({this.name, this.file});
+
+  @override
+  _FileCheckboxWidgetState createState() => _FileCheckboxWidgetState();
+}
+
+class _FileCheckboxWidgetState extends State<FileCheckboxWidget> {
+  bool isChecked = false;
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.only(left: 10.0, right: 0, top: 5, bottom: 0),
+      child: CheckboxListTile(
+        title: Text('${widget.name}'),
+        secondary: const Icon(Icons.insert_drive_file),
+        value: isChecked,
+        onChanged: (value) {
+          setState(() {
+            isChecked = value;
+          });
+        },
+      ),
     );
   }
 }
