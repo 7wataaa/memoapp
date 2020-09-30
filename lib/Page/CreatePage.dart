@@ -48,7 +48,7 @@ class _CreatePageState extends State<CreatePage> {
   ///type, directory ごとのデコレーション
   InputDecoration parentDecoration() {
     return InputDecoration(
-      labelText: '${RegExp(r'([^/]+?)?$').stringMatch(widget.tDir.path)}',
+      labelText: '${RegExp(r'([^/]+?)?$').stringMatch(widget.tDir.path)}/',
       hintText: '$type の名前を入力してください',
     );
   }
@@ -76,7 +76,7 @@ class _CreatePageState extends State<CreatePage> {
                       left: 10.0, right: 10.0, top: 5, bottom: 0),
                   child: TextField(
                     controller: textEditingController,
-                    autofocus: true,
+                    //autofocus: true,
                     decoration: parentDecoration(),
                     onChanged: (str) => nameStr = str,
                   ),
@@ -93,14 +93,13 @@ class _CreatePageState extends State<CreatePage> {
           Container(
             margin: EdgeInsets.only(bottom: 16.0),
             child: FloatingActionButton(
-              heroTag: 'switchBtn',
               backgroundColor: const Color(0xFF212121),
               child: btnIcon(),
               onPressed: () => typeSwitch(),
             ),
           ),
           FloatingActionButton.extended(
-            heroTag: 'saveBtn',
+            heroTag: 'PageBtn',
             backgroundColor: const Color(0xFF212121),
             icon: Icon(Icons.check),
             label: Text('$type を保存'),

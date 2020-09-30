@@ -214,6 +214,7 @@ class _FolderCheckboxWidgetState extends State<FolderCheckboxWidget> {
         onChanged: (value) {
           setState(() {
             isChecked = value;
+            fsEntityToCheck[widget.dir] = isChecked;
           });
         },
       ),

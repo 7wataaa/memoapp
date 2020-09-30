@@ -29,3 +29,5 @@ Future<void> rootSet() async {
 }
 
 var fileSystemEvent = StreamController<String>.broadcast();
+
+Map<dynamic, bool> fsEntityToCheck = {};

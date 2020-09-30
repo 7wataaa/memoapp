@@ -91,6 +91,7 @@ class _HomeState extends State<Home> {
                   builder: (BuildContext context, AsyncSnapshot snapshot) {
                     if (snapshot.hasData) {
                       if (selectMode) {
+                        fsEntityToCheck = {};
                         return Column(
                           children: [
                             Expanded(
@@ -101,7 +102,7 @@ class _HomeState extends State<Home> {
                               ),
                             ),
                             Container(
-                              color: Color(0xFFeeeeee),
+                              //color: Color(0xFFeeeeee),
                               child: Container(
                                 margin: EdgeInsets.only(
                                   bottom: 13,
@@ -155,7 +156,24 @@ class _HomeState extends State<Home> {
                                               color: const Color(0xFF484848),
                                             ),
                                             onPressed: () {
-                                              //checkboxlisttileで判別したものの削除機能
+                                              //選択したかどうかの判定、リストをここでつかう
+                                              if (fsEntityToCheck.isEmpty) {
+                                                debugPrint('何も選択されてません');
+                                              } else {
+                                                for (var key
+                                                    in fsEntityToCheck.keys) {
+                                                  if (!fsEntityToCheck[key]) {
+                                                    debugPrint('何も選択されてません');
+                                                  } else {
+                                                    debugPrint('$key');
+                                                    showDeleteDialog(context);
+                                                    setState(() {
+                                                      selectMode = false;
+                                                    });
+                                                    break;
+                                                  }
+                                                }
+                                              }
                                             },
                                           ),
                                           Positioned(
@@ -213,6 +231,50 @@ class _HomeState extends State<Home> {
                 },
               ),
       ),
+    );
+  }
+
+  Future showDeleteDialog(BuildContext context) {
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        List<dynamic> deleteList = [];
+        List<String> deleteListToString = [];
+
+        for (var key in fsEntityToCheck.keys) {
+          if (fsEntityToCheck[key]) {
+            deleteList.add(key);
+            deleteListToString
+                .add('${RegExp(r'([^/]+?)?$').stringMatch(key.path)}');
+          }
+        }
+
+        return AlertDialog(
+          title: const Text('delete'),
+          content: Text('$deleteListToString を削除します'),
+          actions: [
+            FlatButton(
+              child: const Text('キャンセル'),
+              onPressed: () => Navigator.pop(context),
+            ),
+            FlatButton(
+              child: const Text('すべて削除'),
+              onPressed: () {
+                //koko
+                for (var entity in deleteList) {
+                  if (entity is File) {
+                    entity.delete();
+                  } else if (entity is Directory) {
+                    entity.delete(recursive: true);
+                  }
+                }
+                fileSystemEvent.add('');
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -300,3 +362,8 @@ class _HomeState extends State<Home> {
     return [];
   }
 }
+/*
+ファイルとディレクトリの名前が同じだとエラー
+ファイルに入力→save→開く→save→開く→消えてる
+folder/folderが削除時に更新されない streambuilderじゃないから
+*/
