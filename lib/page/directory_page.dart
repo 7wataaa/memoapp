@@ -21,7 +21,7 @@ class FolderListPage extends StatefulWidget {
 }
 
 class _FolderListPageState extends State<FolderListPage> {
-  bool selectMode = false;
+  bool _selectMode = false;
 
   @override
   Widget build(BuildContext context) {
@@ -35,18 +35,18 @@ class _FolderListPageState extends State<FolderListPage> {
         backgroundColor: const Color(0xFF212121),
         actions: [
           IconButton(
-            icon: btnIcon(),
+            icon: _btnIcon(),
             onPressed: () {
               fileSystemEvent.sink.add('');
               setState(() {
-                selectMode = selectMode ? false : true;
+                _selectMode = _selectMode ? false : true;
               });
             },
           ),
         ],
       ),
-      body: body(),
-      floatingActionButton: selectMode
+      body: _body(),
+      floatingActionButton: _selectMode
           ? null
           : FloatingActionButton(
               heroTag: 'PageBtn',
@@ -68,37 +68,37 @@ class _FolderListPageState extends State<FolderListPage> {
     );
   }
 
-  Widget btnIcon() {
-    if (selectMode) {
+  Widget _btnIcon() {
+    if (_selectMode) {
       return const Icon(Icons.edit);
     } else {
       return const Icon(Icons.edit_outlined);
     }
   }
 
-  Widget body() {
+  Widget _body() {
     return StreamBuilder(
         stream: fileSystemEvent.stream,
         builder: (context, snapshot) {
           fsEntityToCheck = {};
-          if (selectMode) {
+          if (_selectMode) {
             return Column(
               children: [
                 Expanded(
                   child: Scrollbar(
                     child: ListView(
-                      children: getList(),
+                      children: _getList(),
                     ),
                   ),
                 ),
                 Container(
                   child: Container(
-                    margin: EdgeInsets.only(
+                    margin: const EdgeInsets.only(
                       bottom: 13,
                       left: 10,
                       right: 10,
                     ),
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       border: Border(
                         top: BorderSide(
                           width: 0.5,
@@ -118,13 +118,15 @@ class _FolderListPageState extends State<FolderListPage> {
                                 iconSize: 35,
                                 icon: const Icon(
                                   Icons.forward,
-                                  color: const Color(0xFF484848),
+                                  color: Color(0xFF484848),
                                 ),
-                                onPressed: () {},
+                                onPressed: () {
+                                  //koko
+                                },
                               ),
                               Positioned(
                                 bottom: -8,
-                                child: Text(
+                                child: const Text(
                                   'move',
                                   style: TextStyle(fontSize: 14),
                                 ),
@@ -141,31 +143,24 @@ class _FolderListPageState extends State<FolderListPage> {
                                 iconSize: 35,
                                 icon: const Icon(
                                   Icons.delete,
-                                  color: const Color(0xFF484848),
+                                  color: Color(0xFF484848),
                                 ),
                                 onPressed: () {
-                                  //選択したかどうかの判定、リストをここでつかう
-                                  if (fsEntityToCheck.isEmpty) {
+                                  if (fsEntityToCheck.isEmpty ||
+                                      fsEntityToCheck.values
+                                          .every((bool b) => b == false)) {
                                     debugPrint('何も選択されてません(folderlistpage');
                                   } else {
-                                    for (var key in fsEntityToCheck.keys) {
-                                      if (!fsEntityToCheck[key]) {
-                                        debugPrint('何も選択されてません(folderlistpage');
-                                      } else {
-                                        debugPrint('$key');
-                                        showDeleteDialog(context);
-                                        setState(() {
-                                          selectMode = false;
-                                        });
-                                        break;
-                                      }
-                                    }
+                                    showDeleteDialog(context);
+                                    setState(() {
+                                      _selectMode = false;
+                                    });
                                   }
                                 },
                               ),
                               Positioned(
                                 bottom: -8,
-                                child: Text(
+                                child: const Text(
                                   'delete',
                                   style: TextStyle(fontSize: 14),
                                 ),
@@ -182,99 +177,99 @@ class _FolderListPageState extends State<FolderListPage> {
           } else {
             return Scrollbar(
                 child: ListView(
-              children: getList(),
+              children: _getList(),
             ));
           }
         });
   }
 
-  ///[selectMode]に応じたリストを返す
+  ///[_selectMode]に応じたリストを返す
   ///
   ///true なら[checkboxTiles()]
   ///false なら[normalTiles()]
-  List<Widget> getList() {
+  List<Widget> _getList() {
     try {
-      return selectMode ? checkboxTiles() : normalTiles();
+      return _selectMode ? _checkboxTiles() : _normalTiles();
     } catch (e) {
       debugPrint('$e');
       return null;
     }
   }
 
-  List<Widget> normalTiles() {
-    List<FolderWidget> folderTiles = [];
-    List<FileWidget> fileTiles = [];
+  List<Widget> _normalTiles() {
+    List<FolderWidget> _folderTiles = [];
+    List<FileWidget> _fileTiles = [];
 
     Directory.current.listSync().forEach((FileSystemEntity entity) {
       if (entity is File) {
-        fileTiles.add(
+        _fileTiles.add(
           FileWidget(
             name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
             file: entity,
           ),
         );
-        fileTiles.sort((a, b) => a.name.compareTo(b.name));
+        _fileTiles.sort((a, b) => a.name.compareTo(b.name));
       } else if (entity is Directory) {
-        folderTiles.add(
+        _folderTiles.add(
           FolderWidget(
             name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
             dir: entity,
           ),
         );
-        folderTiles.sort((a, b) => a.name.compareTo(b.name));
+        _folderTiles.sort((a, b) => a.name.compareTo(b.name));
       }
     });
 
-    List<Widget> result = [...folderTiles, ...fileTiles];
-    return result;
+    List<Widget> _result = [..._folderTiles, ..._fileTiles];
+    return _result;
   }
 
-  List<Widget> checkboxTiles() {
-    List<FileCheckboxWidget> fileCheckList = [];
-    List<FolderCheckboxWidget> folderCheckList = [];
+  List<Widget> _checkboxTiles() {
+    List<FileCheckboxWidget> _fileCheckList = [];
+    List<FolderCheckboxWidget> _folderCheckList = [];
 
     Directory.current.listSync().forEach((FileSystemEntity entity) {
       if (entity is File) {
-        fileCheckList.add(
+        _fileCheckList.add(
           FileCheckboxWidget(
             name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
             file: entity,
           ),
         );
-        fileCheckList.sort((a, b) => a.name.compareTo(b.name));
+        _fileCheckList.sort((a, b) => a.name.compareTo(b.name));
       } else if (entity is Directory) {
-        folderCheckList.add(
+        _folderCheckList.add(
           FolderCheckboxWidget(
             name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
             dir: entity,
           ),
         );
-        folderCheckList.sort((a, b) => a.name.compareTo(b.name));
+        _folderCheckList.sort((a, b) => a.name.compareTo(b.name));
       }
     });
 
-    List<Widget> result = [...folderCheckList, ...fileCheckList];
-    return result;
+    List<Widget> _result = [..._folderCheckList, ..._fileCheckList];
+    return _result;
   }
 
-  showDeleteDialog(BuildContext context) {
+  Future showDeleteDialog(BuildContext context) {
     return showDialog(
       context: context,
       builder: (BuildContext context) {
-        List<dynamic> deleteList = [];
-        List<String> deleteListToString = [];
+        List<dynamic> _deleteList = [];
+        List<String> _deleteListToString = [];
 
         for (var key in fsEntityToCheck.keys) {
           if (fsEntityToCheck[key]) {
-            deleteList.add(key);
-            deleteListToString
+            _deleteList.add(key);
+            _deleteListToString
                 .add('${RegExp(r'([^/]+?)?$').stringMatch(key.path)}');
           }
         }
 
         return AlertDialog(
           title: const Text('キャンセル'),
-          content: Text('$deleteListToString を削除します'),
+          content: Text('$_deleteListToString を削除します'),
           actions: [
             FlatButton(
               child: const Text('キャンセル'),
@@ -283,7 +278,7 @@ class _FolderListPageState extends State<FolderListPage> {
             FlatButton(
               child: const Text('すべて削除'),
               onPressed: () {
-                for (var entity in deleteList) {
+                for (var entity in _deleteList) {
                   if (entity is File) {
                     entity.deleteSync();
                   } else if (entity is Directory) {

@@ -50,7 +50,7 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  bool selectMode = false;
+  bool _selectMode = false;
 
   @override
   void initState() {
@@ -68,11 +68,11 @@ class _HomeState extends State<Home> {
           backgroundColor: const Color(0xFF212121),
           actions: <Widget>[
             IconButton(
-                icon: editIcon(),
+                icon: _editIcon(),
                 onPressed: () {
                   fileSystemEvent.sink.add('');
                   setState(() {
-                    selectMode = selectMode ? false : true;
+                    _selectMode = _selectMode ? false : true;
                   });
                 })
           ],
@@ -81,10 +81,10 @@ class _HomeState extends State<Home> {
             stream: fileSystemEvent.stream,
             builder: (context, snapshot) {
               return FutureBuilder(
-                  future: getRootList(),
+                  future: _getRootList(),
                   builder: (BuildContext context, AsyncSnapshot snapshot) {
                     if (snapshot.hasData) {
-                      if (selectMode) {
+                      if (_selectMode) {
                         fsEntityToCheck = {};
                         return Column(
                           children: [
@@ -103,7 +103,7 @@ class _HomeState extends State<Home> {
                                   left: 10,
                                   right: 10,
                                 ),
-                                decoration: BoxDecoration(
+                                decoration: const BoxDecoration(
                                   border: Border(
                                     top: BorderSide(
                                       width: 0.5,
@@ -124,13 +124,13 @@ class _HomeState extends State<Home> {
                                             iconSize: 35,
                                             icon: const Icon(
                                               Icons.forward,
-                                              color: const Color(0xFF484848),
+                                              color: Color(0xFF484848),
                                             ),
                                             onPressed: () {},
                                           ),
                                           Positioned(
                                             bottom: -8,
-                                            child: Text(
+                                            child: const Text(
                                               'move',
                                               style: TextStyle(fontSize: 14),
                                             ),
@@ -147,15 +147,15 @@ class _HomeState extends State<Home> {
                                             iconSize: 35,
                                             icon: const Icon(
                                               Icons.delete,
-                                              color: const Color(0xFF484848),
+                                              color: Color(0xFF484848),
                                             ),
                                             onPressed: () {
-                                              deleteSelectedEntities();
+                                              _deleteSelectedEntities();
                                             },
                                           ),
                                           Positioned(
                                             bottom: -8,
-                                            child: Text(
+                                            child: const Text(
                                               'delete',
                                               style: TextStyle(fontSize: 14),
                                             ),
@@ -177,10 +177,9 @@ class _HomeState extends State<Home> {
                         );
                       }
                     } else {
-                      debugPrint('hasData is false');
                       return Center(
                         child: Container(
-                          child: Text(
+                          child: const Text(
                             'hasData is false',
                             style: TextStyle(color: Colors.redAccent),
                           ),
@@ -189,7 +188,7 @@ class _HomeState extends State<Home> {
                     }
                   });
             }),
-        floatingActionButton: selectMode
+        floatingActionButton: _selectMode
             ? null
             : FloatingActionButton(
                 heroTag: 'PageBtn',
@@ -211,15 +210,15 @@ class _HomeState extends State<Home> {
     );
   }
 
-  Widget editIcon() {
-    if (selectMode) {
+  Widget _editIcon() {
+    if (_selectMode) {
       return const Icon(Icons.edit);
     } else {
       return const Icon(Icons.edit_outlined);
     }
   }
 
-  void deleteSelectedEntities() {
+  void _deleteSelectedEntities() {
     if (fsEntityToCheck.isEmpty ||
         fsEntityToCheck.values.every((bool b) => b == false)) {
       debugPrint('何も選択されてません');
@@ -249,7 +248,6 @@ class _HomeState extends State<Home> {
               FlatButton(
                 child: const Text('すべて削除'),
                 onPressed: () {
-                  //koko
                   for (var entity in deleteList) {
                     if (entity is File) {
                       entity.delete();
@@ -267,28 +265,28 @@ class _HomeState extends State<Home> {
       ).then((_) {
         setState(
           () {
-            selectMode = false;
+            _selectMode = false;
           },
         );
       });
     }
   }
 
-  ///[selectMode]に応じたリストを返す
+  ///[_selectMode]に応じたリストを返す
   ///
   ///true なら[checkboxTiles()]
   ///false なら[normalTiles()]
-  Future<List> getRootList() async {
+  Future<List> _getRootList() async {
     String path = await localPath();
     try {
-      return selectMode ? checkboxTiles(path) : normalTiles(path);
+      return _selectMode ? _checkboxTiles(path) : _normalTiles(path);
     } catch (e) {
       debugPrint('$e');
       return null;
     }
   }
 
-  List<Widget> normalTiles(String path) {
+  List<Widget> _normalTiles(String path) {
     List<FolderWidget> mainFolderList = [];
     List<FileWidget> mainFileList = [];
     Directory('$path/root').listSync().forEach((FileSystemEntity entity) {
@@ -315,7 +313,7 @@ class _HomeState extends State<Home> {
     return result;
   }
 
-  List<Widget> checkboxTiles(String path) {
+  List<Widget> _checkboxTiles(String path) {
     List<FolderCheckboxWidget> mainFolderCheckList = [];
     List<FileCheckboxWidget> mainFileCheckList = [];
 
