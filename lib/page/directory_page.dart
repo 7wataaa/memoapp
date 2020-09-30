@@ -188,7 +188,10 @@ class _FolderListPageState extends State<FolderListPage> {
         });
   }
 
+  ///[selectMode]に応じたリストを返す
   ///
+  ///true なら[checkboxTiles()]
+  ///false なら[normalTiles()]
   List<Widget> getList() {
     try {
       return selectMode ? checkboxTiles() : normalTiles();

@@ -274,6 +274,10 @@ class _HomeState extends State<Home> {
     }
   }
 
+  ///[selectMode]に応じたリストを返す
+  ///
+  ///true なら[checkboxTiles()]
+  ///false なら[normalTiles()]
   Future<List> getRootList() async {
     String path = await localPath();
     try {
