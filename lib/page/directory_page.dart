@@ -2,13 +2,13 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 
-import 'package:memoapp/fileHandling.dart';
+import 'package:memoapp/handling.dart';
 
-import './CreatePage.dart';
+import 'package:memoapp/page/create_page.dart';
 
-import '../Widget/FileWidget.dart';
+import 'package:memoapp/widget/file_widget.dart';
 
-import '../Widget/FolderWidget.dart';
+import 'package:memoapp/widget/folder_widget.dart';
 
 class FolderListPage extends StatefulWidget {
   final String name;
@@ -21,9 +21,6 @@ class FolderListPage extends StatefulWidget {
 }
 
 class _FolderListPageState extends State<FolderListPage> {
-  List<Widget> resultList = [];
-  List<FolderWidget> folderList = [];
-  List<FileWidget> fileList = [];
   bool selectMode = false;
 
   @override
@@ -191,74 +188,70 @@ class _FolderListPageState extends State<FolderListPage> {
         });
   }
 
+  ///
   List<Widget> getList() {
     try {
-      resultList = [];
-      List<Widget> checkList = [];
-      fileList = [];
-      folderList = [];
-      List<FileCheckboxWidget> fileCheckList = [];
-      List<FolderCheckboxWidget> folderCheckList = [];
-
-      Directory.current.listSync().forEach(
-        (FileSystemEntity entity) {
-          if (!selectMode) {
-            if (entity is File) {
-              fileList.add(
-                FileWidget(
-                  name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
-                  file: entity,
-                ),
-              );
-              fileList.sort((a, b) => a.name.compareTo(b.name));
-            } else if (entity is Directory) {
-              folderList.add(
-                FolderWidget(
-                  name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
-                  dir: entity,
-                ),
-              );
-              folderList.sort((a, b) => a.name.compareTo(b.name));
-            }
-          } else {
-            if (entity is File) {
-              fileCheckList.add(
-                FileCheckboxWidget(
-                  name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
-                  file: entity,
-                ),
-              );
-              fileCheckList.sort((a, b) => a.name.compareTo(b.name));
-            } else if (entity is Directory) {
-              folderCheckList.add(
-                FolderCheckboxWidget(
-                  name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
-                  dir: entity,
-                ),
-              );
-              folderCheckList.sort((a, b) => a.name.compareTo(b.name));
-            }
-          }
-        },
-      );
-      if (selectMode) {
-        checkList = [];
-        folderCheckList.forEach(checkList.add);
-        fileCheckList.forEach(checkList.add);
-
-        return checkList;
-      } else {
-        resultList = [];
-        folderList.forEach(resultList.add);
-        fileList.forEach(resultList.add);
-
-        return resultList;
-      }
-    } catch (error) {
-      debugPrint('catch $error');
+      return selectMode ? checkboxTiles() : normalTiles();
+    } catch (e) {
+      debugPrint('$e');
+      return null;
     }
+  }
 
-    return [];
+  List<Widget> normalTiles() {
+    List<FolderWidget> folderTiles = [];
+    List<FileWidget> fileTiles = [];
+
+    Directory.current.listSync().forEach((FileSystemEntity entity) {
+      if (entity is File) {
+        fileTiles.add(
+          FileWidget(
+            name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
+            file: entity,
+          ),
+        );
+        fileTiles.sort((a, b) => a.name.compareTo(b.name));
+      } else if (entity is Directory) {
+        folderTiles.add(
+          FolderWidget(
+            name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
+            dir: entity,
+          ),
+        );
+        folderTiles.sort((a, b) => a.name.compareTo(b.name));
+      }
+    });
+
+    List<Widget> result = [...folderTiles, ...fileTiles];
+    return result;
+  }
+
+  List<Widget> checkboxTiles() {
+    List<FileCheckboxWidget> fileCheckList = [];
+    List<FolderCheckboxWidget> folderCheckList = [];
+
+    Directory.current.listSync().forEach((FileSystemEntity entity) {
+      if (entity is File) {
+        fileCheckList.add(
+          FileCheckboxWidget(
+            name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
+            file: entity,
+          ),
+        );
+        fileCheckList.sort((a, b) => a.name.compareTo(b.name));
+      } else if (entity is Directory) {
+        folderCheckList.add(
+          FolderCheckboxWidget(
+            name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
+            dir: entity,
+          ),
+        );
+        folderCheckList.sort((a, b) => a.name.compareTo(b.name));
+      }
+    });
+
+    List<Widget> result = [...folderCheckList, ...fileCheckList];
+    return result;
   }
 
   showDeleteDialog(BuildContext context) {

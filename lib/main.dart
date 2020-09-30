@@ -6,15 +6,15 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'package:flutter/material.dart';
 
-import 'package:memoapp/Page/CreatePage.dart';
-
-import 'package:memoapp/fileHandling.dart';
-
-import 'package:memoapp/Widget/FileWidget.dart';
-
-import 'Widget/FolderWidget.dart';
-
 import 'package:screen/screen.dart';
+
+import 'package:memoapp/page/create_page.dart';
+
+import 'package:memoapp/handling.dart';
+
+import 'package:memoapp/widget/file_widget.dart';
+
+import 'package:memoapp/widget/folder_widget.dart';
 
 void main() {
   runApp(MyApp());
@@ -50,12 +50,6 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  List<Widget> mainList = [];
-  List<Widget> mainCheckList = [];
-  List<FolderWidget> mainFolderList = [];
-  List<FileWidget> mainFileList = [];
-  List<FolderCheckboxWidget> mainFolderCheckList = [];
-  List<FileCheckboxWidget> mainFileCheckList = [];
   bool selectMode = false;
 
   @override
@@ -74,7 +68,7 @@ class _HomeState extends State<Home> {
           backgroundColor: const Color(0xFF212121),
           actions: <Widget>[
             IconButton(
-                icon: btnIcon(),
+                icon: editIcon(),
                 onPressed: () {
                   fileSystemEvent.sink.add('');
                   setState(() {
@@ -156,23 +150,7 @@ class _HomeState extends State<Home> {
                                               color: const Color(0xFF484848),
                                             ),
                                             onPressed: () {
-                                              if (fsEntityToCheck.isEmpty) {
-                                                debugPrint('何も選択されてません');
-                                              } else {
-                                                for (var key
-                                                    in fsEntityToCheck.keys) {
-                                                  if (!fsEntityToCheck[key]) {
-                                                    debugPrint('何も選択されてません');
-                                                  } else {
-                                                    debugPrint('$key');
-                                                    showDeleteDialog(context);
-                                                    setState(() {
-                                                      selectMode = false;
-                                                    });
-                                                    break;
-                                                  }
-                                                }
-                                              }
+                                              deleteSelectedEntities();
                                             },
                                           ),
                                           Positioned(
@@ -233,51 +211,7 @@ class _HomeState extends State<Home> {
     );
   }
 
-  Future showDeleteDialog(BuildContext context) {
-    return showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        List<dynamic> deleteList = [];
-        List<String> deleteListToString = [];
-
-        for (var key in fsEntityToCheck.keys) {
-          if (fsEntityToCheck[key]) {
-            deleteList.add(key);
-            deleteListToString
-                .add('${RegExp(r'([^/]+?)?$').stringMatch(key.path)}');
-          }
-        }
-
-        return AlertDialog(
-          title: const Text('delete'),
-          content: Text('$deleteListToString を削除します'),
-          actions: [
-            FlatButton(
-              child: const Text('キャンセル'),
-              onPressed: () => Navigator.pop(context),
-            ),
-            FlatButton(
-              child: const Text('すべて削除'),
-              onPressed: () {
-                //koko
-                for (var entity in deleteList) {
-                  if (entity is File) {
-                    entity.delete();
-                  } else if (entity is Directory) {
-                    entity.delete(recursive: true);
-                  }
-                }
-                fileSystemEvent.add('');
-                Navigator.pop(context);
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget btnIcon() {
+  Widget editIcon() {
     if (selectMode) {
       return const Icon(Icons.edit);
     } else {
@@ -285,80 +219,124 @@ class _HomeState extends State<Home> {
     }
   }
 
+  void deleteSelectedEntities() {
+    if (fsEntityToCheck.isEmpty ||
+        fsEntityToCheck.values.every((bool b) => b == false)) {
+      debugPrint('何も選択されてません');
+    } else {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          List<dynamic> deleteList = [];
+          List<String> deleteListToString = [];
+
+          for (var key in fsEntityToCheck.keys) {
+            if (fsEntityToCheck[key]) {
+              deleteList.add(key);
+              deleteListToString
+                  .add('${RegExp(r'([^/]+?)?$').stringMatch(key.path)}');
+            }
+          }
+
+          return AlertDialog(
+            title: const Text('delete'),
+            content: Text('$deleteListToString を削除します'),
+            actions: [
+              FlatButton(
+                child: const Text('キャンセル'),
+                onPressed: () => Navigator.pop(context),
+              ),
+              FlatButton(
+                child: const Text('すべて削除'),
+                onPressed: () {
+                  //koko
+                  for (var entity in deleteList) {
+                    if (entity is File) {
+                      entity.delete();
+                    } else if (entity is Directory) {
+                      entity.delete(recursive: true);
+                    }
+                  }
+                  fileSystemEvent.add('');
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          );
+        },
+      ).then((_) {
+        setState(
+          () {
+            selectMode = false;
+          },
+        );
+      });
+    }
+  }
+
   Future<List> getRootList() async {
     String path = await localPath();
     try {
-      mainFileList = [];
-      mainFolderList = [];
-      mainFileCheckList = [];
-      mainFolderCheckList = [];
-      Directory('$path/root').listSync().forEach(
-        (FileSystemEntity entity) {
-          if (!selectMode) {
-            //ここでmainCheckListを操作する
-            if (entity is File) {
-              mainFileList.add(
-                FileWidget(
-                  name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
-                  file: entity,
-                ),
-              );
-              mainFileList.sort((a, b) => a.name.compareTo(b.name));
-            } else if (entity is Directory) {
-              mainFolderList.add(
-                FolderWidget(
-                  name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
-                  dir: entity,
-                ),
-              );
-              mainFolderList.sort((a, b) => a.name.compareTo(b.name));
-            }
-          } else {
-            //debugPrint('createCheckboxList called');
-
-            if (entity is File) {
-              mainFileCheckList.add(
-                FileCheckboxWidget(
-                  name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
-                  file: entity,
-                ),
-              );
-              mainFileCheckList.sort((a, b) => a.name.compareTo(b.name));
-            } else if (entity is Directory) {
-              mainFolderCheckList.add(
-                FolderCheckboxWidget(
-                  name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
-                  dir: entity,
-                ),
-              );
-              mainFolderCheckList.sort((a, b) => a.name.compareTo(b.name));
-            }
-          }
-        },
-      );
-      if (selectMode) {
-        mainCheckList = [];
-        mainFolderCheckList.forEach((widget) => mainCheckList.add(widget));
-        mainFileCheckList.forEach((widget) => mainCheckList.add(widget));
-
-        return mainCheckList;
-      } else {
-        mainList = [];
-        mainFolderList.forEach((widget) => mainList.add(widget));
-        mainFileList.forEach((widget) => mainList.add(widget));
-
-        return mainList;
-      }
-    } on FileSystemException {
-      //rootディレクトリがなかったときの処理
-      await rootSet();
-      //FileSystemException がもっと広いエラーだと終わらないかも
-      Directory('$path/root').exists().then(
-          (bool b) => b ? getRootList() : debugPrint('rootファイルを作ることができない'));
-    } catch (error) {
-      debugPrint('catch $error');
+      return selectMode ? checkboxTiles(path) : normalTiles(path);
+    } catch (e) {
+      debugPrint('$e');
+      return null;
     }
-    return [];
+  }
+
+  List<Widget> normalTiles(String path) {
+    List<FolderWidget> mainFolderList = [];
+    List<FileWidget> mainFileList = [];
+    Directory('$path/root').listSync().forEach((FileSystemEntity entity) {
+      if (entity is File) {
+        mainFileList.add(
+          FileWidget(
+            name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
+            file: entity,
+          ),
+        );
+        mainFileList.sort((a, b) => a.name.compareTo(b.name));
+      } else if (entity is Directory) {
+        mainFolderList.add(
+          FolderWidget(
+            name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
+            dir: entity,
+          ),
+        );
+        mainFolderList.sort((a, b) => a.name.compareTo(b.name));
+      }
+    });
+
+    List<Widget> result = [...mainFolderList, ...mainFileList];
+    return result;
+  }
+
+  List<Widget> checkboxTiles(String path) {
+    List<FolderCheckboxWidget> mainFolderCheckList = [];
+    List<FileCheckboxWidget> mainFileCheckList = [];
+
+    Directory('$path/root').listSync().forEach((FileSystemEntity entity) {
+      if (entity is File) {
+        mainFileCheckList.add(
+          FileCheckboxWidget(
+            name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
+            file: entity,
+          ),
+        );
+        mainFileCheckList.sort((a, b) => a.name.compareTo(b.name));
+      } else if (entity is Directory) {
+        mainFolderCheckList.add(
+          FolderCheckboxWidget(
+            name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
+            dir: entity,
+          ),
+        );
+        mainFolderCheckList.sort((a, b) => a.name.compareTo(b.name));
+      }
+    });
+
+    List<Widget> result = [...mainFolderCheckList, ...mainFileCheckList];
+    return result;
   }
 }
 /*

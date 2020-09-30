@@ -4,11 +4,11 @@ import 'package:flutter/cupertino.dart';
 
 import 'package:flutter/material.dart';
 
-import 'package:memoapp/Page/SelectPage.dart';
+import 'package:memoapp/page/select_page.dart';
 
-import 'package:memoapp/fileHandling.dart';
+import 'package:memoapp/handling.dart';
 
-import 'package:memoapp/Page/EditPage.dart';
+import 'package:memoapp/page/edit_page.dart';
 
 class FileWidget extends StatefulWidget {
   final String name;

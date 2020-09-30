@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 
 import 'package:flutter/material.dart';
 
-import '../fileHandling.dart';
+import 'package:memoapp/handling.dart';
 
 class Cdpage extends StatefulWidget {
   final File file;
