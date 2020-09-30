@@ -156,7 +156,6 @@ class _HomeState extends State<Home> {
                                               color: const Color(0xFF484848),
                                             ),
                                             onPressed: () {
-                                              //選択したかどうかの判定、リストをここでつかう
                                               if (fsEntityToCheck.isEmpty) {
                                                 debugPrint('何も選択されてません');
                                               } else {
@@ -365,5 +364,5 @@ class _HomeState extends State<Home> {
 /*
 ファイルとディレクトリの名前が同じだとエラー
 ファイルに入力→save→開く→save→開く→消えてる
-folder/folderが削除時に更新されない streambuilderじゃないから
+root/dir1/dir2からroot/dir1に移動して作成するとdir2に作られる
 */
