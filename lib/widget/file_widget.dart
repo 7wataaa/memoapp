@@ -10,11 +10,14 @@ import 'package:memoapp/handling.dart';
 
 import 'package:memoapp/page/edit_page.dart';
 
+import 'package:memoapp/file_ex.dart';
+
 class FileWidget extends StatefulWidget {
   final String name;
   final File file;
+  final List<Tag> tags;
 
-  FileWidget({this.name, this.file});
+  FileWidget({@required this.name, @required this.file, this.tags});
 
   @override
   _FileState createState() => _FileState();
@@ -30,6 +33,9 @@ class _FileState extends State<FileWidget> {
       child: ListTile(
         title: Text('${widget.name}'),
         leading: const Icon(Icons.insert_drive_file),
+        subtitle: widget.tags == null
+            ? null
+            : subtext(), //widget.tags.isEmpty ? null : subtext(),
         onTap: () {
           Navigator.push(
               context,
@@ -143,13 +149,25 @@ class _FileState extends State<FileWidget> {
       ),
     );
   }
+
+  Text subtext() {
+    String string = '';
+    for (var tag in widget.tags) {
+      string += ' ${tag.tagName}\n';
+    }
+    if (string.length == 0) {
+      return null;
+    }
+    return Text(string.substring(0, string.length - 1));
+  }
 }
 
 class FileCheckboxWidget extends StatefulWidget {
   final String name;
   final File file;
+  final List<Tag> tags;
 
-  FileCheckboxWidget({this.name, this.file});
+  FileCheckboxWidget({this.name, this.file, this.tags});
 
   @override
   _FileCheckboxWidgetState createState() => _FileCheckboxWidgetState();

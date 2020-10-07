@@ -16,6 +16,8 @@ import 'package:memoapp/widget/file_widget.dart';
 
 import 'package:memoapp/widget/folder_widget.dart';
 
+import 'package:memoapp/file_ex.dart';
+
 void main() {
   runApp(MyApp());
   Screen.keepOn(true); //完成したら消す
@@ -51,6 +53,7 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   bool _selectMode = false;
+  bool _storageMode = true;
 
   @override
   void initState() {
@@ -66,6 +69,14 @@ class _HomeState extends State<Home> {
         appBar: AppBar(
           title: const Text('MEMO'),
           backgroundColor: const Color(0xFF212121),
+          leading: IconButton(
+            icon: tagOrStorageIcon(),
+            onPressed: () {
+              setState(() {
+                _storageMode = _storageMode ? false : true;
+              });
+            },
+          ),
           actions: <Widget>[
             IconButton(
                 icon: _editIcon(),
@@ -77,117 +88,117 @@ class _HomeState extends State<Home> {
                 })
           ],
         ),
-        body: StreamBuilder(
-            stream: fileSystemEvent.stream,
-            builder: (context, snapshot) {
-              return FutureBuilder(
-                  future: _getRootList(),
-                  builder: (BuildContext context, AsyncSnapshot snapshot) {
-                    if (snapshot.hasData) {
-                      if (_selectMode) {
-                        fsEntityToCheck = {};
-                        return Column(
-                          children: [
-                            Expanded(
-                              child: Scrollbar(
-                                child: ListView(
-                                  children: snapshot.data,
-                                ),
-                              ),
-                            ),
-                            Container(
-                              //color: Color(0xFFeeeeee),
-                              child: Container(
-                                margin: EdgeInsets.only(
-                                  bottom: 13,
-                                  left: 10,
-                                  right: 10,
-                                ),
-                                decoration: const BoxDecoration(
-                                  border: Border(
-                                    top: BorderSide(
-                                      width: 0.5,
-                                      color: Colors.black,
-                                    ),
+        body: _storageMode
+            ? StreamBuilder(
+                stream: fileSystemEvent.stream,
+                builder: (context, snapshot) {
+                  return FutureBuilder(
+                    future: _getRootList(),
+                    builder: (BuildContext context, AsyncSnapshot snapshot) {
+                      if (snapshot.hasData) {
+                        if (_selectMode) {
+                          fsEntityToCheck = {};
+                          return Column(
+                            children: [
+                              Expanded(
+                                child: Scrollbar(
+                                  child: ListView(
+                                    children: snapshot.data,
                                   ),
                                 ),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceEvenly,
-                                  children: [
-                                    Container(
-                                      child: Stack(
-                                        overflow: Overflow.visible,
-                                        alignment: Alignment.bottomCenter,
-                                        children: [
-                                          IconButton(
-                                            iconSize: 35,
-                                            icon: const Icon(
-                                              Icons.forward,
-                                              color: Color(0xFF484848),
-                                            ),
-                                            onPressed: () {},
-                                          ),
-                                          Positioned(
-                                            bottom: -8,
-                                            child: const Text(
-                                              'move',
-                                              style: TextStyle(fontSize: 14),
-                                            ),
-                                          )
-                                        ],
-                                      ),
-                                    ),
-                                    Container(
-                                      child: Stack(
-                                        overflow: Overflow.visible,
-                                        alignment: Alignment.bottomCenter,
-                                        children: [
-                                          IconButton(
-                                            iconSize: 35,
-                                            icon: const Icon(
-                                              Icons.delete,
-                                              color: Color(0xFF484848),
-                                            ),
-                                            onPressed: () {
-                                              _deleteSelectedEntities();
-                                            },
-                                          ),
-                                          Positioned(
-                                            bottom: -8,
-                                            child: const Text(
-                                              'delete',
-                                              style: TextStyle(fontSize: 14),
-                                            ),
-                                          )
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
                               ),
-                            )
-                          ],
-                        );
+                              Container(
+                                child: Container(
+                                  margin: EdgeInsets.only(
+                                    bottom: 13,
+                                    left: 10,
+                                    right: 10,
+                                  ),
+                                  decoration: const BoxDecoration(
+                                    border: Border(
+                                      top: BorderSide(
+                                        width: 0.5,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceEvenly,
+                                    children: [
+                                      Container(
+                                        child: Stack(
+                                          overflow: Overflow.visible,
+                                          alignment: Alignment.bottomCenter,
+                                          children: [
+                                            IconButton(
+                                              iconSize: 35,
+                                              icon: const Icon(
+                                                Icons.forward,
+                                                color: Color(0xFF484848),
+                                              ),
+                                              onPressed: () {},
+                                            ),
+                                            Positioned(
+                                              bottom: -8,
+                                              child: const Text(
+                                                'move',
+                                                style: TextStyle(fontSize: 14),
+                                              ),
+                                            )
+                                          ],
+                                        ),
+                                      ),
+                                      Container(
+                                        child: Stack(
+                                          overflow: Overflow.visible,
+                                          alignment: Alignment.bottomCenter,
+                                          children: [
+                                            IconButton(
+                                              iconSize: 35,
+                                              icon: const Icon(
+                                                Icons.delete,
+                                                color: Color(0xFF484848),
+                                              ),
+                                              onPressed: () {
+                                                _deleteSelectedEntities();
+                                              },
+                                            ),
+                                            Positioned(
+                                              bottom: -8,
+                                              child: const Text(
+                                                'delete',
+                                                style: TextStyle(fontSize: 14),
+                                              ),
+                                            )
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              )
+                            ],
+                          );
+                        } else {
+                          return Scrollbar(
+                            child: ListView(
+                              children: snapshot.data,
+                            ),
+                          );
+                        }
                       } else {
-                        return Scrollbar(
-                          child: ListView(
-                            children: snapshot.data,
+                        return Center(
+                          child: Container(
+                            child: CircularProgressIndicator(),
                           ),
                         );
                       }
-                    } else {
-                      return Center(
-                        child: Container(
-                          child: const Text(
-                            'hasData is false',
-                            style: TextStyle(color: Colors.redAccent),
-                          ),
-                        ),
-                      );
-                    }
-                  });
-            }),
+                    },
+                  );
+                },
+              )
+            : null, //TODO tag画面の実装
         floatingActionButton: _selectMode
             ? null
             : FloatingActionButton(
@@ -195,27 +206,126 @@ class _HomeState extends State<Home> {
                 backgroundColor: const Color(0xFF212121),
                 child: const Icon(Icons.add),
                 onPressed: () async {
-                  Directory rootdir = Directory('${await localPath()}/root');
-                  await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            CreatePage(tDir: rootdir, isRoot: true),
-                      )).then((_) {
-                    setState(() {});
-                  });
+                  if (_selectMode) {
+                    //TODO FAB押した時タグを追加する画面
+                  } else {
+                    Directory rootdir = Directory('${await localPath()}/root');
+                    await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              CreatePage(tDir: rootdir, isRoot: true),
+                        )).then((_) {
+                      setState(() {});
+                    });
+                  }
                 },
               ),
       ),
     );
   }
 
+  Future<List<Tag>> createTagList() async {
+    //irankamo
+    File tagsFile = File('${await localPath()}/tags');
+    List<Tag> resultList = [];
+
+    if (tagsFile.existsSync()) {
+      for (var str in await tagsFile.readAsLines()) {
+        resultList.add(Tag(str));
+        debugPrint('$str');
+      }
+      return resultList;
+    }
+    return null;
+  }
+
   Widget _editIcon() {
     if (_selectMode) {
       return const Icon(Icons.edit);
-    } else {
-      return const Icon(Icons.edit_outlined);
     }
+    return const Icon(Icons.edit_outlined);
+  }
+
+  Widget tagOrStorageIcon() {
+    if (_storageMode) {
+      return const Icon(
+        Icons.folder,
+        color: Color(0xFFFFFFFF),
+      );
+    }
+    return const Icon(
+      Icons.local_offer_outlined,
+      color: Color(0xFFFFFFFF),
+    );
+  }
+
+  ///[_selectMode]に応じたリストを返す
+  ///
+  ///true なら[checkboxTiles()]
+  ///false なら[normalTiles()]
+  Future<List> _getRootList() async {
+    String path = await localPath();
+    //await Future.delayed(Duration(seconds: 3));
+    try {
+      return _selectMode ? _checkboxTiles(path) : _normalTiles(path);
+    } catch (e) {
+      debugPrint('$e');
+      return null;
+    }
+  }
+
+  List<Widget> _normalTiles(String path) {
+    List<FolderWidget> mainFolderList = [];
+    List<FileWidget> mainFileList = [];
+    Directory('$path/root').listSync().forEach((FileSystemEntity entity) {
+      if (entity is File) {
+        FileEx fileEx = FileEx(entity);
+        mainFileList.add(
+          fileEx.getWidget(),
+        );
+        mainFileList.sort((a, b) => a.name.compareTo(b.name));
+      } else if (entity is Directory) {
+        mainFolderList.add(
+          FolderWidget(
+            name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
+            dir: entity,
+          ),
+        );
+        mainFolderList.sort((a, b) => a.name.compareTo(b.name));
+      }
+    });
+
+    List<Widget> result = [...mainFolderList, ...mainFileList];
+    return result;
+  }
+
+  List<Widget> _checkboxTiles(String path) {
+    List<FolderCheckboxWidget> mainFolderCheckList = [];
+    List<FileCheckboxWidget> mainFileCheckList = [];
+
+    Directory('$path/root').listSync().forEach((FileSystemEntity entity) {
+      if (entity is File) {
+        mainFileCheckList.add(
+          FileCheckboxWidget(
+            name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
+            file: entity,
+          ),
+        );
+        mainFileCheckList.sort((a, b) => a.name.compareTo(b.name));
+      } else if (entity is Directory) {
+        mainFolderCheckList.add(
+          FolderCheckboxWidget(
+            name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
+            dir: entity,
+          ),
+        );
+        mainFolderCheckList.sort((a, b) => a.name.compareTo(b.name));
+      }
+    });
+
+    List<Widget> result = [...mainFolderCheckList, ...mainFileCheckList];
+    return result;
   }
 
   void _deleteSelectedEntities() {
@@ -271,78 +381,8 @@ class _HomeState extends State<Home> {
       });
     }
   }
-
-  ///[_selectMode]に応じたリストを返す
-  ///
-  ///true なら[checkboxTiles()]
-  ///false なら[normalTiles()]
-  Future<List> _getRootList() async {
-    String path = await localPath();
-    try {
-      return _selectMode ? _checkboxTiles(path) : _normalTiles(path);
-    } catch (e) {
-      debugPrint('$e');
-      return null;
-    }
-  }
-
-  List<Widget> _normalTiles(String path) {
-    List<FolderWidget> mainFolderList = [];
-    List<FileWidget> mainFileList = [];
-    Directory('$path/root').listSync().forEach((FileSystemEntity entity) {
-      if (entity is File) {
-        mainFileList.add(
-          FileWidget(
-            name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
-            file: entity,
-          ),
-        );
-        mainFileList.sort((a, b) => a.name.compareTo(b.name));
-      } else if (entity is Directory) {
-        mainFolderList.add(
-          FolderWidget(
-            name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
-            dir: entity,
-          ),
-        );
-        mainFolderList.sort((a, b) => a.name.compareTo(b.name));
-      }
-    });
-
-    List<Widget> result = [...mainFolderList, ...mainFileList];
-    return result;
-  }
-
-  List<Widget> _checkboxTiles(String path) {
-    List<FolderCheckboxWidget> mainFolderCheckList = [];
-    List<FileCheckboxWidget> mainFileCheckList = [];
-
-    Directory('$path/root').listSync().forEach((FileSystemEntity entity) {
-      if (entity is File) {
-        mainFileCheckList.add(
-          FileCheckboxWidget(
-            name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
-            file: entity,
-          ),
-        );
-        mainFileCheckList.sort((a, b) => a.name.compareTo(b.name));
-      } else if (entity is Directory) {
-        mainFolderCheckList.add(
-          FolderCheckboxWidget(
-            name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
-            dir: entity,
-          ),
-        );
-        mainFolderCheckList.sort((a, b) => a.name.compareTo(b.name));
-      }
-    });
-
-    List<Widget> result = [...mainFolderCheckList, ...mainFileCheckList];
-    return result;
-  }
 }
 /*
 ファイルとディレクトリの名前が同じだとエラー
 ファイルに入力→save→開く→save→開く→消えてる
-root/dir1/dir2からroot/dir1に移動して作成するとdir2に作られる
 */

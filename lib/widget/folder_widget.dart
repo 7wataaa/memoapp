@@ -177,8 +177,8 @@ class _FolderState extends State<FolderWidget> {
     );
   }
 
-  openFolder() {
-    Navigator.of(context).push(
+  openFolder() async {
+    await Navigator.of(context).push(
       CupertinoPageRoute(
         builder: (context) {
           return FolderListPage(
@@ -188,6 +188,9 @@ class _FolderState extends State<FolderWidget> {
         },
       ),
     );
+    Directory.current = widget.dir.parent;
+    debugPrint(
+        'back current.path => ${RegExp(r'([^/]+?)?$').stringMatch(Directory.current.path)}');
   }
 }
 
