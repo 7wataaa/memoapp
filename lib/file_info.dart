@@ -2,16 +2,20 @@ import 'dart:io';
 
 import 'dart:math';
 
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 
 import 'package:memoapp/widget/file_widget.dart';
 
-//import 'package:memoapp/handling.dart';
+import 'package:memoapp/handling.dart';
 
 class FileInfo {
   final File file;
   Set<Tag> _tags;
   FileInfo(this.file);
+
+  //static tagsFile = File('${await localPath()}/tagsFile');
 
   Widget getWidget() {
     return FileWidget(
@@ -25,9 +29,22 @@ class FileInfo {
     _tags.add(tag);
   }
 
+  ///fileに対応したリストをファイルから取得する
   List<Tag> getTags() {
-    //fileに対応したリストをファイルから取得する
     return [];
+  }
+
+  Future<void> saveAllTags() async {
+    File tagsFile = File('${await localPath()}/tagsFile');
+    if (!await tagsFile.exists()) {
+      await tagsFile.create();
+    }
+
+    try {
+      tagsFile.writeAsStringSync(jsonEncode(tagsMap));
+    } catch (e) {
+      debugPrint('$e');
+    }
   }
 }
 

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:memoapp/file_info.dart';
 
 import 'package:memoapp/handling.dart';
 
@@ -20,6 +21,16 @@ class _CreatePageState extends State<CreatePage> {
   String nameStr = '';
   String type = 'file';
   String path;
+  String tagValue = '';
+  String labelTagStr = '';
+  List<Tag> tmpTags = [];
+
+  List<PopupMenuEntry<String>> menuEntry = [
+    const PopupMenuItem(
+      value: '<<<defaultItem: add>>>',
+      child: Text('タグを追加...'),
+    ),
+  ];
 
   ///btnIcon()
   ///-> typeごとの iconを 表示する
@@ -49,9 +60,66 @@ class _CreatePageState extends State<CreatePage> {
   ///type, directory ごとのデコレーション
   InputDecoration parentDecoration() {
     return InputDecoration(
-      labelText: '${RegExp(r'([^/]+?)?$').stringMatch(widget.tDir.path)}/',
+      labelText:
+          '${RegExp(r'([^/]+?)?$').stringMatch(widget.tDir.path)}/  $labelTagStr',
       hintText: '$type の名前を入力してください',
     );
+  }
+
+  void _onSelected(String value) {
+    if (value == '<<<defaultItem: add>>>') {
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text('タグを追加'),
+            content: TextField(
+              autofocus: true,
+              onChanged: (value) => tagValue = value,
+              decoration: InputDecoration(labelText: 'タグの名前'),
+            ),
+            actions: [
+              FlatButton(
+                child: Text('追加'),
+                onPressed: () {
+                  if (tagValue == '') {
+                    return;
+                  }
+                  menuEntry.add(
+                    PopupMenuItem(
+                      value: tagValue,
+                      child: Text('$tagValue'),
+                    ),
+                  );
+                  Navigator.pop(context);
+                },
+              ),
+              FlatButton(
+                child: Text('キャンセル'),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ],
+          );
+        },
+      );
+    } else {
+      for (Tag tag in tmpTags) {
+        if (value == tag.tagName) {
+          return;
+        }
+      }
+      tmpTags.add(
+        Tag('$value'),
+      );
+
+      //TODO labelTagStr を追加
+      labelTagStr = '';
+      setState(() {
+        for (var tag in tmpTags) {
+          labelTagStr += '#${tag.tagName} ';
+        }
+      });
+    }
   }
 
   @override
@@ -73,16 +141,19 @@ class _CreatePageState extends State<CreatePage> {
               ),
               Flexible(
                 child: Container(
-                  padding: EdgeInsets.only(
-                      left: 10.0, right: 10.0, top: 5, bottom: 0),
+                  padding:
+                      EdgeInsets.only(left: 10.0, right: 0, top: 5, bottom: 0),
                   child: TextField(
                     controller: textEditingController,
-                    //autofocus: true,
+                    autofocus: true,
                     decoration: parentDecoration(),
                     onChanged: (str) => nameStr = str,
                   ),
                 ),
               ),
+              PopupMenuButton(
+                  onSelected: _onSelected,
+                  itemBuilder: (BuildContext context) => menuEntry),
             ],
           ),
         ],
@@ -105,7 +176,7 @@ class _CreatePageState extends State<CreatePage> {
             icon: Icon(Icons.check),
             label: Text('$type を保存'),
             onPressed: () async {
-              //TODO ファイル作成時に、{[パス: [タグ],]}のJSONファイルも作成する
+              //TODO ファイル作成時に、tagsmapを操作とsavealltags
 
               path = widget.isRoot
                   ? "${await localPath()}/root"
@@ -115,17 +186,22 @@ class _CreatePageState extends State<CreatePage> {
                   Directory('$path/$nameStr').existsSync();
 
               if (nameStr == '') {
-                debugPrint('! 名前未入力 !');
+                debugPrint('! 名前が未入力です !');
                 return;
               } else if (overlapping) {
                 debugPrint('! 重複した名前はつけることができません !');
+                return;
               }
 
               switch (type) {
                 case 'file':
                   try {
-                    File('$path/$nameStr').create();
+                    FileInfo newFileInfo = FileInfo(File('$path/$nameStr'));
+
+                    newFileInfo.file.create();
                     debugPrint('file created');
+
+                    tagsMap[newFileInfo.file.path] = ['$tagValue'];
                   } catch (e) {
                     debugPrint('$e');
                   }
