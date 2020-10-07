@@ -10,7 +10,7 @@ import 'package:memoapp/handling.dart';
 
 import 'package:memoapp/page/edit_page.dart';
 
-import 'package:memoapp/file_ex.dart';
+import 'package:memoapp/file_info.dart';
 
 class FileWidget extends StatefulWidget {
   final String name;

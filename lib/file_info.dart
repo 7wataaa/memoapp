@@ -8,10 +8,10 @@ import 'package:memoapp/widget/file_widget.dart';
 
 //import 'package:memoapp/handling.dart';
 
-class FileEx {
+class FileInfo {
   final File file;
   Set<Tag> _tags;
-  FileEx(this.file);
+  FileInfo(this.file);
 
   Widget getWidget() {
     return FileWidget(

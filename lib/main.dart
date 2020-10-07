@@ -16,7 +16,7 @@ import 'package:memoapp/widget/file_widget.dart';
 
 import 'package:memoapp/widget/folder_widget.dart';
 
-import 'package:memoapp/file_ex.dart';
+import 'package:memoapp/file_info.dart';
 
 void main() {
   runApp(MyApp());
@@ -280,7 +280,7 @@ class _HomeState extends State<Home> {
     List<FileWidget> mainFileList = [];
     Directory('$path/root').listSync().forEach((FileSystemEntity entity) {
       if (entity is File) {
-        FileEx fileEx = FileEx(entity);
+        FileInfo fileEx = FileInfo(entity);
         mainFileList.add(
           fileEx.getWidget(),
         );
@@ -385,4 +385,6 @@ class _HomeState extends State<Home> {
 /*
 ファイルとディレクトリの名前が同じだとエラー
 ファイルに入力→save→開く→save→開く→消えてる
+
+勝手に名前付ける機能だけどそれをそのままファイルネームにするより、idか何かで管理したほうが使いやすい
 */

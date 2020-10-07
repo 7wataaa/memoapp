@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'package:memoapp/handling.dart';
 
+//TODO このページを削除する
 class CreatePage extends StatefulWidget {
   final Directory tDir;
   final bool isRoot;
@@ -104,58 +105,41 @@ class _CreatePageState extends State<CreatePage> {
             icon: Icon(Icons.check),
             label: Text('$type を保存'),
             onPressed: () async {
-              //TODO ここリファクタリングする見にくすぎ
-              widget.isRoot
-                  ? path = "${await localPath()}/root"
-                  : path = Directory.current.path;
               //TODO ファイル作成時に、{[パス: [タグ],]}のJSONファイルも作成する
 
+              path = widget.isRoot
+                  ? "${await localPath()}/root"
+                  : Directory.current.path;
+
+              bool overlapping = File('$path/$nameStr').existsSync() ||
+                  Directory('$path/$nameStr').existsSync();
+
               if (nameStr == '') {
-                //TODO 名前を勝手につけて保存する
-                debugPrint('err 名前未入力');
-              } else if (type == 'file') {
-                if (!File('$path/$nameStr').existsSync()) {
+                debugPrint('! 名前未入力 !');
+                return;
+              } else if (overlapping) {
+                debugPrint('! 重複した名前はつけることができません !');
+              }
+
+              switch (type) {
+                case 'file':
                   try {
-                    await File('$path/$nameStr').create().then((file) {
-                      file.exists().then((value) =>
-                          value ? debugPrint('true') : debugPrint('false'));
-                    });
-                  } on FileSystemException catch (e) {
+                    File('$path/$nameStr').create();
+                    debugPrint('file created');
+                  } catch (e) {
                     debugPrint('$e');
-                  } catch (error) {
-                    debugPrint("$error");
                   }
                   Navigator.pop(context);
-                } else {
-                  //TODO 上書きかどうかなどを選択させる
-                  debugPrint('そのファイルはすでに存在しています');
-                }
-              } else if (type == 'folder') {
-                if (!Directory('$path/$nameStr').existsSync()) {
+                  break;
+                case 'folder':
                   try {
-                    await Directory('$path/$nameStr')
-                        .create()
-                        .then((value) => debugPrint('directory created'));
-                  } catch (error) {
-                    debugPrint('$error');
+                    Directory('$path/$nameStr').create();
+                    debugPrint('folder created');
+                  } catch (e) {
+                    debugPrint('$e');
                   }
                   Navigator.pop(context);
-                } else {
-                  // 上書きかどうかなどを選択させる
-                  showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                          title: const Text('Error'),
-                          content: const Text('同じ名前のディレクトリは作成できません'),
-                          actions: [
-                            FlatButton(
-                                onPressed: () => Navigator.pop(context),
-                                child: const Text('戻る')),
-                          ],
-                        );
-                      });
-                }
+                  break;
               }
             },
           ),
