@@ -104,13 +104,13 @@ class _CreatePageState extends State<CreatePage> {
             icon: Icon(Icons.check),
             label: Text('$type を保存'),
             onPressed: () async {
-              if (widget.isRoot) {
-                path = "${await localPath()}/root";
-              } else {
-                path = Directory.current.path;
-              }
+              //TODO ここリファクタリングする見にくすぎ
+              widget.isRoot
+                  ? path = "${await localPath()}/root"
+                  : path = Directory.current.path;
+              //TODO ファイル作成時に、{[パス: [タグ],]}のJSONファイルも作成する
+
               if (nameStr == '') {
-                // ignore: todo
                 //TODO 名前を勝手につけて保存する
                 debugPrint('err 名前未入力');
               } else if (type == 'file') {
@@ -127,7 +127,7 @@ class _CreatePageState extends State<CreatePage> {
                   }
                   Navigator.pop(context);
                 } else {
-                  //上書きかどうかなどを選択させる
+                  //TODO 上書きかどうかなどを選択させる
                   debugPrint('そのファイルはすでに存在しています');
                 }
               } else if (type == 'folder') {
@@ -141,7 +141,7 @@ class _CreatePageState extends State<CreatePage> {
                   }
                   Navigator.pop(context);
                 } else {
-                  //上書きかどうかなどを選択させる
+                  // 上書きかどうかなどを選択させる
                   showDialog(
                       context: context,
                       builder: (BuildContext context) {
@@ -156,8 +156,6 @@ class _CreatePageState extends State<CreatePage> {
                         );
                       });
                 }
-              } else {
-                debugPrint('ファイルまたはディレクトリではない');
               }
             },
           ),
