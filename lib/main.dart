@@ -227,7 +227,7 @@ class _HomeState extends State<Home> {
 
   Future<List<Tag>> createTagList() async {
     //irankamo
-    File tagsFile = File('${await localPath()}/tags');
+    File tagsFile = FileInfo.tagsFile;
     List<Tag> resultList = [];
 
     if (tagsFile.existsSync()) {
@@ -266,13 +266,17 @@ class _HomeState extends State<Home> {
   ///false なら[normalTiles()]
   Future<List> _getRootList() async {
     String path = await localPath();
-    //await Future.delayed(Duration(seconds: 3));
-    try {
-      return _selectMode ? _checkboxTiles(path) : _normalTiles(path);
-    } catch (e) {
-      debugPrint('$e');
-      return null;
+
+    if (FileInfo.tagsFile != File('$path/tagsFile')) {
+      FileInfo.tagsFile = File('$path/tagsFile');
     }
+
+    if (!await FileInfo.tagsFile.exists()) {
+      FileInfo.tagsFile.create();
+      debugPrint('tagFile created');
+    }
+
+    return _selectMode ? _checkboxTiles(path) : _normalTiles(path);
   }
 
   List<Widget> _normalTiles(String path) {

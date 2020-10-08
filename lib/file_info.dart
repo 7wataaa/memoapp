@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'dart:math';
+//import 'dart:math';
 
 import 'dart:convert';
 
@@ -8,15 +8,16 @@ import 'package:flutter/material.dart';
 
 import 'package:memoapp/widget/file_widget.dart';
 
-import 'package:memoapp/handling.dart';
+//import 'package:memoapp/handling.dart';
 
+///FileInfo(File [file])
 class FileInfo {
   final File file;
-  Set<Tag> _tags;
+  static File tagsFile;
+  Map<String, dynamic> _pathToTags;
   FileInfo(this.file);
 
-  //static tagsFile = File('${await localPath()}/tagsFile');
-
+  ///このファイルでのFileWidgetを返す
   Widget getWidget() {
     return FileWidget(
       file: file,
@@ -25,26 +26,39 @@ class FileInfo {
     );
   }
 
-  void setTags(Tag tag) {
-    _tags.add(tag);
-  }
-
-  ///fileに対応したリストをファイルから取得する
+  ///fileに対応したtagリストをファイルから取得する
   List<Tag> getTags() {
-    return [];
+    //TODO はじめに読み込む機能の実装
+    _loadPathToTagsFromJson();
+    debugPrint('pathtotags => $_pathToTags');
+
+    if (_pathToTags == null) return null;
+
+    List<Tag> result = [];
+    for (var tagtitle in _pathToTags[file.path]) {
+      result.add(
+        Tag(tagtitle),
+      );
+    }
+    return result;
   }
 
-  Future<void> saveAllTags() async {
-    File tagsFile = File('${await localPath()}/tagsFile');
-    if (!await tagsFile.exists()) {
-      await tagsFile.create();
-    }
+  ///[_pathToTags] に [tagsFile.json] の Mapを代入する
+  void _loadPathToTagsFromJson() {
+    String tagsFileValue = tagsFile.readAsStringSync();
+    if (tagsFileValue.isEmpty) return;
 
-    try {
-      tagsFile.writeAsStringSync(jsonEncode(tagsMap));
-    } catch (e) {
-      debugPrint('$e');
+    _pathToTags = jsonDecode(tagsFile.readAsStringSync());
+  }
+
+  ///[tag]をtagsFileに追加
+  void addTag(Tag tag) {
+    //TODO addtagの実装
+    if (!_pathToTags.keys.contains(file.path)) {
+      _pathToTags[file.path] = [];
+      tagsFile.writeAsStringSync(jsonEncode(_pathToTags));
     }
+    _pathToTags[file.path].add(tag);
   }
 }
 
@@ -53,6 +67,10 @@ class Tag {
 
   Tag(this.tagName);
 
+  dynamic toJson() {
+    return {"tagName": tagName};
+  }
+  /*
   List<MaterialColor> _colors = [
     Colors.red,
     Colors.blue,
@@ -64,4 +82,5 @@ class Tag {
   MaterialColor getColor() {
     return _colors[Random().nextInt(4)];
   }
+  */
 }

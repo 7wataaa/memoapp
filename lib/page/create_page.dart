@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+
 import 'package:memoapp/file_info.dart';
 
 import 'package:memoapp/handling.dart';
@@ -18,12 +19,24 @@ class CreatePage extends StatefulWidget {
 
 class _CreatePageState extends State<CreatePage> {
   TextEditingController textEditingController;
+
+  ///入力する名前
   String nameStr = '';
+
+  ///file または folder
   String type = 'file';
+
+  ///パス
   String path;
-  String tagValue = '';
-  String labelTagStr = '';
+
+  ///新規追加するタグの内容
+  String stringTagValue = '';
+
+  ///追加するタグ
   List<Tag> tmpTags = [];
+
+  ///追加するタグ(デコレーション用)
+  String labelTagStr = '';
 
   List<PopupMenuEntry<String>> menuEntry = [
     const PopupMenuItem(
@@ -75,20 +88,22 @@ class _CreatePageState extends State<CreatePage> {
             title: const Text('タグを追加'),
             content: TextField(
               autofocus: true,
-              onChanged: (value) => tagValue = value,
+              onChanged: (value) => stringTagValue = value,
               decoration: InputDecoration(labelText: 'タグの名前'),
             ),
             actions: [
               FlatButton(
                 child: Text('追加'),
                 onPressed: () {
-                  if (tagValue == '') {
+                  if (stringTagValue == '') {
                     return;
                   }
                   menuEntry.add(
+                    //TODO (タグの永続化)
+                    //TODO (タグの削除)
                     PopupMenuItem(
-                      value: tagValue,
-                      child: Text('$tagValue'),
+                      value: stringTagValue,
+                      child: Text('$stringTagValue'),
                     ),
                   );
                   Navigator.pop(context);
@@ -112,7 +127,6 @@ class _CreatePageState extends State<CreatePage> {
         Tag('$value'),
       );
 
-      //TODO labelTagStr を追加
       labelTagStr = '';
       setState(() {
         for (var tag in tmpTags) {
@@ -176,7 +190,7 @@ class _CreatePageState extends State<CreatePage> {
             icon: Icon(Icons.check),
             label: Text('$type を保存'),
             onPressed: () async {
-              //TODO ファイル作成時に、tagsmapを操作とsavealltags
+              //TODO ファイル作成時に、tagsmapを操作とsavealltags()
 
               path = widget.isRoot
                   ? "${await localPath()}/root"
@@ -200,8 +214,6 @@ class _CreatePageState extends State<CreatePage> {
 
                     newFileInfo.file.create();
                     debugPrint('file created');
-
-                    tagsMap[newFileInfo.file.path] = ['$tagValue'];
                   } catch (e) {
                     debugPrint('$e');
                   }

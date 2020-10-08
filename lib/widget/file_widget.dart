@@ -62,40 +62,7 @@ class _FileState extends State<FileWidget> {
                   ),
                   SimpleDialogOption(
                     child: const Text('リネーム'),
-                    onPressed: () {
-                      Navigator.pop(context);
-                      return showDialog(
-                        context: context,
-                        builder: (context) {
-                          return AlertDialog(
-                            title: const Text('リネーム'),
-                            content: TextField(
-                              autofocus: true,
-                              onChanged: (value) => newName = value,
-                              decoration:
-                                  InputDecoration(labelText: '新しいファイル名'),
-                            ),
-                            actions: [
-                              FlatButton(
-                                child: const Text('キャンセル'),
-                                onPressed: () => Navigator.pop(context),
-                              ),
-                              FlatButton(
-                                child: const Text('決定'),
-                                onPressed: () {
-                                  widget.file
-                                      .rename(
-                                          '${widget.file.parent.path}/$newName')
-                                      .then(
-                                          (_) => fileSystemEvent.sink.add(''));
-                                  Navigator.pop(context);
-                                },
-                              ),
-                            ],
-                          );
-                        },
-                      );
-                    },
+                    onPressed: () => onRename(),
                   ),
                   SimpleDialogOption(
                     child: const Text('移動'),
@@ -147,6 +114,38 @@ class _FileState extends State<FileWidget> {
           );
         },
       ),
+    );
+  }
+
+  void onRename() {
+    Navigator.pop(context);
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('リネーム'),
+          content: TextField(
+            autofocus: true,
+            onChanged: (value) => newName = value,
+            decoration: InputDecoration(labelText: '新しいファイル名'),
+          ),
+          actions: [
+            FlatButton(
+              child: const Text('キャンセル'),
+              onPressed: () => Navigator.pop(context),
+            ),
+            FlatButton(
+              child: const Text('決定'),
+              onPressed: () {
+                widget.file
+                    .rename('${widget.file.parent.path}/$newName')
+                    .then((_) => fileSystemEvent.sink.add(''));
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 

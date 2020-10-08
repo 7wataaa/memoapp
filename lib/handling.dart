@@ -26,9 +26,6 @@ Future<void> rootSet() async {
   }
 }
 
-///JSONファイルにするための{"path": "tags"}
-Map tagsMap = {};
-
 var fileSystemEvent = StreamController<String>.broadcast();
 
 Map<FileSystemEntity, bool> fsEntityToCheck = {};
