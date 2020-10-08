@@ -267,8 +267,8 @@ class _HomeState extends State<Home> {
   Future<List> _getRootList() async {
     String path = await localPath();
 
-    if (FileInfo.tagsFile != File('$path/tagsFile')) {
-      FileInfo.tagsFile = File('$path/tagsFile');
+    if (FileInfo.tagsFile != File('$path/tagsFile.json')) {
+      FileInfo.tagsFile = File('$path/tagsFile.json');
     }
 
     if (!await FileInfo.tagsFile.exists()) {

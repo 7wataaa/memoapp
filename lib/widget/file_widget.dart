@@ -152,7 +152,7 @@ class _FileState extends State<FileWidget> {
   Text subtext() {
     String string = '';
     for (var tag in widget.tags) {
-      string += ' ${tag.tagName}\n';
+      string += ' #${tag.tagName} ';
     }
     if (string.length == 0) {
       return null;
