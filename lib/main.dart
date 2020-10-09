@@ -31,13 +31,13 @@ class MyApp extends StatelessWidget {
       routes: <String, WidgetBuilder>{
         '~/': (BuildContext context) => Home(),
       },
-      localizationsDelegates: [
+      localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
         DefaultCupertinoLocalizations.delegate
       ],
-      supportedLocales: [
+      supportedLocales: const [
         Locale('ja', 'JP'),
       ],
       title: 'Memo',
@@ -73,7 +73,7 @@ class _HomeState extends State<Home> {
             icon: tagOrStorageIcon(),
             onPressed: () {
               setState(() {
-                _storageMode = _storageMode ? false : true;
+                _storageMode = !_storageMode;
               });
             },
           ),
@@ -83,7 +83,7 @@ class _HomeState extends State<Home> {
                 onPressed: () {
                   fileSystemEvent.sink.add('');
                   setState(() {
-                    _selectMode = _selectMode ? false : true;
+                    _selectMode = !_selectMode;
                   });
                 })
           ],
@@ -103,13 +103,13 @@ class _HomeState extends State<Home> {
                               Expanded(
                                 child: Scrollbar(
                                   child: ListView(
-                                    children: snapshot.data,
+                                    children: snapshot.data as List<Widget>,
                                   ),
                                 ),
                               ),
                               Container(
                                 child: Container(
-                                  margin: EdgeInsets.only(
+                                  margin: const EdgeInsets.only(
                                     bottom: 13,
                                     left: 10,
                                     right: 10,
@@ -139,7 +139,7 @@ class _HomeState extends State<Home> {
                                               ),
                                               onPressed: () {},
                                             ),
-                                            Positioned(
+                                            const Positioned(
                                               bottom: -8,
                                               child: const Text(
                                                 'move',
@@ -164,7 +164,7 @@ class _HomeState extends State<Home> {
                                                 _deleteSelectedEntities();
                                               },
                                             ),
-                                            Positioned(
+                                            const Positioned(
                                               bottom: -8,
                                               child: const Text(
                                                 'delete',
@@ -183,14 +183,14 @@ class _HomeState extends State<Home> {
                         } else {
                           return Scrollbar(
                             child: ListView(
-                              children: snapshot.data,
+                              children: snapshot.data as List<Widget>,
                             ),
                           );
                         }
                       } else {
                         return Center(
                           child: Container(
-                            child: CircularProgressIndicator(),
+                            child: const CircularProgressIndicator(),
                           ),
                         );
                       }
@@ -198,7 +198,7 @@ class _HomeState extends State<Home> {
                   );
                 },
               )
-            : null, //TODO tag画面の実装
+            : null,
         floatingActionButton: _selectMode
             ? null
             : FloatingActionButton(
@@ -207,10 +207,11 @@ class _HomeState extends State<Home> {
                 child: const Icon(Icons.add),
                 onPressed: () async {
                   if (_selectMode) {
+                    // ignore: flutter_style_todos
                     //TODO FAB押した時タグを追加する画面
                   } else {
-                    Directory rootdir = Directory('${await localPath()}/root');
-                    await Navigator.push(
+                    final rootdir = Directory('${await localPath()}/root');
+                    await Navigator.push<MaterialPageRoute>(
                         context,
                         MaterialPageRoute(
                           builder: (context) =>
@@ -227,11 +228,11 @@ class _HomeState extends State<Home> {
 
   Future<List<Tag>> createTagList() async {
     //irankamo
-    File tagsFile = FileInfo.tagsFile;
-    List<Tag> resultList = [];
+    final tagsFile = FileInfo.tagsFile;
+    final resultList = <Tag>[];
 
     if (tagsFile.existsSync()) {
-      for (var str in await tagsFile.readAsLines()) {
+      for (final str in await tagsFile.readAsLines()) {
         resultList.add(Tag(str));
         debugPrint('$str');
       }
@@ -264,19 +265,19 @@ class _HomeState extends State<Home> {
   ///
   ///true なら[checkboxTiles()]
   ///false なら[normalTiles()]
-  Future<List> _getRootList() async {
-    final String path = await localPath();
-    final File readytag = File('$path/readyTag.json');
+  Future<List<Widget>> _getRootList() async {
+    final path = await localPath();
+    final readytag = File('$path/readyTag.json');
 
     if (FileInfo.tagsFile != File('$path/tagsFile.json')) {
       FileInfo.tagsFile = File('$path/tagsFile.json');
     }
-    if (!await readytag.exists()) {
+    if (!readytag.existsSync()) {
       FileInfo.readyTagFile = readytag;
       readytag.create();
     }
 
-    if (!await FileInfo.tagsFile.exists()) {
+    if (!FileInfo.tagsFile.existsSync()) {
       FileInfo.tagsFile.create();
       debugPrint('tagFile created');
     }
@@ -285,55 +286,59 @@ class _HomeState extends State<Home> {
   }
 
   List<Widget> _normalTiles(String path) {
-    List<FolderWidget> mainFolderList = [];
-    List<FileWidget> mainFileList = [];
+    final mainFolderList = <FolderWidget>[];
+    final mainFileList = <FileWidget>[];
     Directory('$path/root').listSync().forEach((FileSystemEntity entity) {
       if (entity is File) {
-        FileInfo fileEx = FileInfo(entity);
-        mainFileList.add(
-          fileEx.getWidget(),
-        );
-        mainFileList.sort((a, b) => a.name.compareTo(b.name));
+        final fileEx = FileInfo(entity);
+        mainFileList
+          ..add(
+            fileEx.getWidget(),
+          )
+          ..sort((a, b) => a.name.compareTo(b.name));
       } else if (entity is Directory) {
-        mainFolderList.add(
-          FolderWidget(
-            name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
-            dir: entity,
-          ),
-        );
-        mainFolderList.sort((a, b) => a.name.compareTo(b.name));
+        mainFolderList
+          ..add(
+            FolderWidget(
+              name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
+              dir: entity,
+            ),
+          )
+          ..sort((a, b) => a.name.compareTo(b.name));
       }
     });
 
-    List<Widget> result = [...mainFolderList, ...mainFileList];
+    final result = <Widget>[...mainFolderList, ...mainFileList];
     return result;
   }
 
   List<Widget> _checkboxTiles(String path) {
-    List<FolderCheckboxWidget> mainFolderCheckList = [];
-    List<FileCheckboxWidget> mainFileCheckList = [];
+    final mainFolderCheckList = <FolderCheckboxWidget>[];
+    final mainFileCheckList = <FileCheckboxWidget>[];
 
     Directory('$path/root').listSync().forEach((FileSystemEntity entity) {
       if (entity is File) {
-        mainFileCheckList.add(
-          FileCheckboxWidget(
-            name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
-            file: entity,
-          ),
-        );
-        mainFileCheckList.sort((a, b) => a.name.compareTo(b.name));
+        mainFileCheckList
+          ..add(
+            FileCheckboxWidget(
+              name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
+              file: entity,
+            ),
+          )
+          ..sort((a, b) => a.name.compareTo(b.name));
       } else if (entity is Directory) {
-        mainFolderCheckList.add(
-          FolderCheckboxWidget(
-            name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
-            dir: entity,
-          ),
-        );
-        mainFolderCheckList.sort((a, b) => a.name.compareTo(b.name));
+        mainFolderCheckList
+          ..add(
+            FolderCheckboxWidget(
+              name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
+              dir: entity,
+            ),
+          )
+          ..sort((a, b) => a.name.compareTo(b.name));
       }
     });
 
-    List<Widget> result = [...mainFolderCheckList, ...mainFileCheckList];
+    final result = <Widget>[...mainFolderCheckList, ...mainFileCheckList];
     return result;
   }
 
@@ -342,13 +347,13 @@ class _HomeState extends State<Home> {
         fsEntityToCheck.values.every((bool b) => b == false)) {
       debugPrint('何も選択されてません');
     } else {
-      showDialog(
+      showDialog<AlertDialog>(
         context: context,
         builder: (BuildContext context) {
-          List<dynamic> deleteList = [];
-          List<String> deleteListToString = [];
+          final deleteList = <dynamic>[];
+          final deleteListToString = <String>[];
 
-          for (var key in fsEntityToCheck.keys) {
+          for (final key in fsEntityToCheck.keys) {
             if (fsEntityToCheck[key]) {
               deleteList.add(key);
               deleteListToString
@@ -367,7 +372,7 @@ class _HomeState extends State<Home> {
               FlatButton(
                 child: const Text('すべて削除'),
                 onPressed: () {
-                  for (var entity in deleteList) {
+                  for (final entity in deleteList) {
                     if (entity is File) {
                       entity.delete();
                     } else if (entity is Directory) {

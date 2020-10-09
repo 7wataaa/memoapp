@@ -3,9 +3,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 
 class TextEditPage extends StatefulWidget {
-  final File file;
+  const TextEditPage({@required this.file});
 
-  TextEditPage({@required this.file});
+  final File file;
 
   @override
   _TextEditPageState createState() => _TextEditPageState();
@@ -31,7 +31,7 @@ class _TextEditPageState extends State<TextEditPage> {
         backgroundColor: const Color(0xFF212121),
       ),
       body: Container(
-        padding: EdgeInsets.only(left: 15.0, right: 10.0, top: 0, bottom: 0),
+        padding: const EdgeInsets.only(left: 15, right: 10, top: 0, bottom: 0),
         child: TextField(
           autofocus: true,
           controller: textEditingController,

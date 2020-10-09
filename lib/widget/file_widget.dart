@@ -13,11 +13,11 @@ import 'package:memoapp/page/edit_page.dart';
 import 'package:memoapp/file_info.dart';
 
 class FileWidget extends StatefulWidget {
+  const FileWidget({@required this.name, @required this.file, this.tags});
+
   final String name;
   final File file;
   final List<Tag> tags;
-
-  FileWidget({@required this.name, @required this.file, this.tags});
 
   @override
   _FileState createState() => _FileState();
@@ -29,7 +29,7 @@ class _FileState extends State<FileWidget> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.only(left: 10.0, right: 0, top: 5, bottom: 0),
+      padding: const EdgeInsets.only(left: 10, right: 0, top: 5, bottom: 0),
       child: ListTile(
         title: Text('${widget.name}'),
         leading: const Icon(Icons.insert_drive_file),
@@ -37,37 +37,37 @@ class _FileState extends State<FileWidget> {
             ? null
             : subtext(), //widget.tags.isEmpty ? null : subtext(),
         onTap: () {
-          Navigator.push(
+          Navigator.push<MaterialPageRoute>(
               context,
               MaterialPageRoute(
                   builder: (context) => TextEditPage(file: widget.file)));
         },
         onLongPress: () {
-          showDialog(
+          showDialog<SimpleDialog>(
             context: context,
             builder: (BuildContext context) {
               return SimpleDialog(
                 title: Text('${widget.name}'),
                 children: <Widget>[
                   SimpleDialogOption(
-                    child: Text('開く'),
-                    onPressed: () => onOpen(),
+                    child: const Text('開く'),
+                    onPressed: onOpen,
                   ),
                   SimpleDialogOption(
                     child: const Text('リネーム'),
-                    onPressed: () => onRename(),
+                    onPressed: onRename,
                   ),
                   SimpleDialogOption(
                     child: const Text('移動'),
-                    onPressed: () => onMove(),
+                    onPressed: onMove,
                   ),
                   SimpleDialogOption(
                     child: const Text('タグの管理'),
-                    onPressed: () => onEditTags(),
+                    onPressed: onEditTags,
                   ),
                   SimpleDialogOption(
                     child: const Text('削除'),
-                    onPressed: () => onDelete(),
+                    onPressed: onDelete,
                   )
                 ],
               );
@@ -78,22 +78,24 @@ class _FileState extends State<FileWidget> {
     );
   }
 
-  void onOpen() async {
+  void onOpen() {
     Navigator.pop(context);
-    await Navigator.push(
+    Navigator.push<MaterialPageRoute>(
         context,
         MaterialPageRoute(
             builder: (context) => TextEditPage(file: widget.file)));
   }
 
   void onEditTags() {
+    // ignore: flutter_style_todos
     //TODO onEditTags()の実装
   }
 
   void onDelete() {
+    // ignore: flutter_style_todos
     //TODO 削除時に、tagsFileでの情報も削除する
     Navigator.pop(context);
-    showDialog(
+    showDialog<AlertDialog>(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
@@ -119,7 +121,7 @@ class _FileState extends State<FileWidget> {
 
   void onMove() {
     Navigator.pop(context);
-    Navigator.push(
+    Navigator.push<CupertinoPageRoute>(
       context,
       CupertinoPageRoute(
         builder: (BuildContext context) {
@@ -132,7 +134,7 @@ class _FileState extends State<FileWidget> {
 
   void onRename() {
     Navigator.pop(context);
-    showDialog(
+    showDialog<AlertDialog>(
       context: context,
       builder: (context) {
         return AlertDialog(
@@ -140,7 +142,7 @@ class _FileState extends State<FileWidget> {
           content: TextField(
             autofocus: true,
             onChanged: (value) => newName = value,
-            decoration: InputDecoration(labelText: '新しいファイル名'),
+            decoration: const InputDecoration(labelText: '新しいファイル名'),
           ),
           actions: [
             FlatButton(
@@ -163,24 +165,25 @@ class _FileState extends State<FileWidget> {
   }
 
   Text subtext() {
-    String string = '';
-    for (var tag in widget.tags) {
-      string += ' #${tag.tagName} ';
+    StringBuffer string;
+    for (final tag in widget.tags) {
+      final name = ' #${tag.tagName} ';
+      string.write(name);
     }
 
     if (string.length == 0) {
       return null;
     }
-    return Text(string.substring(0, string.length - 1));
+    return Text(string.toString().substring(0, string.length - 1));
   }
 }
 
 class FileCheckboxWidget extends StatefulWidget {
+  const FileCheckboxWidget({this.name, this.file, this.tags});
+
   final String name;
   final File file;
   final List<Tag> tags;
-
-  FileCheckboxWidget({this.name, this.file, this.tags});
 
   @override
   _FileCheckboxWidgetState createState() => _FileCheckboxWidgetState();
@@ -191,7 +194,7 @@ class _FileCheckboxWidgetState extends State<FileCheckboxWidget> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.only(left: 10.0, right: 0, top: 5, bottom: 0),
+      padding: const EdgeInsets.only(left: 10, right: 0, top: 5, bottom: 0),
       child: CheckboxListTile(
         title: Text('${widget.name}'),
         secondary: const Icon(Icons.insert_drive_file),

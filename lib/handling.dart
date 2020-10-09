@@ -14,18 +14,17 @@ Future<String> localPath() async {
 ///rootディレクトリを確認して、なければ作る。
 Future<void> rootSet() async {
   final path = await localPath();
-  Directory rootFolder = Directory('$path/root');
-  bool isThere = await rootFolder.exists();
+  final rootFolder = Directory('$path/root');
 
-  if (!isThere) {
+  if (!rootFolder.existsSync()) {
     await rootFolder
         .create()
         .then((Directory dir) => debugPrint('root folderを${dir.path}に作成'));
-  } else if (isThere) {
+  } else {
     debugPrint('${rootFolder.path} はすでに存在');
   }
 }
 
-var fileSystemEvent = StreamController<String>.broadcast();
+StreamController<String> fileSystemEvent = StreamController<String>.broadcast();
 
 Map<FileSystemEntity, bool> fsEntityToCheck = {};

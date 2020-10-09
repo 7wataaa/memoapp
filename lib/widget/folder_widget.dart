@@ -9,10 +9,10 @@ import 'package:memoapp/page/directory_page.dart';
 import 'package:memoapp/handling.dart';
 
 class FolderWidget extends StatefulWidget {
+  const FolderWidget({this.name, this.dir});
+
   final String name;
   final Directory dir;
-
-  FolderWidget({this.name, this.dir});
 
   @override
   _FolderState createState() => _FolderState();
@@ -21,18 +21,20 @@ class FolderWidget extends StatefulWidget {
 class _FolderState extends State<FolderWidget> {
   String string = '';
 
+  Widget text = const Text('ファイル内が空ではありません。\n内容も削除したい場合は、「すべて削除」を選択してください');
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.only(left: 10.0, right: 0, top: 5, bottom: 0),
+      padding: const EdgeInsets.only(left: 10, right: 0, top: 5, bottom: 0),
       child: ListTile(
-        title: Text('${widget.name}', style: TextStyle(fontSize: 18.5)),
+        title: Text('${widget.name}', style: const TextStyle(fontSize: 18.5)),
         leading: const Icon(Icons.folder),
         onTap: () {
           openFolder();
         },
         onLongPress: () async {
-          await showDialog(
+          await showDialog<SimpleDialog>(
             context: context,
             builder: (BuildContext context) {
               return SimpleDialog(
@@ -49,7 +51,7 @@ class _FolderState extends State<FolderWidget> {
                     child: const Text('リネーム'),
                     onPressed: () {
                       Navigator.pop(context);
-                      return showDialog(
+                      showDialog<AlertDialog>(
                           context: context,
                           builder: (context) {
                             return AlertDialog(
@@ -57,8 +59,8 @@ class _FolderState extends State<FolderWidget> {
                               content: TextField(
                                 autofocus: true,
                                 onChanged: (value) => string = value,
-                                decoration:
-                                    InputDecoration(labelText: '新しいフォルダ名'),
+                                decoration: const InputDecoration(
+                                    labelText: '新しいフォルダ名'),
                               ),
                               actions: [
                                 FlatButton(
@@ -87,7 +89,7 @@ class _FolderState extends State<FolderWidget> {
                     child: const Text('削除'),
                     onPressed: () {
                       Navigator.pop(context);
-                      showDialog(
+                      showDialog<AlertDialog>(
                         context: context,
                         builder: (BuildContext context) {
                           return AlertDialog(
@@ -105,14 +107,13 @@ class _FolderState extends State<FolderWidget> {
                                   widget.dir
                                       .delete()
                                       .then((_) => fileSystemEvent.sink.add(''))
-                                      .catchError((_) {
-                                    showDialog(
+                                      .catchError(() {
+                                    showDialog<AlertDialog>(
                                         context: context,
                                         builder: (context) {
                                           return AlertDialog(
                                             title: const Text('ERROR'),
-                                            content: const Text(
-                                                'ファイル内が空ではありません。\n内容も削除したい場合は、「すべて削除」を選択してください'),
+                                            content: text,
                                             actions: [
                                               FlatButton(
                                                 child: const Text('OK'),
@@ -129,7 +130,7 @@ class _FolderState extends State<FolderWidget> {
                                 child: const Text('すべて削除'),
                                 onPressed: () {
                                   Navigator.pop(context);
-                                  showDialog(
+                                  showDialog<AlertDialog>(
                                     context: context,
                                     builder: (context) {
                                       return AlertDialog(
@@ -177,8 +178,8 @@ class _FolderState extends State<FolderWidget> {
     );
   }
 
-  openFolder() async {
-    await Navigator.of(context).push(
+  dynamic openFolder() async {
+    await Navigator.of(context).push<CupertinoPageRoute>(
       CupertinoPageRoute(
         builder: (context) {
           return FolderListPage(
@@ -189,16 +190,16 @@ class _FolderState extends State<FolderWidget> {
       ),
     );
     Directory.current = widget.dir.parent;
-    debugPrint(
-        'back current.path => ${RegExp(r'([^/]+?)?$').stringMatch(Directory.current.path)}');
+    debugPrint('back current.path => '
+        '${RegExp(r'([^/]+?)?$').stringMatch(Directory.current.path)}');
   }
 }
 
 class FolderCheckboxWidget extends StatefulWidget {
+  const FolderCheckboxWidget({this.name, this.dir});
+
   final String name;
   final Directory dir;
-
-  FolderCheckboxWidget({this.name, this.dir});
 
   @override
   _FolderCheckboxWidgetState createState() => _FolderCheckboxWidgetState();
@@ -209,9 +210,9 @@ class _FolderCheckboxWidgetState extends State<FolderCheckboxWidget> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.only(left: 10.0, right: 0, top: 5, bottom: 0),
+      padding: const EdgeInsets.only(left: 10, right: 0, top: 5, bottom: 0),
       child: CheckboxListTile(
-        title: Text('${widget.name}', style: TextStyle(fontSize: 18.5)),
+        title: Text('${widget.name}', style: const TextStyle(fontSize: 18.5)),
         secondary: const Icon(Icons.folder),
         value: isChecked,
         onChanged: (value) {

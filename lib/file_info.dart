@@ -1,25 +1,24 @@
-import 'dart:io';
-
 //import 'dart:math';
 
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
-
 import 'package:memoapp/widget/file_widget.dart';
 
 //import 'package:memoapp/handling.dart';
 
 ///FileInfo(File [file])
 class FileInfo {
+  FileInfo(this.file);
+
   final File file;
   static File tagsFile;
   static File readyTagFile;
   Map<String, dynamic> _pathToTags;
-  FileInfo(this.file);
 
   ///このファイルでのFileWidgetを返す
-  Widget getWidget() {
+  FileWidget getWidget() {
     return FileWidget(
       file: file,
       name: '${RegExp(r'([^/]+?)?$').stringMatch(file.path)}',
@@ -32,26 +31,27 @@ class FileInfo {
     _loadPathToTagsFromJson();
     //debugPrint('pathtotags => $_pathToTags');
 
-    if (_pathToTags.isEmpty) return null;
-
-    if (!_pathToTags.containsKey(file.path)) {
-      debugPrint(
-          'pathtotagsのkeyに ${RegExp(r'([^/]+?)?$').stringMatch(file.path)} が登録されていない');
-      return [];
+    if (_pathToTags.isEmpty) {
+      return null;
     }
 
-    debugPrint(
-        '${RegExp(r'([^/]+?)?$').stringMatch(file.path)} のタグ => ${_pathToTags[file.path]}');
+    if (!_pathToTags.containsKey(file.path)) {
+      debugPrint('pathtotagsのkeyに '
+          '${RegExp(r'([^/]+?)?$').stringMatch(file.path)} が登録されていない');
+      return <Tag>[];
+    }
 
-    List<Tag> result = [];
-    /*for (List<String> tagtitle in _pathToTags[file.path]) {
+    debugPrint('${RegExp(r'([^/]+?)?$').stringMatch(file.path)}'
+        ' のタグ => ${_pathToTags[file.path]}');
+
+    final result = <Tag>[];
+    for (final tagtitle in _pathToTags[file.path]) {
       result.add(
-        Tag(tagtitle),
+        Tag(tagtitle as String),
       );
-    }*/
-    debugPrint('${_pathToTags[file.path].runtimeType}');
-    List tags = _pathToTags[file.path];
-    for (String tagname in tags) {
+    }
+    final tags = _pathToTags[file.path] as List<String>;
+    for (final tagname in tags) {
       result.add(
         Tag(tagname),
       );
@@ -59,19 +59,22 @@ class FileInfo {
     return result;
   }
 
-  ///[_pathToTags] に [tagsFile.json] の Mapを代入する
+  ///[_pathToTags] に tagsFile.json の Mapを代入する
   void _loadPathToTagsFromJson() {
-    String tagsFileValue = tagsFile.readAsStringSync();
-    if (tagsFileValue.isEmpty) return;
+    final tagsFileValue = tagsFile.readAsStringSync();
+    if (tagsFileValue.isEmpty) {
+      return;
+    }
 
-    _pathToTags = jsonDecode(tagsFile.readAsStringSync());
+    _pathToTags =
+        jsonDecode(tagsFile.readAsStringSync()) as Map<String, dynamic>;
   }
 
   ///[tag]をtagsFileに追加
   void addTag(Tag tag) {
     _loadPathToTagsFromJson();
     if (!_pathToTags.containsKey(file.path)) {
-      _pathToTags[file.path] = [];
+      _pathToTags[file.path] = <Tag>[];
     }
     debugPrint('$tag');
     _pathToTags[file.path].add(tag.tagName);
@@ -80,19 +83,20 @@ class FileInfo {
 
   void fileCreateAndAddTag(List<Tag> taglist) {
     file.create();
-    for (Tag tag in taglist) {
+    /*for (final tag in taglist) {
       addTag(tag);
-    }
+    }*/
+    taglist.forEach(addTag);
   }
 }
 
 class Tag {
-  String tagName;
-
   Tag(this.tagName);
 
+  String tagName;
+
   dynamic toJson() {
-    return {"tagName": tagName};
+    return {'tagName': tagName};
   }
   /*
   List<MaterialColor> _colors = [
