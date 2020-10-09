@@ -51,14 +51,7 @@ class _FileState extends State<FileWidget> {
                 children: <Widget>[
                   SimpleDialogOption(
                     child: Text('開く'),
-                    onPressed: () async {
-                      Navigator.pop(context);
-                      await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) =>
-                                  TextEditPage(file: widget.file)));
-                    },
+                    onPressed: () => onOpen(),
                   ),
                   SimpleDialogOption(
                     child: const Text('リネーム'),
@@ -66,47 +59,15 @@ class _FileState extends State<FileWidget> {
                   ),
                   SimpleDialogOption(
                     child: const Text('移動'),
-                    onPressed: () {
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        CupertinoPageRoute(
-                          builder: (BuildContext context) {
-                            return Cdpage(file: widget.file);
-                          },
-                        ),
-                      );
-                      fileSystemEvent.add('');
-                    },
+                    onPressed: () => onMove(),
+                  ),
+                  SimpleDialogOption(
+                    child: const Text('タグの管理'),
+                    onPressed: () => onEditTags(),
                   ),
                   SimpleDialogOption(
                     child: const Text('削除'),
-                    onPressed: () {
-                      Navigator.pop(context);
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            title: const Text('削除'),
-                            content: const Text('この動作はもとに戻すことができません'),
-                            actions: [
-                              FlatButton(
-                                child: const Text('キャンセル'),
-                                onPressed: () => Navigator.pop(context),
-                              ),
-                              FlatButton(
-                                child: const Text('削除'),
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                  widget.file.delete().then(
-                                      (_) => fileSystemEvent.sink.add(''));
-                                },
-                              ),
-                            ],
-                          );
-                        },
-                      );
-                    },
+                    onPressed: () => onDelete(),
                   )
                 ],
               );
@@ -115,6 +76,58 @@ class _FileState extends State<FileWidget> {
         },
       ),
     );
+  }
+
+  void onOpen() async {
+    Navigator.pop(context);
+    await Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => TextEditPage(file: widget.file)));
+  }
+
+  void onEditTags() {
+    //TODO onEditTags()の実装
+  }
+
+  void onDelete() {
+    //TODO 削除時に、tagsFileでの情報も削除する
+    Navigator.pop(context);
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('削除'),
+          content: const Text('この動作はもとに戻すことができません'),
+          actions: [
+            FlatButton(
+              child: const Text('キャンセル'),
+              onPressed: () => Navigator.pop(context),
+            ),
+            FlatButton(
+              child: const Text('削除'),
+              onPressed: () {
+                Navigator.pop(context);
+                widget.file.delete().then((_) => fileSystemEvent.sink.add(''));
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void onMove() {
+    Navigator.pop(context);
+    Navigator.push(
+      context,
+      CupertinoPageRoute(
+        builder: (BuildContext context) {
+          return Cdpage(file: widget.file);
+        },
+      ),
+    );
+    fileSystemEvent.add('');
   }
 
   void onRename() {
@@ -154,6 +167,7 @@ class _FileState extends State<FileWidget> {
     for (var tag in widget.tags) {
       string += ' #${tag.tagName} ';
     }
+
     if (string.length == 0) {
       return null;
     }

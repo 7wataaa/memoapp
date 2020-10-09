@@ -265,10 +265,15 @@ class _HomeState extends State<Home> {
   ///true なら[checkboxTiles()]
   ///false なら[normalTiles()]
   Future<List> _getRootList() async {
-    String path = await localPath();
+    final String path = await localPath();
+    final File readytag = File('$path/readyTag.json');
 
     if (FileInfo.tagsFile != File('$path/tagsFile.json')) {
       FileInfo.tagsFile = File('$path/tagsFile.json');
+    }
+    if (!await readytag.exists()) {
+      FileInfo.readyTagFile = readytag;
+      readytag.create();
     }
 
     if (!await FileInfo.tagsFile.exists()) {

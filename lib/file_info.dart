@@ -14,6 +14,7 @@ import 'package:memoapp/widget/file_widget.dart';
 class FileInfo {
   final File file;
   static File tagsFile;
+  static File readyTagFile;
   Map<String, dynamic> _pathToTags;
   FileInfo(this.file);
 
@@ -28,16 +29,31 @@ class FileInfo {
 
   ///fileに対応したtagリストをファイルから取得する
   List<Tag> getTags() {
-    //TODO はじめに読み込む機能の実装
     _loadPathToTagsFromJson();
-    debugPrint('pathtotags => $_pathToTags');
+    //debugPrint('pathtotags => $_pathToTags');
 
-    if (_pathToTags == null) return null;
+    if (_pathToTags.isEmpty) return null;
+
+    if (!_pathToTags.containsKey(file.path)) {
+      debugPrint(
+          'pathtotagsのkeyに ${RegExp(r'([^/]+?)?$').stringMatch(file.path)} が登録されていない');
+      return [];
+    }
+
+    debugPrint(
+        '${RegExp(r'([^/]+?)?$').stringMatch(file.path)} のタグ => ${_pathToTags[file.path]}');
 
     List<Tag> result = [];
-    for (var tagtitle in _pathToTags[file.path]) {
+    /*for (List<String> tagtitle in _pathToTags[file.path]) {
       result.add(
         Tag(tagtitle),
+      );
+    }*/
+    debugPrint('${_pathToTags[file.path].runtimeType}');
+    List tags = _pathToTags[file.path];
+    for (String tagname in tags) {
+      result.add(
+        Tag(tagname),
       );
     }
     return result;
@@ -53,12 +69,20 @@ class FileInfo {
 
   ///[tag]をtagsFileに追加
   void addTag(Tag tag) {
-    //TODO addtagの実装
-    if (!_pathToTags.keys.contains(file.path)) {
+    _loadPathToTagsFromJson();
+    if (!_pathToTags.containsKey(file.path)) {
       _pathToTags[file.path] = [];
-      tagsFile.writeAsStringSync(jsonEncode(_pathToTags));
     }
-    _pathToTags[file.path].add(tag);
+    debugPrint('$tag');
+    _pathToTags[file.path].add(tag.tagName);
+    tagsFile.writeAsStringSync(jsonEncode(_pathToTags));
+  }
+
+  void fileCreateAndAddTag(List<Tag> taglist) {
+    file.create();
+    for (Tag tag in taglist) {
+      addTag(tag);
+    }
   }
 }
 
