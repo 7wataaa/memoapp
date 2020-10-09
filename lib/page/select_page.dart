@@ -7,9 +7,9 @@ import 'package:flutter/material.dart';
 import 'package:memoapp/handling.dart';
 
 class Cdpage extends StatefulWidget {
-  final File file;
+  const Cdpage({@required this.file});
 
-  Cdpage({@required this.file});
+  final File file;
 
   @override
   _CdpageState createState() => _CdpageState();
@@ -59,7 +59,7 @@ class _CdpageState extends State<Cdpage> {
         child: const Icon(Icons.check),
         onPressed: () {
           //koko
-          String newFilePath =
+          final newFilePath =
               '$selectedDirPath/${RegExp(r'([^/]+?)?$').stringMatch(widget.file.path)}';
           File(newFilePath).createSync();
           widget.file.copySync(newFilePath);
@@ -73,7 +73,7 @@ class _CdpageState extends State<Cdpage> {
 
   Widget directoryRadioWidget(Directory dir) {
     return Container(
-      padding: const EdgeInsets.only(left: 10.0, right: 10, top: 5, bottom: 0),
+      padding: const EdgeInsets.only(left: 10, right: 10, top: 5, bottom: 0),
       child: RadioListTile(
         secondary: const Icon(Icons.folder),
         controlAffinity: ListTileControlAffinity.trailing,

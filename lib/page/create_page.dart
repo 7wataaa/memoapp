@@ -6,12 +6,13 @@ import 'package:memoapp/file_info.dart';
 
 import 'package:memoapp/handling.dart';
 
+// ignore: flutter_style_todos
 //TODO このページを削除する
 class CreatePage extends StatefulWidget {
+  const CreatePage({@required this.tDir, this.isRoot});
+
   final Directory tDir;
   final bool isRoot;
-
-  CreatePage({@required this.tDir, this.isRoot});
 
   @override
   _CreatePageState createState() => _CreatePageState();
@@ -36,7 +37,7 @@ class _CreatePageState extends State<CreatePage> {
   List<Tag> tmpTags = [];
 
   ///追加するタグ(デコレーション用)
-  String labelTagStr = '';
+  StringBuffer labelTagStr;
 
   List<PopupMenuEntry<String>> menuEntry = [
     const PopupMenuItem(
@@ -81,7 +82,7 @@ class _CreatePageState extends State<CreatePage> {
 
   void _onSelected(String value) {
     if (value == '<<<defaultItem: add>>>') {
-      showDialog(
+      showDialog<AlertDialog>(
         context: context,
         builder: (context) {
           return AlertDialog(
@@ -89,17 +90,19 @@ class _CreatePageState extends State<CreatePage> {
             content: TextField(
               autofocus: true,
               onChanged: (value) => stringTagValue = value,
-              decoration: InputDecoration(labelText: 'タグの名前'),
+              decoration: const InputDecoration(labelText: 'タグの名前'),
             ),
             actions: [
               FlatButton(
-                child: Text('追加'),
+                child: const Text('追加'),
                 onPressed: () {
                   if (stringTagValue == '') {
                     return;
                   }
                   menuEntry.add(
+                    // ignore: flutter_style_todos
                     //TODO (タグの永続化)
+                    // ignore: flutter_style_todos
                     //TODO (タグの削除)
                     PopupMenuItem(
                       value: stringTagValue,
@@ -110,7 +113,7 @@ class _CreatePageState extends State<CreatePage> {
                 },
               ),
               FlatButton(
-                child: Text('キャンセル'),
+                child: const Text('キャンセル'),
                 onPressed: () => Navigator.pop(context),
               ),
             ],
@@ -118,7 +121,7 @@ class _CreatePageState extends State<CreatePage> {
         },
       );
     } else {
-      for (Tag tag in tmpTags) {
+      for (final tag in tmpTags) {
         if (value == tag.tagName) {
           return;
         }
@@ -127,10 +130,9 @@ class _CreatePageState extends State<CreatePage> {
         Tag('$value'),
       );
 
-      labelTagStr = '';
       setState(() {
-        for (var tag in tmpTags) {
-          labelTagStr += '#${tag.tagName} ';
+        for (final tag in tmpTags) {
+          labelTagStr.write('#${tag.tagName} ');
         }
       });
     }
@@ -140,8 +142,8 @@ class _CreatePageState extends State<CreatePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Color(0xFF212121),
-        title: Text('CreatePage'),
+        backgroundColor: const Color(0xFF212121),
+        title: const Text('CreatePage'),
       ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -151,12 +153,16 @@ class _CreatePageState extends State<CreatePage> {
             children: <Widget>[
               IconButton(
                 icon: btnIcon(),
-                onPressed: () => typeSwitch(),
+                onPressed: typeSwitch,
               ),
               Flexible(
                 child: Container(
-                  padding:
-                      EdgeInsets.only(left: 10.0, right: 0, top: 5, bottom: 0),
+                  padding: const EdgeInsets.only(
+                    left: 10,
+                    right: 0,
+                    top: 5,
+                    bottom: 0,
+                  ),
                   child: TextField(
                     controller: textEditingController,
                     autofocus: true,
@@ -177,26 +183,27 @@ class _CreatePageState extends State<CreatePage> {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: <Widget>[
           Container(
-            margin: EdgeInsets.only(bottom: 16.0),
+            margin: const EdgeInsets.only(bottom: 16),
             child: FloatingActionButton(
               backgroundColor: const Color(0xFF212121),
               child: btnIcon(),
-              onPressed: () => typeSwitch(),
+              onPressed: typeSwitch,
             ),
           ),
           FloatingActionButton.extended(
             heroTag: 'PageBtn',
             backgroundColor: const Color(0xFF212121),
-            icon: Icon(Icons.check),
+            icon: const Icon(Icons.check),
             label: Text('$type を保存'),
             onPressed: () async {
+              // ignore: flutter_style_todos
               //TODO ファイル作成時に、tagsmapを操作とsavealltags()
 
               path = widget.isRoot
-                  ? "${await localPath()}/root"
+                  ? '${await localPath()}/root'
                   : Directory.current.path;
 
-              bool overlapping = File('$path/$nameStr').existsSync() ||
+              final overlapping = File('$path/$nameStr').existsSync() ||
                   Directory('$path/$nameStr').existsSync();
 
               if (nameStr == '') {
@@ -209,23 +216,17 @@ class _CreatePageState extends State<CreatePage> {
 
               switch (type) {
                 case 'file':
-                  try {
-                    FileInfo newFileInfo = FileInfo(File('$path/$nameStr'));
+                  final newFileInfo = FileInfo(File('$path/$nameStr'));
 
-                    newFileInfo.file.create();
-                    debugPrint('file created');
-                  } catch (e) {
-                    debugPrint('$e');
-                  }
+                  newFileInfo.file.create();
+                  debugPrint('file created');
+
                   Navigator.pop(context);
                   break;
                 case 'folder':
-                  try {
-                    Directory('$path/$nameStr').create();
-                    debugPrint('folder created');
-                  } catch (e) {
-                    debugPrint('$e');
-                  }
+                  Directory('$path/$nameStr').create();
+                  debugPrint('folder created');
+
                   Navigator.pop(context);
                   break;
               }

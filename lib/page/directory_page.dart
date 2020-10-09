@@ -11,10 +11,10 @@ import 'package:memoapp/widget/file_widget.dart';
 import 'package:memoapp/widget/folder_widget.dart';
 
 class FolderListPage extends StatefulWidget {
+  const FolderListPage({this.name, this.dir});
+
   final String name;
   final Directory dir;
-
-  FolderListPage({this.name, this.dir});
 
   @override
   _FolderListPageState createState() => _FolderListPageState();
@@ -26,8 +26,8 @@ class _FolderListPageState extends State<FolderListPage> {
   @override
   Widget build(BuildContext context) {
     Directory.current = widget.dir;
-    debugPrint(
-        'current.path => ${RegExp(r'([^/]+?)?$').stringMatch(Directory.current.path)}');
+    debugPrint('current.path => '
+        '${RegExp(r'([^/]+?)?$').stringMatch(Directory.current.path)}');
 
     return Scaffold(
       appBar: AppBar(
@@ -39,7 +39,7 @@ class _FolderListPageState extends State<FolderListPage> {
             onPressed: () {
               fileSystemEvent.sink.add('');
               setState(() {
-                _selectMode = _selectMode ? false : true;
+                _selectMode = !_selectMode;
               });
             },
           ),
@@ -53,7 +53,7 @@ class _FolderListPageState extends State<FolderListPage> {
               backgroundColor: const Color(0xFF212121),
               child: const Icon(Icons.add),
               onPressed: () async {
-                await Navigator.push(
+                await Navigator.push<MaterialPageRoute>(
                     context,
                     MaterialPageRoute(
                       builder: (context) => CreatePage(
@@ -124,7 +124,7 @@ class _FolderListPageState extends State<FolderListPage> {
                                   //koko
                                 },
                               ),
-                              Positioned(
+                              const Positioned(
                                 bottom: -8,
                                 child: const Text(
                                   'move',
@@ -158,7 +158,7 @@ class _FolderListPageState extends State<FolderListPage> {
                                   }
                                 },
                               ),
-                              Positioned(
+                              const Positioned(
                                 bottom: -8,
                                 child: const Text(
                                   'delete',
@@ -188,78 +188,77 @@ class _FolderListPageState extends State<FolderListPage> {
   ///true なら[checkboxTiles()]
   ///false なら[normalTiles()]
   List<Widget> _getList() {
-    try {
-      return _selectMode ? _checkboxTiles() : _normalTiles();
-    } catch (e) {
-      debugPrint('$e');
-      return null;
-    }
+    return _selectMode ? _checkboxTiles() : _normalTiles();
   }
 
   List<Widget> _normalTiles() {
-    List<FolderWidget> _folderTiles = [];
-    List<FileWidget> _fileTiles = [];
+    final _folderTiles = <FolderWidget>[];
+    final _fileTiles = <FileWidget>[];
 
     Directory.current.listSync().forEach((FileSystemEntity entity) {
       if (entity is File) {
-        _fileTiles.add(
-          FileWidget(
-            name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
-            file: entity,
-          ),
-        );
-        _fileTiles.sort((a, b) => a.name.compareTo(b.name));
+        _fileTiles
+          ..add(
+            FileWidget(
+              name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
+              file: entity,
+            ),
+          )
+          ..sort((a, b) => a.name.compareTo(b.name));
       } else if (entity is Directory) {
-        _folderTiles.add(
-          FolderWidget(
-            name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
-            dir: entity,
-          ),
-        );
-        _folderTiles.sort((a, b) => a.name.compareTo(b.name));
+        _folderTiles
+          ..add(
+            FolderWidget(
+              name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
+              dir: entity,
+            ),
+          )
+          ..sort((a, b) => a.name.compareTo(b.name));
       }
     });
 
-    List<Widget> _result = [..._folderTiles, ..._fileTiles];
+    final _result = <Widget>[..._folderTiles, ..._fileTiles];
     return _result;
   }
 
   List<Widget> _checkboxTiles() {
-    List<FileCheckboxWidget> _fileCheckList = [];
-    List<FolderCheckboxWidget> _folderCheckList = [];
+    final _fileCheckList = <FileCheckboxWidget>[];
+    final _folderCheckList = <FolderCheckboxWidget>[];
 
     Directory.current.listSync().forEach((FileSystemEntity entity) {
       if (entity is File) {
-        _fileCheckList.add(
-          FileCheckboxWidget(
-            name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
-            file: entity,
-          ),
-        );
-        _fileCheckList.sort((a, b) => a.name.compareTo(b.name));
+        _fileCheckList
+          ..add(
+            FileCheckboxWidget(
+              name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
+              file: entity,
+            ),
+          )
+          ..sort((a, b) => a.name.compareTo(b.name));
       } else if (entity is Directory) {
-        _folderCheckList.add(
-          FolderCheckboxWidget(
-            name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
-            dir: entity,
-          ),
-        );
-        _folderCheckList.sort((a, b) => a.name.compareTo(b.name));
+        _folderCheckList
+          ..add(
+            FolderCheckboxWidget(
+              name: '${RegExp(r'([^/]+?)?$').stringMatch(entity.path)}',
+              dir: entity,
+            ),
+          )
+          ..sort((a, b) => a.name.compareTo(b.name));
       }
     });
 
-    List<Widget> _result = [..._folderCheckList, ..._fileCheckList];
+    final _result = <Widget>[..._folderCheckList, ..._fileCheckList];
     return _result;
   }
 
   Future showDeleteDialog(BuildContext context) {
-    return showDialog(
+    return showDialog<AlertDialog>(
       context: context,
       builder: (BuildContext context) {
-        List<dynamic> _deleteList = [];
-        List<String> _deleteListToString = [];
+        final _deleteList = <dynamic>[];
+        final _deleteListToString = <String>[];
 
-        for (var key in fsEntityToCheck.keys) {
+        for (final key in fsEntityToCheck.keys) {
           if (fsEntityToCheck[key]) {
             _deleteList.add(key);
             _deleteListToString
@@ -278,7 +277,7 @@ class _FolderListPageState extends State<FolderListPage> {
             FlatButton(
               child: const Text('すべて削除'),
               onPressed: () {
-                for (var entity in _deleteList) {
+                for (final entity in _deleteList) {
                   if (entity is File) {
                     entity.deleteSync();
                   } else if (entity is Directory) {
