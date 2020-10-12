@@ -207,7 +207,6 @@ class _HomeState extends State<Home> {
                 child: const Icon(Icons.add),
                 onPressed: () async {
                   if (_selectMode) {
-                    // ignore: flutter_style_todos
                     //TODO FAB押した時タグを追加する画面
                   } else {
                     final rootdir = Directory('${await localPath()}/root');

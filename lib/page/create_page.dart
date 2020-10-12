@@ -7,8 +7,7 @@ import 'package:memoapp/file_info.dart';
 
 import 'package:memoapp/handling.dart';
 
-// ignore: flutter_style_todos
-//TODO このページでメモの内容を入力できるようにする
+// TODO このページでメモの内容を入力できるようにする
 
 class CreatePage extends StatefulWidget {
   const CreatePage({@required this.tDir, this.isRoot});
@@ -104,9 +103,8 @@ class _CreatePageState extends State<CreatePage> {
 
                   menuEntry.insert(
                     0,
-                    // ignore: flutter_style_todos
+
                     //TODO タグを付けるときにreadyTagに追加するのとそれを読み込む
-                    // ignore: flutter_style_todos
                     //TODO (タグの削除)
                     PopupMenuItem(
                       value: stringTagValue,
@@ -149,7 +147,6 @@ class _CreatePageState extends State<CreatePage> {
     if (readyTagFileValue.isEmpty) {
       FileInfo.readyTagFile.writeAsStringSync(jsonEncode(<List<String>>[]));
     }
-    // ignore: flutter_style_todos
     //TODO ここから saveTagを実装する
   }
 
