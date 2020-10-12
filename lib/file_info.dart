@@ -36,8 +36,8 @@ class FileInfo {
     }
 
     if (!_pathToTags.containsKey(file.path)) {
-      debugPrint('pathtotagsのkeyに '
-          '${RegExp(r'([^/]+?)?$').stringMatch(file.path)} が登録されていない');
+      /*debugPrint('pathtotagsのkeyに '
+          '${RegExp(r'([^/]+?)?$').stringMatch(file.path)} が登録されていない');*/
       return <Tag>[];
     }
 
@@ -85,6 +85,8 @@ class FileInfo {
 
 class Tag {
   Tag(this.tagName);
+
+  static List<Tag> allTags;
 
   String tagName;
 

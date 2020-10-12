@@ -198,7 +198,7 @@ class _HomeState extends State<Home> {
                   );
                 },
               )
-            : null,
+            : tagPageBody(),
         floatingActionButton: _selectMode
             ? null
             : FloatingActionButton(
@@ -222,6 +222,15 @@ class _HomeState extends State<Home> {
                 },
               ),
       ),
+    );
+  }
+
+  Widget tagPageBody() {
+    //TODO タグページの実装
+
+    //TODO Tag.allTags を読み込んで、上に
+    return const Center(
+      child: Text('aiuoe'),
     );
   }
 
