@@ -165,16 +165,17 @@ class _FileState extends State<FileWidget> {
   }
 
   Text subtext() {
-    StringBuffer string;
+    if (widget.tags.isEmpty) {
+      return null;
+    }
+    final string = StringBuffer();
+
     for (final tag in widget.tags) {
       final name = ' #${tag.tagName} ';
       string.write(name);
     }
 
-    if (string.length == 0) {
-      return null;
-    }
-    return Text(string.toString().substring(0, string.length - 1));
+    return Text(string.toString());
   }
 }
 

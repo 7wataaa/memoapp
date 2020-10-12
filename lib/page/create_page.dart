@@ -39,7 +39,7 @@ class _CreatePageState extends State<CreatePage> {
   List<Tag> tmpTags = [];
 
   ///追加するタグ(デコレーション用)
-  StringBuffer labelTagStr;
+  StringBuffer labelTagStr = StringBuffer('');
 
   List<PopupMenuEntry<String>> menuEntry = [
     const PopupMenuItem(
@@ -77,7 +77,7 @@ class _CreatePageState extends State<CreatePage> {
   InputDecoration parentDecoration() {
     return InputDecoration(
       labelText:
-          '${RegExp(r'([^/]+?)?$').stringMatch(widget.tDir.path)}/  $labelTagStr',
+          '${RegExp(r'([^/]+?)?$').stringMatch(widget.tDir.path)}/  ${labelTagStr.toString()}',
       hintText: '$type の名前を入力してください',
     );
   }
@@ -230,7 +230,7 @@ class _CreatePageState extends State<CreatePage> {
                 case 'file':
                   final newFileInfo = FileInfo(File('$path/$nameStr'));
 
-                  newFileInfo.file.create();
+                  newFileInfo.fileCreateAndAddTag(tmpTags);
                   debugPrint('file created');
 
                   Navigator.pop(context);

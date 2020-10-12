@@ -234,7 +234,6 @@ class _HomeState extends State<Home> {
     if (tagsFile.existsSync()) {
       for (final str in await tagsFile.readAsLines()) {
         resultList.add(Tag(str));
-        debugPrint('$str');
       }
       return resultList;
     }
@@ -269,9 +268,9 @@ class _HomeState extends State<Home> {
     final path = await localPath();
     final readytag = File('$path/readyTag.json');
 
-    if (FileInfo.tagsFile != File('$path/tagsFile.json')) {
-      FileInfo.tagsFile = File('$path/tagsFile.json');
-    }
+    FileInfo.tagsFile ??= File('$path/tagsFile.json');
+    FileInfo.readyTagFile ??= readytag;
+
     if (!readytag.existsSync()) {
       FileInfo.readyTagFile = readytag;
       readytag.create();
@@ -290,10 +289,10 @@ class _HomeState extends State<Home> {
     final mainFileList = <FileWidget>[];
     Directory('$path/root').listSync().forEach((FileSystemEntity entity) {
       if (entity is File) {
-        final fileEx = FileInfo(entity);
+        final fileinfo = FileInfo(entity);
         mainFileList
           ..add(
-            fileEx.getWidget(),
+            fileinfo.getWidget(),
           )
           ..sort((a, b) => a.name.compareTo(b.name));
       } else if (entity is Directory) {

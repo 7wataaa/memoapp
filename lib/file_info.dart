@@ -29,9 +29,9 @@ class FileInfo {
   ///fileに対応したtagリストをファイルから取得する
   List<Tag> getTags() {
     _loadPathToTagsFromJson();
-    //debugPrint('pathtotags => $_pathToTags');
 
     if (_pathToTags.isEmpty) {
+      debugPrint('_pathtotags is empty');
       return null;
     }
 
@@ -45,15 +45,10 @@ class FileInfo {
         ' のタグ => ${_pathToTags[file.path]}');
 
     final result = <Tag>[];
+
     for (final tagtitle in _pathToTags[file.path]) {
       result.add(
         Tag(tagtitle as String),
-      );
-    }
-    final tags = _pathToTags[file.path] as List<String>;
-    for (final tagname in tags) {
-      result.add(
-        Tag(tagname),
       );
     }
     return result;
@@ -65,27 +60,25 @@ class FileInfo {
     if (tagsFileValue.isEmpty) {
       return;
     }
-
-    _pathToTags =
-        jsonDecode(tagsFile.readAsStringSync()) as Map<String, dynamic>;
+    _pathToTags = Map<String, dynamic>.from(
+        jsonDecode(tagsFile.readAsStringSync()) as Map);
   }
 
   ///[tag]をtagsFileに追加
   void addTag(Tag tag) {
     _loadPathToTagsFromJson();
+
     if (!_pathToTags.containsKey(file.path)) {
-      _pathToTags[file.path] = <Tag>[];
+      _pathToTags[file.path] = <String>[];
     }
-    debugPrint('$tag');
+
     _pathToTags[file.path].add(tag.tagName);
+
     tagsFile.writeAsStringSync(jsonEncode(_pathToTags));
   }
 
   void fileCreateAndAddTag(List<Tag> taglist) {
     file.create();
-    /*for (final tag in taglist) {
-      addTag(tag);
-    }*/
     taglist.forEach(addTag);
   }
 }
