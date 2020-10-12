@@ -87,12 +87,10 @@ class _FileState extends State<FileWidget> {
   }
 
   void onEditTags() {
-    // ignore: flutter_style_todos
     //TODO onEditTags()の実装
   }
 
   void onDelete() {
-    // ignore: flutter_style_todos
     //TODO 削除時に、tagsFileでの情報も削除する
     Navigator.pop(context);
     showDialog<AlertDialog>(
@@ -111,6 +109,7 @@ class _FileState extends State<FileWidget> {
               onPressed: () {
                 Navigator.pop(context);
                 widget.file.delete().then((_) => fileSystemEvent.sink.add(''));
+                //TODO snackbarで削除の通知と取り消しを可能にする
               },
             ),
           ],
