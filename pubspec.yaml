@@ -29,7 +29,9 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^0.1.3
   path_provider: ^1.6.14
+  provider: ^4.3.2+2
   screen: ^0.0.5
+  csv: ^4.0.3
   flutter_localizations:
     sdk: flutter
   

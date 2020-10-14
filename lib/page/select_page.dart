@@ -84,7 +84,7 @@ class _CdpageState extends State<Cdpage> {
           setState(() {
             selectedDirPath = value;
           });
-          debugPrint('$selectedDirPath');
+          debugPrint('selectedDirPath => $selectedDirPath');
         },
       ),
     );

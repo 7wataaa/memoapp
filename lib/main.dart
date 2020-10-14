@@ -236,7 +236,7 @@ class _HomeState extends State<Home> {
 
   Future<List<Tag>> createTagList() async {
     //irankamo
-    final tagsFile = FileInfo.tagsFile;
+    final tagsFile = FileInfo.tagsFileJsonFile;
     final resultList = <Tag>[];
 
     if (tagsFile.existsSync()) {
@@ -274,18 +274,18 @@ class _HomeState extends State<Home> {
   ///false なら[normalTiles()]
   Future<List<Widget>> _getRootList() async {
     final path = await localPath();
-    final readytag = File('$path/readyTag.json');
+    final readytag = File('$path/readyTag.csv');
 
-    FileInfo.tagsFile ??= File('$path/tagsFile.json');
-    FileInfo.readyTagFile ??= readytag;
+    FileInfo.tagsFileJsonFile ??= File('$path/tagsFile.json');
+    FileInfo.readyTagCsvFile ??= readytag;
 
     if (!readytag.existsSync()) {
-      FileInfo.readyTagFile = readytag;
+      FileInfo.readyTagCsvFile = readytag;
       readytag.create();
     }
 
-    if (!FileInfo.tagsFile.existsSync()) {
-      FileInfo.tagsFile.create();
+    if (!FileInfo.tagsFileJsonFile.existsSync()) {
+      FileInfo.tagsFileJsonFile.create();
       debugPrint('tagFile created');
     }
 
