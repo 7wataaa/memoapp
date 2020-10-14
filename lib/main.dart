@@ -274,13 +274,13 @@ class _HomeState extends State<Home> {
   ///false なら[normalTiles()]
   Future<List<Widget>> _getRootList() async {
     final path = await localPath();
-    final readytag = File('$path/readyTag.csv');
+    final readytag = File('$path/readyTag');
 
     FileInfo.tagsFileJsonFile ??= File('$path/tagsFile.json');
-    FileInfo.readyTagCsvFile ??= readytag;
+    FileInfo.readyTagFile ??= readytag;
 
     if (!readytag.existsSync()) {
-      FileInfo.readyTagCsvFile = readytag;
+      FileInfo.readyTagFile = readytag;
       readytag.create();
     }
 

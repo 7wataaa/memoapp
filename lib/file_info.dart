@@ -14,7 +14,7 @@ class FileInfo {
 
   final File file;
   static File tagsFileJsonFile;
-  static File readyTagCsvFile;
+  static File readyTagFile;
   Map<String, dynamic> _pathToTags;
 
   ///このファイルでのFileWidgetを返す
@@ -93,17 +93,16 @@ class Tag {
   dynamic toJson() {
     return {'tagName': tagName};
   }
-  /*
-  List<MaterialColor> _colors = [
-    Colors.red,
-    Colors.blue,
-    Colors.green,
-    Colors.grey,
-    Colors.yellow,
-  ];
 
-  MaterialColor getColor() {
-    return _colors[Random().nextInt(4)];
+  Chip getTagChip() {
+    return Chip(
+      label: Text(
+        tagName,
+        style: const TextStyle(
+          fontSize: 18,
+        ),
+      ),
+      onDeleted: () {},
+    );
   }
-  */
 }

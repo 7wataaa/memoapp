@@ -143,10 +143,10 @@ class _CreatePageState extends State<CreatePage> {
 
   void saveTag(String tagname) {
     final readyTagFileValue =
-        jsonDecode(FileInfo.readyTagCsvFile.readAsStringSync()) as List<String>;
+        jsonDecode(FileInfo.readyTagFile.readAsStringSync()) as List<String>;
 
     if (readyTagFileValue.isEmpty) {
-      FileInfo.readyTagCsvFile.writeAsStringSync(jsonEncode(<List<String>>[]));
+      FileInfo.readyTagFile.writeAsStringSync(jsonEncode(<List<String>>[]));
     }
     //TODO ここから saveTagを実装する
   }
@@ -163,7 +163,7 @@ class _CreatePageState extends State<CreatePage> {
             onPressed: () async {
               await Navigator.push<MaterialPageRoute>(context,
                   MaterialPageRoute(builder: (context) => TagEditPage()));
-              //TODO 内容をreadytag.csvに保存
+              //TODO 内容をreadytagに保存
             },
           ),
         ],

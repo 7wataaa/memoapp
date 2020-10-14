@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:memoapp/file_info.dart';
 
@@ -7,7 +9,7 @@ class TagEditPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color(0xFF212121),
-        title: const Text('TagCreatePage'),
+        title: const Text('TagEditPage'),
       ),
       body: TagCreatePageBody(),
     );
@@ -32,6 +34,20 @@ class _TagCreatePageBodyState extends State<TagCreatePageBody> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
+                margin: const EdgeInsets.only(
+                  left: 5,
+                  right: 5,
+                  top: 10,
+                  bottom: 0,
+                ),
+                child: snapshot.hasData
+                    ? Wrap(
+                        spacing: 5,
+                        children: snapshot.data,
+                      )
+                    : const CircularProgressIndicator(),
+              ),
+              Container(
                 child: Row(
                   children: [
                     Flexible(
@@ -43,8 +59,11 @@ class _TagCreatePageBodyState extends State<TagCreatePageBody> {
                           bottom: 0,
                         ),
                         child: TextField(
+                          decoration:
+                              const InputDecoration(labelText: 'タグの名前を入力...'),
                           controller: _textEditingController,
                           onChanged: (value) => inputValue = value,
+                          autofocus: true,
                         ),
                       ),
                     ),
@@ -61,25 +80,17 @@ class _TagCreatePageBodyState extends State<TagCreatePageBody> {
                               return;
                             }
                           }
-                          debugPrint('inputValue => $inputValue');
-                          //TODO save to file
-                          /*setState(() {
-                        chips.add(
-                          Chip(
-                            label: Text('$inputValue'),
-                          ),
-                        );
-                      });*/
+
+                          setState(() {
+                            FileInfo.readyTagFile.writeAsString(
+                              '\n$inputValue',
+                              mode: FileMode.append,
+                            );
+                          });
                         })
                   ],
                 ),
-              ),
-              snapshot.hasData
-                  ? Wrap(
-                      spacing: 5,
-                      children: snapshot.data,
-                    )
-                  : const CircularProgressIndicator(),
+              )
             ],
           );
         });
@@ -87,30 +98,23 @@ class _TagCreatePageBodyState extends State<TagCreatePageBody> {
 
   Future<List<Chip>> loadChips() async {
     final result = <Chip>[];
+    final taglist = <Tag>[];
 
-    if ((await FileInfo.readyTagCsvFile.readAsString()).isEmpty) {
-      debugPrint('readyTag.csv is empty');
+    if ((await FileInfo.readyTagFile.readAsString()).isEmpty) {
+      debugPrint('readyTag is empty');
       return result;
     }
 
-    final readyTagCsvFile = await FileInfo.readyTagCsvFile.readAsString();
-    final tagnames = readyTagCsvFile.split(RegExp(r'\n')).toList();
-
-    debugPrint('${tagnames.length}');
-    for (final tagname in tagnames) {
-      if (tagname.isEmpty) {
-        break;
+    final readyTagCsvFile = await FileInfo.readyTagFile.readAsString();
+    readyTagCsvFile.split(RegExp(r'\n')).forEach((str) {
+      if (str.isEmpty) {
+        return;
       }
-      result.add(
-        Chip(
-          label: Text(
-            tagname,
-            style: const TextStyle(
-              fontSize: 18,
-            ),
-          ),
-        ),
-      );
+      taglist.add(Tag(str));
+    });
+
+    for (final tag in taglist) {
+      result.add(tag.getTagChip());
     }
 
     return result;
