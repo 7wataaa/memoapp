@@ -13,8 +13,8 @@ class FileInfo {
   FileInfo(this.file);
 
   final File file;
-  static File tagsFile;
-  static File readyTagFile;
+  static File tagsFileJsonFile;
+  static File readyTagCsvFile;
   Map<String, dynamic> _pathToTags;
 
   ///このファイルでのFileWidgetを返す
@@ -56,12 +56,12 @@ class FileInfo {
 
   ///[_pathToTags] に tagsFile.json の Mapを代入する
   void _loadPathToTagsFromJson() {
-    final tagsFileValue = tagsFile.readAsStringSync();
+    final tagsFileValue = tagsFileJsonFile.readAsStringSync();
     if (tagsFileValue.isEmpty) {
       return;
     }
     _pathToTags = Map<String, dynamic>.from(
-        jsonDecode(tagsFile.readAsStringSync()) as Map);
+        jsonDecode(tagsFileJsonFile.readAsStringSync()) as Map);
   }
 
   ///[tag]をtagsFileに追加
@@ -74,7 +74,7 @@ class FileInfo {
 
     _pathToTags[file.path].add(tag.tagName);
 
-    tagsFile.writeAsStringSync(jsonEncode(_pathToTags));
+    tagsFileJsonFile.writeAsStringSync(jsonEncode(_pathToTags));
   }
 
   void fileCreateAndAddTag(List<Tag> taglist) {
