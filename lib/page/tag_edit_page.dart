@@ -71,19 +71,23 @@ class _TagCreatePageBodyState extends State<TagCreatePageBody> {
                         icon: const Icon(Icons.create),
                         onPressed: () {
                           if (inputValue.isEmpty) {
-                            debugPrint('inputvalue is empty');
+                            debugPrint('!! inputvalue is empty');
                             return;
                           }
                           for (final chip in snapshot.data) {
                             if ((chip.label as Text).data == inputValue) {
-                              debugPrint('重複した名前');
+                              debugPrint('!! 重複した名前');
                               return;
                             }
                           }
+                          final writestr =
+                              FileInfo.readyTagFile.readAsStringSync().isEmpty
+                                  ? inputValue
+                                  : '\n$inputValue';
 
                           setState(() {
                             FileInfo.readyTagFile.writeAsString(
-                              '\n$inputValue',
+                              writestr,
                               mode: FileMode.append,
                             );
                           });
@@ -101,12 +105,12 @@ class _TagCreatePageBodyState extends State<TagCreatePageBody> {
     final taglist = <Tag>[];
 
     if ((await FileInfo.readyTagFile.readAsString()).isEmpty) {
-      debugPrint('readyTag is empty');
+      debugPrint('!! readyTag is empty');
       return result;
     }
 
-    final readyTagCsvFile = await FileInfo.readyTagFile.readAsString();
-    readyTagCsvFile.split(RegExp(r'\n')).forEach((str) {
+    final readyTagFile = await FileInfo.readyTagFile.readAsString();
+    readyTagFile.split(RegExp(r'\n')).forEach((str) {
       if (str.isEmpty) {
         return;
       }

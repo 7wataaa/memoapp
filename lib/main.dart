@@ -250,9 +250,9 @@ class _HomeState extends State<Home> {
 
   Widget _editIcon() {
     if (_selectMode) {
-      return const Icon(Icons.edit);
+      return const Icon(Icons.check_box);
     }
-    return const Icon(Icons.edit_outlined);
+    return const Icon(Icons.check_box_outline_blank);
   }
 
   Widget tagOrStorageIcon() {
@@ -282,11 +282,12 @@ class _HomeState extends State<Home> {
     if (!readytag.existsSync()) {
       FileInfo.readyTagFile = readytag;
       readytag.create();
+      debugPrint('readyTagFile created');
     }
 
     if (!FileInfo.tagsFileJsonFile.existsSync()) {
       FileInfo.tagsFileJsonFile.create();
-      debugPrint('tagFile created');
+      debugPrint('tagFileJsonFile created');
     }
 
     return _selectMode ? _checkboxTiles(path) : _normalTiles(path);
@@ -352,7 +353,7 @@ class _HomeState extends State<Home> {
   void _deleteSelectedEntities() {
     if (fsEntityToCheck.isEmpty ||
         fsEntityToCheck.values.every((bool b) => b == false)) {
-      debugPrint('何も選択されてません');
+      debugPrint('!! 何も選択されてません');
     } else {
       showDialog<AlertDialog>(
         context: context,

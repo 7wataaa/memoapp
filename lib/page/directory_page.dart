@@ -149,7 +149,7 @@ class _FolderListPageState extends State<FolderListPage> {
                                   if (fsEntityToCheck.isEmpty ||
                                       fsEntityToCheck.values
                                           .every((bool b) => b == false)) {
-                                    debugPrint('何も選択されてません(folderlistpage');
+                                    debugPrint('!! 何も選択されてません(folderlistpage');
                                   } else {
                                     showDeleteDialog(context);
                                     setState(() {

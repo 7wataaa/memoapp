@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
@@ -91,7 +92,6 @@ class _FileState extends State<FileWidget> {
   }
 
   void onDelete() {
-    //TODO 削除時に、tagsFileでの情報も削除する
     Navigator.pop(context);
     showDialog<AlertDialog>(
       context: context,
@@ -106,10 +106,21 @@ class _FileState extends State<FileWidget> {
             ),
             FlatButton(
               child: const Text('削除'),
-              onPressed: () {
-                Navigator.pop(context);
-                widget.file.delete().then((_) => fileSystemEvent.sink.add(''));
+              onPressed: () async {
                 //TODO snackbarで削除の通知と取り消しを可能にする
+                Navigator.pop(context);
+                await widget.file.delete();
+                fileSystemEvent.sink.add('');
+                //TODO 削除時に、tagsFileでの情報も削除する
+                final pathTags =
+                    jsonDecode(await FileInfo.tagsFileJsonFile.readAsString())
+                        as Map;
+
+                if (pathTags.containsKey(widget.file.path)) {
+                  debugPrint('登録されていたタグを削除');
+                  pathTags.remove(widget.file.path);
+                  FileInfo.tagsFileJsonFile.writeAsString(jsonEncode(pathTags));
+                }
               },
             ),
           ],

@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -94,23 +93,13 @@ class _CreatePageState extends State<CreatePage> {
       tmpTags.add(
         Tag('$value'),
       );
-
+      labelTagStr.clear();
       setState(() {
         for (final tag in tmpTags) {
           labelTagStr.write('#${tag.tagName} ');
         }
       });
     }
-  }
-
-  void saveTag(String tagname) {
-    final readyTagFileValue =
-        jsonDecode(FileInfo.readyTagFile.readAsStringSync()) as List<String>;
-
-    if (readyTagFileValue.isEmpty) {
-      FileInfo.readyTagFile.writeAsStringSync(jsonEncode(<List<String>>[]));
-    }
-    //TODO ここから saveTagを実装する
   }
 
   @override
@@ -121,7 +110,7 @@ class _CreatePageState extends State<CreatePage> {
         title: const Text('CreatePage'),
         actions: <IconButton>[
           IconButton(
-            icon: const Icon(Icons.label_outline),
+            icon: const Icon(Icons.edit_outlined),
             onPressed: () {
               pushTagEditPage();
             },
@@ -191,10 +180,10 @@ class _CreatePageState extends State<CreatePage> {
                   Directory('$path/$nameStr').existsSync();
 
               if (nameStr == '') {
-                debugPrint('! 名前が未入力です !');
+                debugPrint('!! 名前が未入力です');
                 return;
               } else if (overlapping) {
-                debugPrint('! 重複した名前はつけることができません !');
+                debugPrint('!! 重複した名前はつけることができません');
                 return;
               }
 

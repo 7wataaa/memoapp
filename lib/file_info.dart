@@ -31,7 +31,7 @@ class FileInfo {
     _loadPathToTagsFromJson();
 
     if (_pathToTags.isEmpty) {
-      debugPrint('_pathtotags is empty');
+      debugPrint('!! _pathtotags is empty');
       return null;
     }
 
@@ -57,9 +57,12 @@ class FileInfo {
   ///[_pathToTags] に tagsFile.json の Mapを代入する
   void _loadPathToTagsFromJson() {
     final tagsFileValue = tagsFileJsonFile.readAsStringSync();
+
+    //jsondecodeの引数にnullが入れられないから
     if (tagsFileValue.isEmpty) {
-      return;
+      tagsFileJsonFile.writeAsStringSync('{}');
     }
+
     _pathToTags = Map<String, dynamic>.from(
         jsonDecode(tagsFileJsonFile.readAsStringSync()) as Map);
   }
