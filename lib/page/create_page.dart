@@ -84,45 +84,7 @@ class _CreatePageState extends State<CreatePage> {
 
   void _onSelected(String value) {
     if (value == 'PDw8ZGVmYXVsdEl0ZW06IGFkZD4+Pg==') {
-      showDialog<AlertDialog>(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: const Text('タグを追加'),
-            content: TextField(
-              autofocus: true,
-              onChanged: (value) => stringTagValue = value,
-              decoration: const InputDecoration(labelText: 'タグの名前'),
-            ),
-            actions: [
-              FlatButton(
-                child: const Text('追加'),
-                onPressed: () {
-                  if (stringTagValue == '') {
-                    return;
-                  }
-
-                  menuEntry.insert(
-                    0,
-
-                    //TODO タグを付けるときにreadyTagに追加するのとそれを読み込む
-                    //TODO (タグの削除)
-                    PopupMenuItem(
-                      value: stringTagValue,
-                      child: Text('$stringTagValue'),
-                    ),
-                  );
-                  Navigator.pop(context);
-                },
-              ),
-              FlatButton(
-                child: const Text('キャンセル'),
-                onPressed: () => Navigator.pop(context),
-              ),
-            ],
-          );
-        },
-      );
+      pushTagEditPage();
     } else {
       for (final tag in tmpTags) {
         if (value == tag.tagName) {
@@ -160,10 +122,8 @@ class _CreatePageState extends State<CreatePage> {
         actions: <IconButton>[
           IconButton(
             icon: const Icon(Icons.label_outline),
-            onPressed: () async {
-              await Navigator.push<MaterialPageRoute>(context,
-                  MaterialPageRoute(builder: (context) => TagEditPage()));
-              //TODO 内容をreadytagに保存
+            onPressed: () {
+              pushTagEditPage();
             },
           ),
         ],
@@ -194,9 +154,13 @@ class _CreatePageState extends State<CreatePage> {
                   ),
                 ),
               ),
-              PopupMenuButton(
-                  onSelected: _onSelected,
-                  itemBuilder: (BuildContext context) => menuEntry),
+              FutureBuilder<List<PopupMenuEntry<String>>>(
+                  future: addmenuentry(),
+                  builder: (context, snapshot) {
+                    return PopupMenuButton(
+                        onSelected: _onSelected,
+                        itemBuilder: (BuildContext context) => snapshot.data);
+                  }),
             ],
           ),
         ],
@@ -255,5 +219,63 @@ class _CreatePageState extends State<CreatePage> {
         ],
       ),
     );
+  }
+
+  Future pushTagEditPage() async {
+    await Navigator.push<MaterialPageRoute>(
+        context, MaterialPageRoute(builder: (context) => TagEditPage()));
+    setState(() {});
+  }
+
+  Future<List<PopupMenuEntry<String>>> addmenuentry() async {
+    final menuEntry = <PopupMenuEntry<String>>[
+      const PopupMenuItem(
+        value: 'PDw8ZGVmYXVsdEl0ZW06IGFkZD4+Pg==',
+        child: Text('タグを追加...'),
+      ),
+    ];
+
+    final readytag = await FileInfo.readyTagFile.readAsString();
+
+    debugPrint('${readytag.split(RegExp(r'\n'))}');
+
+    for (final tagstr in readytag.split(RegExp(r'\n')).toList()) {
+      if (tagstr.isEmpty) {
+        debugPrint('tagstr($tagstr) is empty');
+        continue;
+      }
+
+      debugPrint('tagstr => $tagstr');
+
+      menuEntry.insert(
+        0,
+        new PopupMenuItem(
+          value: '$tagstr',
+          child: Text('$tagstr'),
+        ),
+      );
+
+      debugPrint('$menuEntry');
+    }
+
+    /*readytag.split(RegExp(r'\n')).forEach((tagstr) {
+      if (tagstr.isEmpty) {
+        debugPrint('tagstr($tagstr) is empty');
+        return;
+      }
+      debugPrint('tagstr => $tagstr');
+
+      menuEntry.insert(
+        0,
+        new PopupMenuItem(
+          value: '$tagstr',
+          child: Text('$tagstr'),
+        ),
+      );
+
+      debugPrint('$menuEntry');
+    });*/
+
+    return menuEntry;
   }
 }
