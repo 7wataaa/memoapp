@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
@@ -242,7 +243,7 @@ class _HomeState extends State<Home> {
         ),
         Expanded(
           child: FutureBuilder<List<Widget>>(
-            future: fileTagTiles('tag1'),
+            future: fileTagTiles('$selectedChip'),
             builder: (context, snapshot) {
               if (snapshot.hasData) {
                 return ListView(
@@ -273,7 +274,6 @@ class _HomeState extends State<Home> {
         }
         if ((fpt.pathToTags[fpt.file.path] as List).contains(tagname)) {
           result.add(fpt.getWidget());
-          debugPrint('result added ${fpt.file.path}');
         }
       }
     });
@@ -284,12 +284,11 @@ class _HomeState extends State<Home> {
   }
 
   List<Widget> createChips() {
-    final _chips = <FilterChip>[];
+    final _chips = <ChoiceChip>[];
 
     for (var i = 0; i < tagnames.length; i++) {
       _chips.add(
-        FilterChip(
-          showCheckmark: false,
+        ChoiceChip(
           selected: isSelected[i],
           label: Text(
             tagnames[i],
@@ -298,9 +297,13 @@ class _HomeState extends State<Home> {
             ),
           ),
           onSelected: (bool selected) {
-            setState(() {
-              isSelected[i] = selected;
-            });
+            if (!isSelected[i]) {
+              selectedChip = tagnames[i];
+              isSelected = List.generate(isSelected.length, (index) => false);
+              setState(() {
+                isSelected[i] = selected;
+              });
+            }
           },
         ),
       );
@@ -366,6 +369,7 @@ class _HomeState extends State<Home> {
 
     tagnames = FilePlusTag.readyTagFile.readAsStringSync().split(RegExp(r'\n'));
     debugPrint('$tagnames');
+    selectedChip = tagnames[0];
     isSelected = List.generate(tagnames.length, (index) {
       if (index == 0) {
         return true;
@@ -465,7 +469,13 @@ class _HomeState extends State<Home> {
                 onPressed: () {
                   for (final entity in deleteList) {
                     if (entity is File) {
+                      final pathTags = jsonDecode(
+                              FilePlusTag.tagsFileJsonFile.readAsStringSync())
+                          as Map
+                        ..remove(entity.path);
                       entity.delete();
+                      FilePlusTag.tagsFileJsonFile
+                          .writeAsStringSync(jsonEncode(pathTags));
                     } else if (entity is Directory) {
                       entity.delete(recursive: true);
                     }

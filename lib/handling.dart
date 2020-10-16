@@ -37,3 +37,5 @@ List<String> tagnames;
 
 ///selected chipを管理する
 List<bool> isSelected;
+
+String selectedChip = '';
