@@ -121,7 +121,7 @@ class _FolderListPageState extends State<FolderListPage> {
                                   color: Color(0xFF484848),
                                 ),
                                 onPressed: () {
-                                  //koko
+                                  //TODO moveの実装
                                 },
                               ),
                               const Positioned(

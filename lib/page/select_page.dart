@@ -58,7 +58,6 @@ class _CdpageState extends State<Cdpage> {
         backgroundColor: const Color(0xFF212121),
         child: const Icon(Icons.check),
         onPressed: () {
-          //koko
           final newFilePath =
               '$selectedDirPath/${RegExp(r'([^/]+?)?$').stringMatch(widget.file.path)}';
           File(newFilePath).createSync();

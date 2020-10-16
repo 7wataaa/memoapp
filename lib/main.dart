@@ -1,22 +1,14 @@
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
-
-import 'package:flutter_localizations/flutter_localizations.dart';
-
 import 'package:flutter/material.dart';
-
-import 'package:screen/screen.dart';
-
-import 'package:memoapp/page/create_page.dart';
-
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:memoapp/file_plus_tag.dart';
 import 'package:memoapp/handling.dart';
-
+import 'package:memoapp/page/create_page.dart';
 import 'package:memoapp/widget/file_widget.dart';
-
 import 'package:memoapp/widget/folder_widget.dart';
-
-import 'package:memoapp/file_info.dart';
+import 'package:screen/screen.dart';
 
 void main() {
   runApp(MyApp());
@@ -228,15 +220,97 @@ class _HomeState extends State<Home> {
   Widget tagPageBody() {
     //TODO タグページの実装
 
-    //TODO Tag.allTags を読み込んで、上に
-    return const Center(
-      child: Text('aiuoe'),
+    final tagnames = createChips();
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        Container(
+          margin: const EdgeInsets.only(top: 5, bottom: 5),
+          height: 45,
+          child: ListView.separated(
+            shrinkWrap: true,
+            scrollDirection: Axis.horizontal,
+            separatorBuilder: (context, index) => Container(
+              margin: const EdgeInsets.only(left: 5),
+            ),
+            itemCount: tagnames.length,
+            itemBuilder: (context, i) {
+              return tagnames[i];
+            },
+          ),
+        ),
+        Expanded(
+          child: FutureBuilder<List<Widget>>(
+            future: fileTagTiles('tag1'),
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                return ListView(
+                  children: snapshot.data,
+                );
+              } else {
+                return const Center(child: CircularProgressIndicator());
+              }
+            },
+          ),
+        )
+      ],
     );
   }
 
+//TODO 選んだchipによって表示するファイルを持ってくる
+  Future<List<Widget>> fileTagTiles(String tagname) async {
+    final result = <FileWidget>[];
+
+    Directory('$path/root')
+        .list(recursive: true)
+        .listen((FileSystemEntity entity) {
+      if (entity is File) {
+        final fpt = FilePlusTag(entity)..loadPathToTagsFromJson();
+        if (fpt.pathToTags[fpt.file.path] == null ||
+            (fpt.pathToTags[fpt.file.path] as List).isEmpty) {
+          return;
+        }
+        if ((fpt.pathToTags[fpt.file.path] as List).contains(tagname)) {
+          result.add(fpt.getWidget());
+          debugPrint('result added ${fpt.file.path}');
+        }
+      }
+    });
+
+    //TODO fileplustagからタグでソートする
+    debugPrint('result => $result');
+    return result;
+  }
+
+  List<Widget> createChips() {
+    final _chips = <FilterChip>[];
+
+    for (var i = 0; i < tagnames.length; i++) {
+      _chips.add(
+        FilterChip(
+          showCheckmark: false,
+          selected: isSelected[i],
+          label: Text(
+            tagnames[i],
+            style: const TextStyle(
+              fontSize: 20,
+            ),
+          ),
+          onSelected: (bool selected) {
+            setState(() {
+              isSelected[i] = selected;
+            });
+          },
+        ),
+      );
+    }
+
+    return _chips;
+  }
+
   Future<List<Tag>> createTagList() async {
-    //irankamo
-    final tagsFile = FileInfo.tagsFileJsonFile;
+    final tagsFile = FilePlusTag.tagsFileJsonFile;
     final resultList = <Tag>[];
 
     if (tagsFile.existsSync()) {
@@ -273,22 +347,31 @@ class _HomeState extends State<Home> {
   ///true なら[checkboxTiles()]
   ///false なら[normalTiles()]
   Future<List<Widget>> _getRootList() async {
-    final path = await localPath();
+    path = await localPath();
     final readytag = File('$path/readyTag');
 
-    FileInfo.tagsFileJsonFile ??= File('$path/tagsFile.json');
-    FileInfo.readyTagFile ??= readytag;
+    FilePlusTag.tagsFileJsonFile ??= File('$path/tagsFile.json');
+    FilePlusTag.readyTagFile ??= readytag;
 
     if (!readytag.existsSync()) {
-      FileInfo.readyTagFile = readytag;
+      FilePlusTag.readyTagFile = readytag;
       readytag.create();
       debugPrint('readyTagFile created');
     }
 
-    if (!FileInfo.tagsFileJsonFile.existsSync()) {
-      FileInfo.tagsFileJsonFile.create();
+    if (!FilePlusTag.tagsFileJsonFile.existsSync()) {
+      FilePlusTag.tagsFileJsonFile.create();
       debugPrint('tagFileJsonFile created');
     }
+
+    tagnames = FilePlusTag.readyTagFile.readAsStringSync().split(RegExp(r'\n'));
+    debugPrint('$tagnames');
+    isSelected = List.generate(tagnames.length, (index) {
+      if (index == 0) {
+        return true;
+      }
+      return false;
+    });
 
     return _selectMode ? _checkboxTiles(path) : _normalTiles(path);
   }
@@ -298,7 +381,7 @@ class _HomeState extends State<Home> {
     final mainFileList = <FileWidget>[];
     Directory('$path/root').listSync().forEach((FileSystemEntity entity) {
       if (entity is File) {
-        final fileinfo = FileInfo(entity);
+        final fileinfo = FilePlusTag(entity);
         mainFileList
           ..add(
             fileinfo.getWidget(),

@@ -25,6 +25,15 @@ Future<void> rootSet() async {
   }
 }
 
+///File('$path/root')みたいな、osごとの保存場所のパス
+String path;
+
 StreamController<String> fileSystemEvent = StreamController<String>.broadcast();
 
 Map<FileSystemEntity, bool> fsEntityToCheck = {};
+
+///chipのラベル
+List<String> tagnames;
+
+///selected chipを管理する
+List<bool> isSelected;

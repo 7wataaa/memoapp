@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 
-import 'package:memoapp/file_info.dart';
+import 'package:memoapp/file_plus_tag.dart';
 
 import 'package:memoapp/handling.dart';
 import 'package:memoapp/page/tag_edit_page.dart';
@@ -189,7 +189,7 @@ class _CreatePageState extends State<CreatePage> {
 
               switch (type) {
                 case 'file':
-                  final newFileInfo = FileInfo(File('$path/$nameStr'));
+                  final newFileInfo = FilePlusTag(File('$path/$nameStr'));
 
                   newFileInfo.fileCreateAndAddTag(tmpTags);
                   debugPrint('file created');
@@ -224,17 +224,17 @@ class _CreatePageState extends State<CreatePage> {
       ),
     ];
 
-    final readytag = await FileInfo.readyTagFile.readAsString();
+    final readytag = await FilePlusTag.readyTagFile.readAsString();
 
     debugPrint('${readytag.split(RegExp(r'\n'))}');
 
     for (final tagstr in readytag.split(RegExp(r'\n')).toList()) {
       if (tagstr.isEmpty) {
-        debugPrint('tagstr($tagstr) is empty');
+        //debugPrint('tagstr($tagstr) is empty');
         continue;
       }
 
-      debugPrint('tagstr => $tagstr');
+      //debugPrint('tagstr => $tagstr');
 
       menuEntry.insert(
         0,
@@ -244,7 +244,7 @@ class _CreatePageState extends State<CreatePage> {
         ),
       );
 
-      debugPrint('$menuEntry');
+      //debugPrint('$menuEntry');
     }
 
     /*readytag.split(RegExp(r'\n')).forEach((tagstr) {

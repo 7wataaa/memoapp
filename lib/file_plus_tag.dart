@@ -9,13 +9,13 @@ import 'package:memoapp/widget/file_widget.dart';
 //import 'package:memoapp/handling.dart';
 
 ///FileInfo(File [file])
-class FileInfo {
-  FileInfo(this.file);
+class FilePlusTag {
+  FilePlusTag(this.file);
 
   final File file;
   static File tagsFileJsonFile;
   static File readyTagFile;
-  Map<String, dynamic> _pathToTags;
+  Map<String, dynamic> pathToTags;
 
   ///このファイルでのFileWidgetを返す
   FileWidget getWidget() {
@@ -28,25 +28,24 @@ class FileInfo {
 
   ///fileに対応したtagリストをファイルから取得する
   List<Tag> getTags() {
-    _loadPathToTagsFromJson();
+    loadPathToTagsFromJson();
 
-    if (_pathToTags.isEmpty) {
+    if (pathToTags.isEmpty) {
       debugPrint('!! _pathtotags is empty');
-      return null;
+      return [];
     }
 
-    if (!_pathToTags.containsKey(file.path)) {
-      /*debugPrint('pathtotagsのkeyに '
-          '${RegExp(r'([^/]+?)?$').stringMatch(file.path)} が登録されていない');*/
+    if (!pathToTags.containsKey(file.path)) {
+      //debugPrint('!! pathtotagsのkeyに登録されていないパス');
       return <Tag>[];
     }
 
     debugPrint('${RegExp(r'([^/]+?)?$').stringMatch(file.path)}'
-        ' のタグ => ${_pathToTags[file.path]}');
+        ' のタグ => ${pathToTags[file.path]}');
 
     final result = <Tag>[];
 
-    for (final tagtitle in _pathToTags[file.path]) {
+    for (final tagtitle in pathToTags[file.path]) {
       result.add(
         Tag(tagtitle as String),
       );
@@ -54,8 +53,8 @@ class FileInfo {
     return result;
   }
 
-  ///[_pathToTags] に tagsFile.json の Mapを代入する
-  void _loadPathToTagsFromJson() {
+  ///[pathToTags] に tagsFile.json の Mapを代入する
+  void loadPathToTagsFromJson() {
     final tagsFileValue = tagsFileJsonFile.readAsStringSync();
 
     //jsondecodeの引数にnullが入れられないから
@@ -63,21 +62,21 @@ class FileInfo {
       tagsFileJsonFile.writeAsStringSync('{}');
     }
 
-    _pathToTags = Map<String, dynamic>.from(
+    pathToTags = Map<String, dynamic>.from(
         jsonDecode(tagsFileJsonFile.readAsStringSync()) as Map);
   }
 
   ///[tag]をtagsFileに追加
   void addTag(Tag tag) {
-    _loadPathToTagsFromJson();
+    loadPathToTagsFromJson();
 
-    if (!_pathToTags.containsKey(file.path)) {
-      _pathToTags[file.path] = <String>[];
+    if (!pathToTags.containsKey(file.path)) {
+      pathToTags[file.path] = <String>[];
     }
 
-    _pathToTags[file.path].add(tag.tagName);
+    pathToTags[file.path].add(tag.tagName);
 
-    tagsFileJsonFile.writeAsStringSync(jsonEncode(_pathToTags));
+    tagsFileJsonFile.writeAsStringSync(jsonEncode(pathToTags));
   }
 
   void fileCreateAndAddTag(List<Tag> taglist) {

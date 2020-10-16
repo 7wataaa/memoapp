@@ -11,7 +11,7 @@ import 'package:memoapp/handling.dart';
 
 import 'package:memoapp/page/edit_page.dart';
 
-import 'package:memoapp/file_info.dart';
+import 'package:memoapp/file_plus_tag.dart';
 
 class FileWidget extends StatefulWidget {
   const FileWidget({@required this.name, @required this.file, this.tags});
@@ -111,15 +111,14 @@ class _FileState extends State<FileWidget> {
                 Navigator.pop(context);
                 await widget.file.delete();
                 fileSystemEvent.sink.add('');
-                //TODO 削除時に、tagsFileでの情報も削除する
-                final pathTags =
-                    jsonDecode(await FileInfo.tagsFileJsonFile.readAsString())
-                        as Map;
+                final pathTags = jsonDecode(
+                    await FilePlusTag.tagsFileJsonFile.readAsString()) as Map;
 
                 if (pathTags.containsKey(widget.file.path)) {
                   debugPrint('登録されていたタグを削除');
                   pathTags.remove(widget.file.path);
-                  FileInfo.tagsFileJsonFile.writeAsString(jsonEncode(pathTags));
+                  FilePlusTag.tagsFileJsonFile
+                      .writeAsString(jsonEncode(pathTags));
                 }
               },
             ),

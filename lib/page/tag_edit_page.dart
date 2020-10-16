@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:memoapp/file_info.dart';
+import 'package:memoapp/file_plus_tag.dart';
 
 class TagEditPage extends StatelessWidget {
   @override
@@ -80,13 +80,14 @@ class _TagCreatePageBodyState extends State<TagCreatePageBody> {
                               return;
                             }
                           }
-                          final writestr =
-                              FileInfo.readyTagFile.readAsStringSync().isEmpty
-                                  ? inputValue
-                                  : '\n$inputValue';
+                          final writestr = FilePlusTag.readyTagFile
+                                  .readAsStringSync()
+                                  .isEmpty
+                              ? inputValue
+                              : '\n$inputValue';
 
                           setState(() {
-                            FileInfo.readyTagFile.writeAsString(
+                            FilePlusTag.readyTagFile.writeAsString(
                               writestr,
                               mode: FileMode.append,
                             );
@@ -104,12 +105,12 @@ class _TagCreatePageBodyState extends State<TagCreatePageBody> {
     final result = <Chip>[];
     final taglist = <Tag>[];
 
-    if ((await FileInfo.readyTagFile.readAsString()).isEmpty) {
+    if ((await FilePlusTag.readyTagFile.readAsString()).isEmpty) {
       debugPrint('!! readyTag is empty');
       return result;
     }
 
-    final readyTagFile = await FileInfo.readyTagFile.readAsString();
+    final readyTagFile = await FilePlusTag.readyTagFile.readAsString();
     readyTagFile.split(RegExp(r'\n')).forEach((str) {
       if (str.isEmpty) {
         return;
