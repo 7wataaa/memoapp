@@ -221,42 +221,49 @@ class _HomeState extends State<Home> {
   Widget tagPageBody() {
     //TODO タグページの実装
 
-    final tagnames = createChips();
+    final tagChips = createChips();
+    debugPrint('$tagChips');
 
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        Container(
-          margin: const EdgeInsets.only(top: 5, bottom: 5),
-          height: 45,
-          child: ListView.separated(
-            shrinkWrap: true,
-            scrollDirection: Axis.horizontal,
-            separatorBuilder: (context, index) => Container(
-              margin: const EdgeInsets.only(left: 5),
+    if (tagChips.isNotEmpty) {
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Container(
+            margin: const EdgeInsets.only(top: 5, bottom: 5),
+            height: 45,
+            child: ListView.separated(
+              shrinkWrap: true,
+              scrollDirection: Axis.horizontal,
+              separatorBuilder: (context, index) => Container(
+                margin: const EdgeInsets.only(left: 5),
+              ),
+              itemCount: tagChips.length,
+              itemBuilder: (context, i) {
+                return tagChips[i];
+              },
             ),
-            itemCount: tagnames.length,
-            itemBuilder: (context, i) {
-              return tagnames[i];
-            },
           ),
-        ),
-        Expanded(
-          child: FutureBuilder<List<Widget>>(
-            future: fileTagTiles('$selectedChip'),
-            builder: (context, snapshot) {
-              if (snapshot.hasData) {
-                return ListView(
-                  children: snapshot.data,
-                );
-              } else {
-                return const Center(child: CircularProgressIndicator());
-              }
-            },
-          ),
-        )
-      ],
-    );
+          Expanded(
+            child: FutureBuilder<List<Widget>>(
+              future: fileTagTiles('$selectedChip'),
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  return ListView(
+                    children: snapshot.data,
+                  );
+                } else {
+                  return const Center(child: CircularProgressIndicator());
+                }
+              },
+            ),
+          )
+        ],
+      );
+    } else {
+      return const Center(
+        child: Text('タグがありません'),
+      );
+    }
   }
 
 //TODO 選んだchipによって表示するファイルを持ってくる
@@ -267,13 +274,15 @@ class _HomeState extends State<Home> {
         .list(recursive: true)
         .listen((FileSystemEntity entity) {
       if (entity is File) {
-        final fpt = FilePlusTag(entity)..loadPathToTagsFromJson();
-        if (fpt.pathToTags[fpt.file.path] == null ||
-            (fpt.pathToTags[fpt.file.path] as List).isEmpty) {
+        final fileplustag = FilePlusTag(entity)..loadPathToTagsFromJson();
+
+        if (fileplustag.pathToTags[fileplustag.file.path] == null ||
+            (fileplustag.pathToTags[fileplustag.file.path] as List).isEmpty) {
           return;
         }
-        if ((fpt.pathToTags[fpt.file.path] as List).contains(tagname)) {
-          result.add(fpt.getWidget());
+        if ((fileplustag.pathToTags[fileplustag.file.path] as List)
+            .contains(tagname)) {
+          result.add(fileplustag.getWidget());
         }
       }
     });
@@ -284,9 +293,12 @@ class _HomeState extends State<Home> {
   }
 
   List<Widget> createChips() {
+    if (tagnames[0].isEmpty) {
+      return [];
+    }
     final _chips = <ChoiceChip>[];
-
     for (var i = 0; i < tagnames.length; i++) {
+      debugPrint('aaa => ${tagnames.length}');
       _chips.add(
         ChoiceChip(
           selected: isSelected[i],
@@ -368,7 +380,6 @@ class _HomeState extends State<Home> {
     }
 
     tagnames = FilePlusTag.readyTagFile.readAsStringSync().split(RegExp(r'\n'));
-    debugPrint('$tagnames');
     selectedChip = tagnames[0];
     isSelected = List.generate(tagnames.length, (index) {
       if (index == 0) {

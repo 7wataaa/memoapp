@@ -226,7 +226,7 @@ class _CreatePageState extends State<CreatePage> {
 
     final readytag = await FilePlusTag.readyTagFile.readAsString();
 
-    debugPrint('${readytag.split(RegExp(r'\n'))}');
+    debugPrint('readytag => ${readytag.split(RegExp(r'\n'))}');
 
     for (final tagstr in readytag.split(RegExp(r'\n')).toList()) {
       if (tagstr.isEmpty) {
