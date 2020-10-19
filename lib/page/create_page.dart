@@ -224,18 +224,15 @@ class _CreatePageState extends State<CreatePage> {
       ),
     ];
 
-    final readytag = await FilePlusTag.readyTagFile.readAsString();
+    final readytag = await Tag.readyTagFile.readAsString();
 
     debugPrint('readytag => ${readytag.split(RegExp(r'\n'))}');
 
     for (final tagstr in readytag.split(RegExp(r'\n')).toList()) {
       if (tagstr.isEmpty) {
-        //debugPrint('tagstr($tagstr) is empty');
         continue;
       }
 
-      //debugPrint('tagstr => $tagstr');
-
       menuEntry.insert(
         0,
         new PopupMenuItem(
@@ -243,27 +240,7 @@ class _CreatePageState extends State<CreatePage> {
           child: Text('$tagstr'),
         ),
       );
-
-      //debugPrint('$menuEntry');
     }
-
-    /*readytag.split(RegExp(r'\n')).forEach((tagstr) {
-      if (tagstr.isEmpty) {
-        debugPrint('tagstr($tagstr) is empty');
-        return;
-      }
-      debugPrint('tagstr => $tagstr');
-
-      menuEntry.insert(
-        0,
-        new PopupMenuItem(
-          value: '$tagstr',
-          child: Text('$tagstr'),
-        ),
-      );
-
-      debugPrint('$menuEntry');
-    });*/
 
     return menuEntry;
   }

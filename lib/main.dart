@@ -266,7 +266,6 @@ class _HomeState extends State<Home> {
     }
   }
 
-//TODO 選んだchipによって表示するファイルを持ってくる
   Future<List<Widget>> fileTagTiles(String tagname) async {
     final result = <FileWidget>[];
 
@@ -276,19 +275,17 @@ class _HomeState extends State<Home> {
       if (entity is File) {
         final fileplustag = FilePlusTag(entity)..loadPathToTagsFromJson();
 
-        if (fileplustag.pathToTags[fileplustag.file.path] == null ||
-            (fileplustag.pathToTags[fileplustag.file.path] as List).isEmpty) {
+        if (FilePlusTag.pathToTags[fileplustag.file.path] == null ||
+            (FilePlusTag.pathToTags[fileplustag.file.path] as List).isEmpty) {
           return;
         }
-        if ((fileplustag.pathToTags[fileplustag.file.path] as List)
+        if ((FilePlusTag.pathToTags[fileplustag.file.path] as List)
             .contains(tagname)) {
           result.add(fileplustag.getWidget());
         }
       }
     });
 
-    //TODO fileplustagからタグでソートする
-    debugPrint('result => $result');
     return result;
   }
 
@@ -366,10 +363,10 @@ class _HomeState extends State<Home> {
     final readytag = File('$path/readyTag');
 
     FilePlusTag.tagsFileJsonFile ??= File('$path/tagsFile.json');
-    FilePlusTag.readyTagFile ??= readytag;
+    Tag.readyTagFile ??= readytag;
 
     if (!readytag.existsSync()) {
-      FilePlusTag.readyTagFile = readytag;
+      Tag.readyTagFile = readytag;
       readytag.create();
       debugPrint('readyTagFile created');
     }
@@ -379,7 +376,7 @@ class _HomeState extends State<Home> {
       debugPrint('tagFileJsonFile created');
     }
 
-    tagnames = FilePlusTag.readyTagFile.readAsStringSync().split(RegExp(r'\n'));
+    tagnames = Tag.readyTagFile.readAsStringSync().split(RegExp(r'\n'));
     selectedChip = tagnames[0];
     isSelected = List.generate(tagnames.length, (index) {
       if (index == 0) {

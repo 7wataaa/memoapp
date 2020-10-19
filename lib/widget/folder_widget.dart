@@ -104,26 +104,8 @@ class _FolderState extends State<FolderWidget> {
                                 child: const Text('削除'),
                                 onPressed: () {
                                   Navigator.pop(context);
-                                  widget.dir
-                                      .delete()
-                                      .then((_) => fileSystemEvent.sink.add(''))
-                                      .catchError(() {
-                                    showDialog<AlertDialog>(
-                                        context: context,
-                                        builder: (context) {
-                                          return AlertDialog(
-                                            title: const Text('ERROR'),
-                                            content: text,
-                                            actions: [
-                                              FlatButton(
-                                                child: const Text('OK'),
-                                                onPressed: () =>
-                                                    Navigator.pop(context),
-                                              ),
-                                            ],
-                                          );
-                                        });
-                                  });
+                                  widget.dir.delete().then(
+                                      (_) => fileSystemEvent.sink.add(''));
                                 },
                               ),
                               FlatButton(

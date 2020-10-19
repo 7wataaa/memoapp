@@ -30,6 +30,8 @@ String path;
 
 StreamController<String> fileSystemEvent = StreamController<String>.broadcast();
 
+StreamController<String> tagChipEvent = StreamController<String>.broadcast();
+
 Map<FileSystemEntity, bool> fsEntityToCheck = {};
 
 ///chipのラベル

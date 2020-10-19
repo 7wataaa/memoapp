@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:memoapp/handling.dart';
 import 'package:memoapp/widget/file_widget.dart';
 
 //import 'package:memoapp/handling.dart';
@@ -14,8 +15,13 @@ class FilePlusTag {
 
   final File file;
   static File tagsFileJsonFile;
-  static File readyTagFile;
-  Map<String, dynamic> pathToTags;
+  static Map<String, dynamic> pathToTags;
+
+  Map<String, dynamic> get pathtag {
+    loadPathToTagsFromJson();
+    debugPrint('$pathToTags');
+    return pathToTags;
+  }
 
   ///このファイルでのFileWidgetを返す
   FileWidget getWidget() {
@@ -88,7 +94,7 @@ class FilePlusTag {
 class Tag {
   Tag(this.tagName);
 
-  static List<Tag> allTags;
+  static File readyTagFile;
 
   String tagName;
 
@@ -104,7 +110,30 @@ class Tag {
           fontSize: 18,
         ),
       ),
-      onDeleted: () {},
+      onDeleted: () async {
+        final taglist = await readyTagFile.readAsLines();
+        taglist.removeWhere((tagname) => tagname == tagName);
+        readyTagFile.writeAsStringSync('');
+
+        for (var str in taglist) {
+          str = readyTagFile.readAsStringSync().isEmpty ? str : '\n$str';
+          readyTagFile.writeAsStringSync(str, mode: FileMode.append);
+        }
+
+        final pathtotags = FilePlusTag.pathToTags;
+
+        for (final key in pathtotags.keys) {
+          (pathtotags[key] as List)
+              .removeWhere((dynamic item) => item == tagName);
+          /* if ((pathtotags[key] as List<dynamic>).isEmpty) {
+            pathtotags.remove(key);
+          } */
+        }
+        FilePlusTag.tagsFileJsonFile.writeAsString(jsonEncode(pathtotags));
+
+        //TODO 消したあとの状態管理
+        tagChipEvent.add('');
+      },
     );
   }
 }
