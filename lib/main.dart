@@ -81,117 +81,45 @@ class _HomeState extends State<Home> {
                 })
           ],
         ),
-        body: _storageMode
-            ? StreamBuilder(
-                stream: fileSystemEvent.stream,
-                builder: (context, snapshot) {
-                  return FutureBuilder(
-                    future: _getRootList(),
-                    builder: (BuildContext context, AsyncSnapshot snapshot) {
-                      if (snapshot.hasData) {
-                        if (_selectMode) {
-                          fsEntityToCheck = {};
-                          return Column(
-                            children: [
-                              Expanded(
-                                child: Scrollbar(
-                                  child: ListView(
-                                    children: snapshot.data as List<Widget>,
-                                  ),
-                                ),
-                              ),
-                              Container(
-                                child: Container(
-                                  margin: const EdgeInsets.only(
-                                    bottom: 13,
-                                    left: 10,
-                                    right: 10,
-                                  ),
-                                  decoration: const BoxDecoration(
-                                    border: Border(
-                                      top: BorderSide(
-                                        width: 0.5,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceEvenly,
-                                    children: [
-                                      Container(
-                                        child: Stack(
-                                          overflow: Overflow.visible,
-                                          alignment: Alignment.bottomCenter,
-                                          children: [
-                                            IconButton(
-                                              iconSize: 35,
-                                              icon: const Icon(
-                                                Icons.forward,
-                                                color: Color(0xFF484848),
-                                              ),
-                                              onPressed: () {},
-                                            ),
-                                            const Positioned(
-                                              bottom: -8,
-                                              child: const Text(
-                                                'move',
-                                                style: TextStyle(fontSize: 14),
-                                              ),
-                                            )
-                                          ],
-                                        ),
-                                      ),
-                                      Container(
-                                        child: Stack(
-                                          overflow: Overflow.visible,
-                                          alignment: Alignment.bottomCenter,
-                                          children: [
-                                            IconButton(
-                                              iconSize: 35,
-                                              icon: const Icon(
-                                                Icons.delete,
-                                                color: Color(0xFF484848),
-                                              ),
-                                              onPressed: () {
-                                                _deleteSelectedEntities();
-                                              },
-                                            ),
-                                            const Positioned(
-                                              bottom: -8,
-                                              child: const Text(
-                                                'delete',
-                                                style: TextStyle(fontSize: 14),
-                                              ),
-                                            )
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              )
-                            ],
-                          );
-                        } else {
-                          return Scrollbar(
-                            child: ListView(
-                              children: snapshot.data as List<Widget>,
-                            ),
-                          );
-                        }
-                      } else {
-                        return Center(
-                          child: Container(
-                            child: const CircularProgressIndicator(),
-                          ),
-                        );
-                      }
-                    },
-                  );
-                },
-              )
-            : tagPageBody(),
+        body: FutureBuilder<int>(
+          future: Future(() async {
+            path = await localPath();
+            final readytag = File('$path/readyTag');
+
+            FilePlusTag.tagsFileJsonFile ??= File('$path/tagsFile.json');
+            Tag.readyTagFile ??= readytag;
+
+            if (!readytag.existsSync()) {
+              Tag.readyTagFile = readytag;
+              readytag.create();
+              debugPrint('readyTagFile created');
+            }
+
+            if (!FilePlusTag.tagsFileJsonFile.existsSync()) {
+              FilePlusTag.tagsFileJsonFile.create();
+              debugPrint('tagFileJsonFile created');
+            }
+
+            tagnames = Tag.readyTagFile.readAsStringSync().split(RegExp(r'\n'));
+            selectedChip = tagnames[0];
+            isSelected = List.generate(tagnames.length, (index) {
+              if (index == 0) {
+                return true;
+              }
+              return false;
+            });
+
+            return 0;
+          }),
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              return _storageMode ? rootHomeBody() : tagHomeBody();
+            }
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          },
+        ),
         floatingActionButton: _selectMode
             ? null
             : FloatingActionButton(
@@ -218,7 +146,106 @@ class _HomeState extends State<Home> {
     );
   }
 
-  Widget tagPageBody() {
+  StreamBuilder<String> rootHomeBody() {
+    return StreamBuilder(
+      stream: fileSystemEvent.stream,
+      builder: (context, snapshot) {
+        if (_selectMode) {
+          fsEntityToCheck = {};
+          return Column(
+            children: [
+              Expanded(
+                child: Scrollbar(
+                  child: ListView(
+                    children: _checkboxTiles(path),
+                  ),
+                ),
+              ),
+              Container(
+                child: Container(
+                  margin: const EdgeInsets.only(
+                    bottom: 13,
+                    left: 10,
+                    right: 10,
+                  ),
+                  decoration: const BoxDecoration(
+                    border: Border(
+                      top: BorderSide(
+                        width: 0.5,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Container(
+                        child: Stack(
+                          overflow: Overflow.visible,
+                          alignment: Alignment.bottomCenter,
+                          children: [
+                            IconButton(
+                              iconSize: 35,
+                              icon: const Icon(
+                                Icons.forward,
+                                color: Color(0xFF484848),
+                              ),
+                              onPressed: () {},
+                            ),
+                            const Positioned(
+                              bottom: -8,
+                              child: const Text(
+                                'move',
+                                style: TextStyle(fontSize: 14),
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
+                      Container(
+                        child: Stack(
+                          overflow: Overflow.visible,
+                          alignment: Alignment.bottomCenter,
+                          children: [
+                            IconButton(
+                              iconSize: 35,
+                              icon: const Icon(
+                                Icons.delete,
+                                color: Color(0xFF484848),
+                              ),
+                              onPressed: () {
+                                _deleteSelectedEntities();
+                              },
+                            ),
+                            const Positioned(
+                              bottom: -8,
+                              child: const Text(
+                                'delete',
+                                style: TextStyle(fontSize: 14),
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            ],
+          );
+        } else {
+          //通常モード時
+          return Scrollbar(
+            child: ListView(
+              children: _normalTiles(path),
+            ),
+          );
+        }
+      },
+    );
+  }
+
+  Widget tagHomeBody() {
     //TODO タグページの実装
 
     final tagChips = createChips();
@@ -352,40 +379,6 @@ class _HomeState extends State<Home> {
       Icons.local_offer_outlined,
       color: Color(0xFFFFFFFF),
     );
-  }
-
-  ///[_selectMode]に応じたリストを返す
-  ///
-  ///true なら[checkboxTiles()]
-  ///false なら[normalTiles()]
-  Future<List<Widget>> _getRootList() async {
-    path = await localPath();
-    final readytag = File('$path/readyTag');
-
-    FilePlusTag.tagsFileJsonFile ??= File('$path/tagsFile.json');
-    Tag.readyTagFile ??= readytag;
-
-    if (!readytag.existsSync()) {
-      Tag.readyTagFile = readytag;
-      readytag.create();
-      debugPrint('readyTagFile created');
-    }
-
-    if (!FilePlusTag.tagsFileJsonFile.existsSync()) {
-      FilePlusTag.tagsFileJsonFile.create();
-      debugPrint('tagFileJsonFile created');
-    }
-
-    tagnames = Tag.readyTagFile.readAsStringSync().split(RegExp(r'\n'));
-    selectedChip = tagnames[0];
-    isSelected = List.generate(tagnames.length, (index) {
-      if (index == 0) {
-        return true;
-      }
-      return false;
-    });
-
-    return _selectMode ? _checkboxTiles(path) : _normalTiles(path);
   }
 
   List<Widget> _normalTiles(String path) {
