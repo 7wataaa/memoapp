@@ -46,7 +46,9 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   bool _selectMode = false;
-  bool _storageMode = true;
+
+  //handling.dartから移動
+  //kokomade
 
   @override
   void initState() {
@@ -58,212 +60,260 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async => false,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('MEMO'),
-          backgroundColor: const Color(0xFF212121),
-          leading: IconButton(
-            icon: tagOrStorageIcon(),
-            onPressed: () {
-              setState(() {
-                _storageMode = !_storageMode;
-              });
-            },
-          ),
-          actions: <Widget>[
-            IconButton(
-                icon: _editIcon(),
-                onPressed: () {
-                  fileSystemEvent.sink.add('');
-                  setState(() {
-                    _selectMode = !_selectMode;
-                  });
-                })
-          ],
-        ),
-        body: _storageMode
-            ? StreamBuilder(
-                stream: fileSystemEvent.stream,
-                builder: (context, snapshot) {
-                  return FutureBuilder(
-                    future: _getRootList(),
-                    builder: (BuildContext context, AsyncSnapshot snapshot) {
-                      if (snapshot.hasData) {
-                        if (_selectMode) {
-                          fsEntityToCheck = {};
-                          return Column(
-                            children: [
-                              Expanded(
-                                child: Scrollbar(
-                                  child: ListView(
-                                    children: snapshot.data as List<Widget>,
-                                  ),
-                                ),
-                              ),
-                              Container(
-                                child: Container(
-                                  margin: const EdgeInsets.only(
-                                    bottom: 13,
-                                    left: 10,
-                                    right: 10,
-                                  ),
-                                  decoration: const BoxDecoration(
-                                    border: Border(
-                                      top: BorderSide(
-                                        width: 0.5,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceEvenly,
-                                    children: [
-                                      Container(
-                                        child: Stack(
-                                          overflow: Overflow.visible,
-                                          alignment: Alignment.bottomCenter,
-                                          children: [
-                                            IconButton(
-                                              iconSize: 35,
-                                              icon: const Icon(
-                                                Icons.forward,
-                                                color: Color(0xFF484848),
-                                              ),
-                                              onPressed: () {},
-                                            ),
-                                            const Positioned(
-                                              bottom: -8,
-                                              child: const Text(
-                                                'move',
-                                                style: TextStyle(fontSize: 14),
-                                              ),
-                                            )
-                                          ],
-                                        ),
-                                      ),
-                                      Container(
-                                        child: Stack(
-                                          overflow: Overflow.visible,
-                                          alignment: Alignment.bottomCenter,
-                                          children: [
-                                            IconButton(
-                                              iconSize: 35,
-                                              icon: const Icon(
-                                                Icons.delete,
-                                                color: Color(0xFF484848),
-                                              ),
-                                              onPressed: () {
-                                                _deleteSelectedEntities();
-                                              },
-                                            ),
-                                            const Positioned(
-                                              bottom: -8,
-                                              child: const Text(
-                                                'delete',
-                                                style: TextStyle(fontSize: 14),
-                                              ),
-                                            )
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              )
-                            ],
-                          );
-                        } else {
-                          return Scrollbar(
-                            child: ListView(
-                              children: snapshot.data as List<Widget>,
-                            ),
-                          );
-                        }
-                      } else {
-                        return Center(
-                          child: Container(
-                            child: const CircularProgressIndicator(),
-                          ),
-                        );
-                      }
-                    },
-                  );
-                },
-              )
-            : tagPageBody(),
-        floatingActionButton: _selectMode
-            ? null
-            : FloatingActionButton(
-                heroTag: 'PageBtn',
-                backgroundColor: const Color(0xFF212121),
-                child: const Icon(Icons.add),
-                onPressed: () async {
-                  if (_selectMode) {
-                    //TODO FAB押した時タグを追加する画面
-                  } else {
-                    final rootdir = Directory('${await localPath()}/root');
-                    await Navigator.push<MaterialPageRoute>(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              CreatePage(tDir: rootdir, isRoot: true),
-                        )).then((_) {
-                      setState(() {});
+      child: DefaultTabController(
+        length: 2,
+        child: Scaffold(
+          appBar: AppBar(
+            bottom: const TabBar(
+              tabs: <Tab>[
+                Tab(
+                  text: 'tag',
+                ),
+                Tab(
+                  text: 'root',
+                ),
+              ],
+            ),
+            title: const Text('MEMO'),
+            backgroundColor: const Color(0xFF212121),
+            actions: <Widget>[
+              IconButton(
+                  icon: _editIcon(),
+                  onPressed: () {
+                    fileSystemEvent.sink.add('');
+                    setState(() {
+                      _selectMode = !_selectMode;
                     });
-                  }
-                },
-              ),
+                  })
+            ],
+          ),
+          body: FutureBuilder(
+              future: config(),
+              builder: (context, snapshot) {
+                return TabBarView(
+                  children: [
+                    tagPageBody(),
+                    buildStreamBuilder(),
+                  ],
+                );
+              }),
+          floatingActionButton: _selectMode
+              ? null
+              : FloatingActionButton(
+                  heroTag: 'PageBtn',
+                  backgroundColor: const Color(0xFF212121),
+                  child: const Icon(Icons.add),
+                  onPressed: () async {
+                    if (_selectMode) {
+                      //TODO FAB押した時タグを追加する画面
+                    } else {
+                      final rootdir = Directory('${await localPath()}/root');
+                      await Navigator.push<MaterialPageRoute>(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                CreatePage(tDir: rootdir, isRoot: true),
+                          )).then((_) {
+                        setState(() {});
+                      });
+                    }
+                  },
+                ),
+        ),
       ),
     );
   }
 
-  Widget tagPageBody() {
-    //TODO タグページの実装
+  StreamBuilder<String> buildStreamBuilder() {
+    return StreamBuilder(
+      stream: fileSystemEvent.stream,
+      builder: (context, snapshot) {
+        return FutureBuilder(
+          future: _getRootList(),
+          builder: (BuildContext context, AsyncSnapshot snapshot) {
+            if (snapshot.hasData) {
+              if (_selectMode) {
+                fsEntityToCheck = {};
+                return Column(
+                  children: [
+                    Expanded(
+                      child: Scrollbar(
+                        child: ListView(
+                          children: snapshot.data as List<Widget>,
+                        ),
+                      ),
+                    ),
+                    Container(
+                      child: Container(
+                        margin: const EdgeInsets.only(
+                          bottom: 13,
+                          left: 10,
+                          right: 10,
+                        ),
+                        decoration: const BoxDecoration(
+                          border: Border(
+                            top: BorderSide(
+                              width: 0.5,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            Container(
+                              child: Stack(
+                                overflow: Overflow.visible,
+                                alignment: Alignment.bottomCenter,
+                                children: [
+                                  IconButton(
+                                    iconSize: 35,
+                                    icon: const Icon(
+                                      Icons.forward,
+                                      color: Color(0xFF484848),
+                                    ),
+                                    onPressed: () {},
+                                  ),
+                                  const Positioned(
+                                    bottom: -8,
+                                    child: const Text(
+                                      'move',
+                                      style: TextStyle(fontSize: 14),
+                                    ),
+                                  )
+                                ],
+                              ),
+                            ),
+                            Container(
+                              child: Stack(
+                                overflow: Overflow.visible,
+                                alignment: Alignment.bottomCenter,
+                                children: [
+                                  IconButton(
+                                    iconSize: 35,
+                                    icon: const Icon(
+                                      Icons.delete,
+                                      color: Color(0xFF484848),
+                                    ),
+                                    onPressed: () {
+                                      _deleteSelectedEntities();
+                                    },
+                                  ),
+                                  const Positioned(
+                                    bottom: -8,
+                                    child: const Text(
+                                      'delete',
+                                      style: TextStyle(fontSize: 14),
+                                    ),
+                                  )
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  ],
+                );
+              } else {
+                return Scrollbar(
+                  child: ListView(
+                    children: snapshot.data as List<Widget>,
+                  ),
+                );
+              }
+            } else {
+              return Center(
+                child: Container(
+                  child: const CircularProgressIndicator(),
+                ),
+              );
+            }
+          },
+        );
+      },
+    );
+  }
 
+  Future<void> config() async {
+    final path = await localPath();
+
+    debugPrint('$path');
+
+    Tag.readyTagFile = File('$path/readyTag');
+
+    FilePlusTag.tagsFileJsonFile = File('$path/tagsFile.json');
+
+    if (!Tag.readyTagFile.existsSync()) {
+      await Tag.readyTagFile.create();
+      debugPrint('readyTagFile created');
+    }
+
+    if (!FilePlusTag.tagsFileJsonFile.existsSync()) {
+      await FilePlusTag.tagsFileJsonFile.create();
+      debugPrint('tagFileJsonFile created');
+    }
+
+    tagnames = (await Tag.readyTagFile.readAsString()).split(RegExp(r'\n'));
+    debugPrint('config() tagnames => $tagnames');
+
+    selectedChip = tagnames[0];
+    isSelected = List.generate(tagnames.length, (index) {
+      if (index == 0) {
+        return true;
+      }
+      return false;
+    });
+  }
+
+  Widget tagPageBody() {
     final tagChips = createChips();
     debugPrint('$tagChips');
 
-    if (tagChips.isNotEmpty) {
-      return Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Container(
-            margin: const EdgeInsets.only(top: 5, bottom: 5),
-            height: 45,
-            child: ListView.separated(
-              shrinkWrap: true,
-              scrollDirection: Axis.horizontal,
-              separatorBuilder: (context, index) => Container(
-                margin: const EdgeInsets.only(left: 5),
-              ),
-              itemCount: tagChips.length,
-              itemBuilder: (context, i) {
-                return tagChips[i];
-              },
-            ),
-          ),
-          Expanded(
-            child: FutureBuilder<List<Widget>>(
-              future: fileTagTiles('$selectedChip'),
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  return ListView(
-                    children: snapshot.data,
-                  );
-                } else {
-                  return const Center(child: CircularProgressIndicator());
-                }
-              },
-            ),
-          )
-        ],
-      );
-    } else {
-      return const Center(
-        child: Text('タグがありません'),
-      );
-    }
+    return StreamBuilder(
+      stream: tagUpdateEvent.stream,
+      builder: (context, snapshot) {
+        return tagChips.isNotEmpty
+            ? Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Container(
+                    margin: const EdgeInsets.only(top: 5, bottom: 5),
+                    height: 45,
+                    child: ListView.separated(
+                      shrinkWrap: true,
+                      scrollDirection: Axis.horizontal,
+                      separatorBuilder: (context, index) => Container(
+                        margin: const EdgeInsets.only(left: 5),
+                      ),
+                      itemCount: tagChips.length,
+                      itemBuilder: (context, i) {
+                        return tagChips[i];
+                      },
+                    ),
+                  ),
+                  Expanded(
+                    child: FutureBuilder<List<Widget>>(
+                      future: fileTagTiles('$selectedChip'),
+                      builder: (context, snapshot) {
+                        if (snapshot.hasData) {
+                          return ListView(
+                            children: snapshot.data,
+                          );
+                        } else {
+                          return const Center(
+                              child: CircularProgressIndicator());
+                        }
+                      },
+                    ),
+                  )
+                ],
+              )
+            : const Center(
+                child: Text('タグがありません'),
+              );
+      },
+    );
   }
 
   Future<List<Widget>> fileTagTiles(String tagname) async {
@@ -290,6 +340,9 @@ class _HomeState extends State<Home> {
   }
 
   List<Widget> createChips() {
+    if (tagnames.isEmpty) {
+      return [];
+    }
     if (tagnames[0].isEmpty) {
       return [];
     }
@@ -341,49 +394,12 @@ class _HomeState extends State<Home> {
     return const Icon(Icons.check_box_outline_blank);
   }
 
-  Widget tagOrStorageIcon() {
-    if (_storageMode) {
-      return const Icon(
-        Icons.folder,
-        color: Color(0xFFFFFFFF),
-      );
-    }
-    return const Icon(
-      Icons.local_offer_outlined,
-      color: Color(0xFFFFFFFF),
-    );
-  }
-
   ///[_selectMode]に応じたリストを返す
   ///
   ///true なら[checkboxTiles()]
   ///false なら[normalTiles()]
   Future<List<Widget>> _getRootList() async {
     path = await localPath();
-    final readytag = File('$path/readyTag');
-
-    FilePlusTag.tagsFileJsonFile ??= File('$path/tagsFile.json');
-    Tag.readyTagFile ??= readytag;
-
-    if (!readytag.existsSync()) {
-      Tag.readyTagFile = readytag;
-      readytag.create();
-      debugPrint('readyTagFile created');
-    }
-
-    if (!FilePlusTag.tagsFileJsonFile.existsSync()) {
-      FilePlusTag.tagsFileJsonFile.create();
-      debugPrint('tagFileJsonFile created');
-    }
-
-    tagnames = Tag.readyTagFile.readAsStringSync().split(RegExp(r'\n'));
-    selectedChip = tagnames[0];
-    isSelected = List.generate(tagnames.length, (index) {
-      if (index == 0) {
-        return true;
-      }
-      return false;
-    });
 
     return _selectMode ? _checkboxTiles(path) : _normalTiles(path);
   }
@@ -510,4 +526,6 @@ class _HomeState extends State<Home> {
 ファイルに入力→save→開く→save→開く→消えてる
 
 勝手に名前付ける機能だけどそれをそのままファイルネームにするより、idか何かで管理したほうが使いやすい
+
+ファイルって作るときに場所指定するほうがいいのかも
 */

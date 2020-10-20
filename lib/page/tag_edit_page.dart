@@ -27,9 +27,21 @@ class _TagCreatePageBodyState extends State<TagCreatePageBody> {
   String inputValue = '';
 
   @override
+  void initState() {
+    super.initState();
+    _textEditingController.addListener(print);
+  }
+
+  @override
+  void dispose() {
+    _textEditingController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return StreamBuilder<String>(
-        stream: tagChipEvent.stream,
+        stream: chipEvent.stream,
         builder: (context, snapshot) {
           return FutureBuilder<List<Chip>>(
               future: loadChips(),
@@ -95,6 +107,7 @@ class _TagCreatePageBodyState extends State<TagCreatePageBody> {
                                     mode: FileMode.append,
                                   );
                                 });
+                                tagUpdateEvent.add('');
                               })
                         ],
                       ),
@@ -127,5 +140,9 @@ class _TagCreatePageBodyState extends State<TagCreatePageBody> {
     }
 
     return result;
+  }
+
+  void print() {
+    debugPrint('${_textEditingController.text}');
   }
 }

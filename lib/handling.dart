@@ -8,6 +8,9 @@ import 'package:path_provider/path_provider.dart';
 ///Android,iOS に対応するパスを非同期的に取得
 Future<String> localPath() async {
   final directory = await getApplicationDocumentsDirectory();
+  if (directory == null) {
+    debugPrint('directory is null');
+  }
   return directory.path;
 }
 
@@ -26,18 +29,22 @@ Future<void> rootSet() async {
 }
 
 ///File('$path/root')みたいな、osごとの保存場所のパス
-String path;
+String path = '';
 
 StreamController<String> fileSystemEvent = StreamController<String>.broadcast();
 
-StreamController<String> tagChipEvent = StreamController<String>.broadcast();
+StreamController<String> chipEvent = StreamController<String>.broadcast();
 
+StreamController<String> tagUpdateEvent = StreamController<String>.broadcast();
+
+///チェックボックスリストの結果を入れる
 Map<FileSystemEntity, bool> fsEntityToCheck = {};
 
 ///chipのラベル
 List<String> tagnames;
 
+//現在選択されているチップ
+String selectedChip = '';
+
 ///selected chipを管理する
 List<bool> isSelected;
-
-String selectedChip = '';

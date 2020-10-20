@@ -131,8 +131,8 @@ class Tag {
         }
         FilePlusTag.tagsFileJsonFile.writeAsString(jsonEncode(pathtotags));
 
-        //TODO 消したあとの状態管理
-        tagChipEvent.add('');
+        chipEvent.add('');
+        tagUpdateEvent.add('');
       },
     );
   }
