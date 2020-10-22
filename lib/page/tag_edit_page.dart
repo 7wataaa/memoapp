@@ -84,16 +84,25 @@ class _TagCreatePageBodyState extends State<TagCreatePageBody> {
                                     return;
                                   }
                                 }
+
                                 final writestr =
                                     Tag.readyTagFile.readAsStringSync().isEmpty
                                         ? inputValue
                                         : '\n$inputValue';
 
                                 setState(() {
-                                  Tag.readyTagFile.writeAsString(
+                                  Tag.readyTagFile.writeAsStringSync(
                                     writestr,
                                     mode: FileMode.append,
                                   );
+                                });
+                                isSelected = List.generate(
+                                    Tag.readyTagFile.readAsLinesSync().length,
+                                    (i) {
+                                  if (i == 0) {
+                                    return true;
+                                  }
+                                  return false;
                                 });
                               })
                         ],

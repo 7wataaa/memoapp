@@ -46,7 +46,6 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   bool _selectMode = false;
-  bool _storageMode = true;
 
   @override
   void initState() {
@@ -58,90 +57,112 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async => false,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('MEMO'),
-          backgroundColor: const Color(0xFF212121),
-          leading: IconButton(
-            icon: tagOrStorageIcon(),
-            onPressed: () {
-              setState(() {
-                _storageMode = !_storageMode;
-              });
-            },
-          ),
-          actions: <Widget>[
-            IconButton(
-                icon: _editIcon(),
-                onPressed: () {
-                  fileSystemEvent.sink.add('');
-                  setState(() {
-                    _selectMode = !_selectMode;
-                  });
-                })
-          ],
-        ),
-        body: FutureBuilder<int>(
-          future: Future(() async {
-            path = await localPath();
-            final readytag = File('$path/readyTag');
-
-            FilePlusTag.tagsFileJsonFile ??= File('$path/tagsFile.json');
-            Tag.readyTagFile ??= readytag;
-
-            if (!readytag.existsSync()) {
-              Tag.readyTagFile = readytag;
-              readytag.create();
-              debugPrint('readyTagFile created');
-            }
-
-            if (!FilePlusTag.tagsFileJsonFile.existsSync()) {
-              FilePlusTag.tagsFileJsonFile.create();
-              debugPrint('tagFileJsonFile created');
-            }
-
-            tagnames = Tag.readyTagFile.readAsStringSync().split(RegExp(r'\n'));
-            selectedChip = tagnames[0];
-            isSelected = List.generate(tagnames.length, (index) {
-              if (index == 0) {
-                return true;
-              }
-              return false;
-            });
-
-            return 0;
-          }),
-          builder: (context, snapshot) {
-            if (snapshot.hasData) {
-              return _storageMode ? rootHomeBody() : tagHomeBody();
-            }
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          },
-        ),
-        floatingActionButton: _selectMode
-            ? null
-            : FloatingActionButton(
-                heroTag: 'PageBtn',
-                backgroundColor: const Color(0xFF212121),
-                child: const Icon(Icons.add),
-                onPressed: () async {
-                  if (_selectMode) {
-                    //TODO FAB押した時タグを追加する画面
-                  } else {
-                    final rootdir = Directory('${await localPath()}/root');
-                    await Navigator.push<MaterialPageRoute>(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              CreatePage(tDir: rootdir, isRoot: true),
-                        )).then((_) {
-                      setState(() {});
+      child: DefaultTabController(
+        length: 2,
+        child: Scaffold(
+          appBar: AppBar(
+            title: const Text('MEMO'),
+            backgroundColor: const Color(0xFF212121),
+            actions: <Widget>[
+              IconButton(
+                  icon: _checkboxIcon(),
+                  onPressed: () {
+                    tagUpdateEvent.add('');
+                    fileSystemEvent.sink.add('');
+                    setState(() {
+                      _selectMode = !_selectMode;
                     });
-                  }
-                },
-              ),
+                  })
+            ],
+            bottom: const TabBar(
+              tabs: <Tab>[
+                Tab(
+                  text: 'tag',
+                ),
+                Tab(
+                  text: 'root',
+                ),
+              ],
+            ),
+          ),
+          body: StreamBuilder<String>(
+              stream: tagUpdateEvent.stream,
+              builder: (context, snapshot) {
+                return FutureBuilder<int>(
+                  future: Future(() async {
+                    path = await localPath();
+                    final readytag = File('$path/readyTag');
+
+                    FilePlusTag.tagsFileJsonFile ??=
+                        File('$path/tagsFile.json');
+                    Tag.readyTagFile ??= readytag;
+
+                    if (!readytag.existsSync()) {
+                      Tag.readyTagFile = readytag;
+                      readytag.create();
+                      debugPrint('readyTagFile created');
+                    }
+
+                    if (!FilePlusTag.tagsFileJsonFile.existsSync()) {
+                      FilePlusTag.tagsFileJsonFile.create();
+                      debugPrint('tagFileJsonFile created');
+                    }
+
+                    tagnames = Tag.readyTagFile
+                        .readAsStringSync()
+                        .split(RegExp(r'\n'));
+
+                    selectedChip ??= tagnames[0];
+
+                    isSelected ??= List.generate(tagnames.length, (index) {
+                      if (index == 0) {
+                        return true;
+                      }
+                      return false;
+                    });
+
+                    return 0;
+                  }),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData) {
+                      return TabBarView(
+                        children: [
+                          tagHomeBody(),
+                          rootHomeBody(),
+                        ],
+                      );
+                    }
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  },
+                );
+              }),
+          floatingActionButton: _selectMode
+              ? null
+              : FloatingActionButton(
+                  heroTag: 'PageBtn',
+                  backgroundColor: const Color(0xFF212121),
+                  child: const Icon(Icons.add),
+                  onPressed: () async {
+                    if (_selectMode) {
+                      //TODO FAB押した時タグを追加する画面
+                    } else {
+                      final rootdir = Directory('${await localPath()}/root');
+                      await Navigator.push<MaterialPageRoute>(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                CreatePage(tDir: rootdir, isRoot: true),
+                          ));
+
+                      setState(() {
+                        tagUpdateEvent.add('modottekita');
+                      });
+                    }
+                  },
+                ),
+        ),
       ),
     );
   }
@@ -246,54 +267,87 @@ class _HomeState extends State<Home> {
   }
 
   Widget tagHomeBody() {
-    //TODO タグページの実装
+    var _tagChips = <Widget>[];
 
-    final tagChips = createChips();
-    debugPrint('$tagChips');
+    if (tagnames[0].isEmpty) {
+      _tagChips = <Widget>[];
+    } else {
+      for (var i = 0; i < tagnames.length; i++) {
+        _tagChips.add(
+          ChoiceChip(
+            selected: isSelected[i],
+            label: Text(
+              tagnames[i],
+              style: const TextStyle(
+                fontSize: 20,
+              ),
+            ),
+            onSelected: (bool newValue) {
+              if (!isSelected[i]) {
+                selectedChip = tagnames[i];
+                isSelected = List.generate(isSelected.length, (index) => false);
+                setState(() {
+                  isSelected[i] = newValue;
+                });
+              }
+            },
+          ),
+        );
+      }
+    }
 
-    if (tagChips.isNotEmpty) {
-      return Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Container(
-            margin: const EdgeInsets.only(top: 5, bottom: 5),
-            height: 45,
+    if (_tagChips.isEmpty) {
+      debugPrint('return Center');
+      return const Center(
+        child: Text('タグがありません'),
+      );
+    }
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        Container(
+          margin: const EdgeInsets.only(top: 5, bottom: 5),
+          height: 45,
+          child: Container(
             child: ListView.separated(
               shrinkWrap: true,
               scrollDirection: Axis.horizontal,
               separatorBuilder: (context, index) => Container(
                 margin: const EdgeInsets.only(left: 5),
               ),
-              itemCount: tagChips.length,
+              itemCount: _tagChips.length,
               itemBuilder: (context, i) {
-                return tagChips[i];
+                return _tagChips[i];
               },
             ),
           ),
-          Expanded(
-            child: FutureBuilder<List<Widget>>(
-              future: fileTagTiles('$selectedChip'),
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  return ListView(
+        ),
+        Expanded(
+          child: FutureBuilder<List<Widget>>(
+            future: fileTagTiles('$selectedChip'),
+            builder: (context, snapshot) {
+              selectedChip ??= tagnames[0];
+
+              if (snapshot.hasData) {
+                return Builder(
+                  builder: (context) => ListView(
                     children: snapshot.data,
-                  );
-                } else {
-                  return const Center(child: CircularProgressIndicator());
-                }
-              },
-            ),
-          )
-        ],
-      );
-    } else {
-      return const Center(
-        child: Text('タグがありません'),
-      );
-    }
+                  ),
+                );
+              } else {
+                return const Center(child: CircularProgressIndicator());
+              }
+            },
+          ),
+        )
+      ],
+    );
   }
 
   Future<List<Widget>> fileTagTiles(String tagname) async {
+    //なぜか1+2回呼ばれてる
+
     final result = <FileWidget>[];
 
     Directory('$path/root')
@@ -316,69 +370,11 @@ class _HomeState extends State<Home> {
     return result;
   }
 
-  List<Widget> createChips() {
-    if (tagnames[0].isEmpty) {
-      return [];
-    }
-    final _chips = <ChoiceChip>[];
-    for (var i = 0; i < tagnames.length; i++) {
-      debugPrint('aaa => ${tagnames.length}');
-      _chips.add(
-        ChoiceChip(
-          selected: isSelected[i],
-          label: Text(
-            tagnames[i],
-            style: const TextStyle(
-              fontSize: 20,
-            ),
-          ),
-          onSelected: (bool selected) {
-            if (!isSelected[i]) {
-              selectedChip = tagnames[i];
-              isSelected = List.generate(isSelected.length, (index) => false);
-              setState(() {
-                isSelected[i] = selected;
-              });
-            }
-          },
-        ),
-      );
-    }
-
-    return _chips;
-  }
-
-  Future<List<Tag>> createTagList() async {
-    final tagsFile = FilePlusTag.tagsFileJsonFile;
-    final resultList = <Tag>[];
-
-    if (tagsFile.existsSync()) {
-      for (final str in await tagsFile.readAsLines()) {
-        resultList.add(Tag(str));
-      }
-      return resultList;
-    }
-    return null;
-  }
-
-  Widget _editIcon() {
+  Widget _checkboxIcon() {
     if (_selectMode) {
       return const Icon(Icons.check_box);
     }
     return const Icon(Icons.check_box_outline_blank);
-  }
-
-  Widget tagOrStorageIcon() {
-    if (_storageMode) {
-      return const Icon(
-        Icons.folder,
-        color: Color(0xFFFFFFFF),
-      );
-    }
-    return const Icon(
-      Icons.local_offer_outlined,
-      color: Color(0xFFFFFFFF),
-    );
   }
 
   List<Widget> _normalTiles(String path) {
@@ -503,4 +499,6 @@ class _HomeState extends State<Home> {
 ファイルに入力→save→開く→save→開く→消えてる
 
 勝手に名前付ける機能だけどそれをそのままファイルネームにするより、idか何かで管理したほうが使いやすい
+
+tagのホーム画面で、選んでもたまに出てこないのと、1+2回呼ばれてる
 */

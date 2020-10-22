@@ -46,9 +46,6 @@ class FilePlusTag {
       return <Tag>[];
     }
 
-    debugPrint('${RegExp(r'([^/]+?)?$').stringMatch(file.path)}'
-        ' のタグ => ${pathToTags[file.path]}');
-
     final result = <Tag>[];
 
     for (final tagtitle in pathToTags[file.path]) {
@@ -131,8 +128,8 @@ class Tag {
         }
         FilePlusTag.tagsFileJsonFile.writeAsString(jsonEncode(pathtotags));
 
-        //TODO 消したあとの状態管理
         tagChipEvent.add('');
+        tagUpdateEvent.sink.add('');
       },
     );
   }

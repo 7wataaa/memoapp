@@ -32,6 +32,8 @@ StreamController<String> fileSystemEvent = StreamController<String>.broadcast();
 
 StreamController<String> tagChipEvent = StreamController<String>.broadcast();
 
+StreamController<String> tagUpdateEvent = StreamController<String>.broadcast();
+
 Map<FileSystemEntity, bool> fsEntityToCheck = {};
 
 ///chipのラベル
@@ -40,4 +42,5 @@ List<String> tagnames;
 ///selected chipを管理する
 List<bool> isSelected;
 
-String selectedChip = '';
+///ファイルをこのタグがついたものにソートするために使う
+String selectedChip;
