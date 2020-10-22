@@ -87,6 +87,7 @@ class _CreatePageState extends State<CreatePage> {
     } else {
       for (final tag in tmpTags) {
         if (value == tag.tagName) {
+          //TODO 選ばれたものが同じだったときに削除する機能
           return;
         }
       }
@@ -118,7 +119,7 @@ class _CreatePageState extends State<CreatePage> {
         ],
       ),
       body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.start,
         children: <Widget>[
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
@@ -151,6 +152,11 @@ class _CreatePageState extends State<CreatePage> {
                         itemBuilder: (BuildContext context) => snapshot.data);
                   }),
             ],
+          ),
+          const Flexible(
+            child: TextField(
+              maxLines: 5,
+            ),
           ),
         ],
       ),

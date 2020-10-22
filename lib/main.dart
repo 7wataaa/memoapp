@@ -145,21 +145,18 @@ class _HomeState extends State<Home> {
                   backgroundColor: const Color(0xFF212121),
                   child: const Icon(Icons.add),
                   onPressed: () async {
-                    if (_selectMode) {
-                      //TODO FAB押した時タグを追加する画面
-                    } else {
-                      final rootdir = Directory('${await localPath()}/root');
-                      await Navigator.push<MaterialPageRoute>(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                CreatePage(tDir: rootdir, isRoot: true),
-                          ));
+                    final rootdir = Directory('${await localPath()}/root');
+                    await Navigator.push<MaterialPageRoute>(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              //TODO タグ画面のときに選択しているものをデフォで追加する
+                              CreatePage(tDir: rootdir, isRoot: true),
+                        ));
 
-                      setState(() {
-                        tagUpdateEvent.add('modottekita');
-                      });
-                    }
+                    setState(() {
+                      tagUpdateEvent.add('');
+                    });
                   },
                 ),
         ),
@@ -325,15 +322,12 @@ class _HomeState extends State<Home> {
         ),
         Expanded(
           child: FutureBuilder<List<Widget>>(
-            future: fileTagTiles('$selectedChip'),
+            future: taggedFileTiles('$selectedChip'),
             builder: (context, snapshot) {
               selectedChip ??= tagnames[0];
-
               if (snapshot.hasData) {
-                return Builder(
-                  builder: (context) => ListView(
-                    children: snapshot.data,
-                  ),
+                return ListView(
+                  children: snapshot.data,
                 );
               } else {
                 return const Center(child: CircularProgressIndicator());
@@ -345,23 +339,23 @@ class _HomeState extends State<Home> {
     );
   }
 
-  Future<List<Widget>> fileTagTiles(String tagname) async {
-    //なぜか1+2回呼ばれてる
-
+  Future<List<Widget>> taggedFileTiles(String tagname) async {
     final result = <FileWidget>[];
 
-    Directory('$path/root')
-        .list(recursive: true)
-        .listen((FileSystemEntity entity) {
+    //await Future<Duration>.delayed(const Duration(seconds: 3));
+
+    Directory('$path/root').listSync(recursive: true).forEach((entity) {
       if (entity is File) {
         final fileplustag = FilePlusTag(entity)..loadPathToTagsFromJson();
 
-        if (FilePlusTag.pathToTags[fileplustag.file.path] == null ||
-            (FilePlusTag.pathToTags[fileplustag.file.path] as List).isEmpty) {
+        final pathtagsMap = FilePlusTag.pathToTags;
+
+        if (pathtagsMap[fileplustag.file.path] == null ||
+            (pathtagsMap[fileplustag.file.path] as List).isEmpty) {
           return;
         }
-        if ((FilePlusTag.pathToTags[fileplustag.file.path] as List)
-            .contains(tagname)) {
+
+        if ((pathtagsMap[fileplustag.file.path] as List).contains(tagname)) {
           result.add(fileplustag.getWidget());
         }
       }

@@ -129,7 +129,6 @@ class Tag {
         FilePlusTag.tagsFileJsonFile.writeAsString(jsonEncode(pathtotags));
 
         tagChipEvent.add('');
-        tagUpdateEvent.sink.add('');
       },
     );
   }
