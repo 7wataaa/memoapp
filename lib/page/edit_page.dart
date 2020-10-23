@@ -33,7 +33,6 @@ class _TextEditPageState extends State<TextEditPage> {
       body: Container(
         padding: const EdgeInsets.only(left: 15, right: 10, top: 0, bottom: 0),
         child: TextField(
-          autofocus: true,
           controller: textEditingController,
           style: const TextStyle(
             fontSize: 24,

@@ -7,8 +7,6 @@ import 'package:memoapp/file_plus_tag.dart';
 import 'package:memoapp/handling.dart';
 import 'package:memoapp/page/tag_edit_page.dart';
 
-// TODO このページでメモの内容を入力できるようにする
-
 class CreatePage extends StatefulWidget {
   const CreatePage({@required this.tDir, this.isRoot});
 
