@@ -2,6 +2,7 @@
 
 import 'dart:convert';
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:memoapp/handling.dart';
@@ -83,8 +84,21 @@ class FilePlusTag {
   }
 
   void fileCreateAndAddTag(List<Tag> taglist) {
-    file.create();
+    file.createSync();
     taglist.forEach(addTag);
+  }
+
+  static Map<String, dynamic> returnPathToTagsFromJson() {
+    final tagsFileValue = tagsFileJsonFile.readAsStringSync();
+
+    if (tagsFileValue.isEmpty) {
+      tagsFileJsonFile.writeAsStringSync('{}');
+    }
+
+    final result = Map<String, dynamic>.from(
+        jsonDecode(tagsFileJsonFile.readAsStringSync()) as Map);
+
+    return result;
   }
 }
 
@@ -117,7 +131,7 @@ class Tag {
           readyTagFile.writeAsStringSync(str, mode: FileMode.append);
         }
 
-        final pathtotags = FilePlusTag.pathToTags;
+        final pathtotags = FilePlusTag.returnPathToTagsFromJson();
 
         for (final key in pathtotags.keys) {
           (pathtotags[key] as List)

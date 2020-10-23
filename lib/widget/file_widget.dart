@@ -2,16 +2,11 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
-
 import 'package:flutter/material.dart';
-
-import 'package:memoapp/page/select_page.dart';
-
-import 'package:memoapp/handling.dart';
-
-import 'package:memoapp/page/edit_page.dart';
-
 import 'package:memoapp/file_plus_tag.dart';
+import 'package:memoapp/handling.dart';
+import 'package:memoapp/page/edit_page.dart';
+import 'package:memoapp/page/select_page.dart';
 
 class FileWidget extends StatefulWidget {
   const FileWidget({@required this.name, @required this.file, this.tags});
@@ -32,6 +27,7 @@ class _FileState extends State<FileWidget> {
     return Container(
       padding: const EdgeInsets.only(left: 10, right: 0, top: 5, bottom: 0),
       child: ListTile(
+        key: GlobalKey(),
         title: Text('${widget.name}'),
         leading: const Icon(Icons.insert_drive_file),
         subtitle: widget.tags == null
@@ -206,9 +202,11 @@ class _FileCheckboxWidgetState extends State<FileCheckboxWidget> {
     return Container(
       padding: const EdgeInsets.only(left: 10, right: 0, top: 5, bottom: 0),
       child: CheckboxListTile(
+        key: GlobalKey(),
         title: Text('${widget.name}'),
         secondary: const Icon(Icons.insert_drive_file),
         value: isChecked,
+        //TODO subtitileを追加する
         onChanged: (value) {
           setState(
             () {

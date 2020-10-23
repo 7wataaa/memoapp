@@ -28,6 +28,7 @@ class _FolderState extends State<FolderWidget> {
     return Container(
       padding: const EdgeInsets.only(left: 10, right: 0, top: 5, bottom: 0),
       child: ListTile(
+        key: GlobalKey(),
         title: Text('${widget.name}', style: const TextStyle(fontSize: 18.5)),
         leading: const Icon(Icons.folder),
         onTap: () {
@@ -194,6 +195,7 @@ class _FolderCheckboxWidgetState extends State<FolderCheckboxWidget> {
     return Container(
       padding: const EdgeInsets.only(left: 10, right: 0, top: 5, bottom: 0),
       child: CheckboxListTile(
+        key: GlobalKey(),
         title: Text('${widget.name}', style: const TextStyle(fontSize: 18.5)),
         secondary: const Icon(Icons.folder),
         value: isChecked,
