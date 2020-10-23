@@ -25,6 +25,7 @@ class _TextEditPageState extends State<TextEditPage> {
 
   @override
   Widget build(BuildContext context) {
+    str = textEditingController.text;
     return Scaffold(
       appBar: AppBar(
         title: const Text('File edit'),
