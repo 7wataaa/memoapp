@@ -87,41 +87,31 @@ class _FileState extends State<FileWidget> {
     //TODO onEditTags()の実装
   }
 
-  void onDelete() {
+  void onDelete() async {
     Navigator.pop(context);
-    showDialog<AlertDialog>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('削除'),
-          content: const Text('この動作はもとに戻すことができません'),
-          actions: [
-            FlatButton(
-              child: const Text('キャンセル'),
-              onPressed: () => Navigator.pop(context),
-            ),
-            FlatButton(
-              child: const Text('削除'),
-              onPressed: () async {
-                //TODO snackbarで削除の通知と取り消しを可能にする
-                Navigator.pop(context);
-                await widget.file.delete();
-                fileSystemEvent.sink.add('');
-                final pathTags = jsonDecode(
-                    await FilePlusTag.tagsFileJsonFile.readAsString()) as Map;
-
-                if (pathTags.containsKey(widget.file.path)) {
-                  debugPrint('登録されていたタグを削除');
-                  pathTags.remove(widget.file.path);
-                  FilePlusTag.tagsFileJsonFile
-                      .writeAsString(jsonEncode(pathTags));
-                }
-              },
-            ),
-          ],
-        );
-      },
+    //TODO snackbarで削除の通知と取り消しを可能にする
+    Scaffold.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          '${RegExp(r'([^/]+?)?$').stringMatch(widget.file.path)}',
+          style: const TextStyle(
+            fontSize: 20,
+          ),
+        ),
+      ),
     );
+
+    await widget.file.delete();
+    fileSystemEvent.sink.add('');
+
+    final pathTags =
+        jsonDecode(await FilePlusTag.tagsFileJsonFile.readAsString()) as Map;
+
+    if (pathTags.containsKey(widget.file.path)) {
+      debugPrint('登録されていたタグを削除');
+      pathTags.remove(widget.file.path);
+      FilePlusTag.tagsFileJsonFile.writeAsString(jsonEncode(pathTags));
+    }
   }
 
   void onMove() {
