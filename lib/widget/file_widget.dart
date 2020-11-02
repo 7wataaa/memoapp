@@ -89,7 +89,7 @@ class _FileState extends State<FileWidget> {
 
   void onDelete() async {
     Navigator.pop(context);
-    //TODO snackbarで削除の通知と取り消しを可能にする
+    //TODO 実際に削除するしてから戻すようにする
     Scaffold.of(context).showSnackBar(
       SnackBar(
         content: Text(

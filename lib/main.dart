@@ -9,11 +9,49 @@ import 'package:memoapp/handling.dart';
 import 'package:memoapp/page/create_page.dart';
 import 'package:memoapp/widget/file_widget.dart';
 import 'package:memoapp/widget/folder_widget.dart';
+import 'package:provider/provider.dart';
 import 'package:screen/screen.dart';
 
 void main() {
   runApp(MyApp());
   Screen.keepOn(true); //完成したら消す
+}
+
+class ModeModel extends ChangeNotifier {
+  bool isTagmode = false;
+
+  ///tagmode rootmodeの切り替えの通知
+  void onModeSwitch() {
+    isTagmode = !isTagmode;
+    notifyListeners();
+  }
+}
+
+class TagNamesModel extends ChangeNotifier {
+  List<Widget> tagnames = [];
+
+  void onAddTagname(String newtagname) {
+    tagnames.add(
+      ListTile(
+        title: Text('$newtagname'),
+      ),
+    );
+    notifyListeners();
+  }
+
+  void readreadytag() {
+    tagnames = Tag.readyTagFile.readAsStringSync().split(RegExp(r'\n')).map(
+      (tagname) {
+        return ListTile(
+          key: GlobalKey(),
+          title: Text(tagname),
+          leading: const Icon(Icons.label_outline),
+        );
+      },
+    ).toList();
+    debugPrint('koko');
+    notifyListeners();
+  }
 }
 
 class MyApp extends StatelessWidget {
@@ -57,15 +95,22 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async => false,
-      child: DefaultTabController(
-        length: 2,
-        child: Scaffold(
+      child: MultiProvider(
+        providers: [
+          ChangeNotifierProvider<ModeModel>(create: (_) => ModeModel()),
+          ChangeNotifierProvider<TagNamesModel>(
+            create: (_) => TagNamesModel(),
+          )
+        ],
+        builder: (context, widget) => Scaffold(
           appBar: AppBar(
             title: const Text('MEMO'),
             backgroundColor: const Color(0xFF212121),
             actions: <Widget>[
               IconButton(
-                  icon: _checkboxIcon(),
+                  icon: _selectMode
+                      ? const Icon(Icons.check_box)
+                      : const Icon(Icons.check_box_outline_blank),
                   onPressed: () {
                     tagUpdateEvent.add('');
                     fileSystemEvent.sink.add('');
@@ -74,46 +119,73 @@ class _HomeState extends State<Home> {
                     });
                   })
             ],
-            bottom: const TabBar(
-              tabs: <Tab>[
-                Tab(
-                  text: 'tag',
+          ),
+          drawer: Drawer(
+            child: Column(
+              children: <Widget>[
+                Expanded(
+                  child: ListView(
+                    children: [
+                      const DrawerHeader(
+                        child: Text('Drawer'),
+                        decoration: BoxDecoration(
+                          color: Colors.grey,
+                        ),
+                      ),
+                      //TODO readytagの内容を入れる
+                      ...Provider.of<TagNamesModel>(context).tagnames
+                    ],
+                  ),
                 ),
-                Tab(
-                  text: 'root',
-                ),
+                ListTile(
+                    title: const Center(
+                      child: Text('モード切替'),
+                    ),
+                    onTap: () {
+                      Provider.of<ModeModel>(context, listen: false)
+                          .onModeSwitch();
+                      Navigator.pop(context);
+                    }),
               ],
             ),
           ),
           body: StreamBuilder<String>(
               stream: tagUpdateEvent.stream,
               builder: (context, snapshot) {
-                return FutureBuilder<int>(
+                return FutureBuilder<bool>(
                   future: Future(() async {
+                    //共通のパスを設定
                     path = await localPath();
-                    final readytag = File('$path/readyTag');
 
+                    //tagsFile.jsonを設定 なければ作成
                     FilePlusTag.tagsFileJsonFile ??=
                         File('$path/tagsFile.json');
+
+                    if (!FilePlusTag.tagsFileJsonFile.existsSync()) {
+                      await FilePlusTag.tagsFileJsonFile.create();
+                      debugPrint('tagFileJsonFile created');
+                    }
+
+                    //readyTagを設定 なければ作成
+                    final readytag = File('$path/readyTag');
+
                     Tag.readyTagFile ??= readytag;
 
                     if (!readytag.existsSync()) {
                       Tag.readyTagFile = readytag;
-                      readytag.create();
+                      await readytag.create();
                       debugPrint('readyTagFile created');
                     }
 
-                    if (!FilePlusTag.tagsFileJsonFile.existsSync()) {
-                      FilePlusTag.tagsFileJsonFile.create();
-                      debugPrint('tagFileJsonFile created');
-                    }
-
+                    //readyTagFileからtagnamesを作成
                     tagnames = Tag.readyTagFile
                         .readAsStringSync()
                         .split(RegExp(r'\n'));
 
+                    //選ばれているチップがなければ、1つ目のタグを設定
                     selectedChip ??= tagnames[0];
 
+                    //選択状態を管理するリストがなければ、1つ目を選んだ状態のリストを設定
                     isSelected ??= List.generate(tagnames.length, (index) {
                       if (index == 0) {
                         return true;
@@ -121,15 +193,18 @@ class _HomeState extends State<Home> {
                       return false;
                     });
 
-                    return 0;
+                    Provider.of<TagNamesModel>(context, listen: false)
+                        .readreadytag();
+
+                    return true;
                   }),
                   builder: (context, snapshot) {
                     if (snapshot.hasData) {
-                      return TabBarView(
-                        children: [
-                          tagHomeBody(),
-                          rootHomeBody(),
-                        ],
+                      return ChangeNotifierProvider(
+                        create: (_) => ModeModel(),
+                        child: Provider.of<ModeModel>(context).isTagmode
+                            ? tagHomeBody()
+                            : rootHomeBody(),
                       );
                     }
                     return const Center(
@@ -294,7 +369,6 @@ class _HomeState extends State<Home> {
     }
 
     if (_tagChips.isEmpty) {
-      debugPrint('return Center');
       return const Center(
         child: Text('タグがありません'),
       );
@@ -362,13 +436,6 @@ class _HomeState extends State<Home> {
     });
 
     return result;
-  }
-
-  Widget _checkboxIcon() {
-    if (_selectMode) {
-      return const Icon(Icons.check_box);
-    }
-    return const Icon(Icons.check_box_outline_blank);
   }
 
   List<Widget> _normalTiles(String path) {
