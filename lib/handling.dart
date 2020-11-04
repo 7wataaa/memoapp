@@ -36,9 +36,6 @@ StreamController<String> tagUpdateEvent = StreamController<String>.broadcast();
 
 Map<FileSystemEntity, bool> fsEntityToCheck = {};
 
-///chipのラベル
-List<String> tagnames;
-
 ///selected chipを管理する
 List<bool> isSelected;
 

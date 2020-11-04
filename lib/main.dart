@@ -28,10 +28,10 @@ class ModeModel extends ChangeNotifier {
 }
 
 class TagNamesModel extends ChangeNotifier {
-  List<Widget> tagnames = [];
+  List<Widget> tagnamesListTile = [];
 
   void onAddTagname(String newtagname) {
-    tagnames.add(
+    tagnamesListTile.add(
       ListTile(
         title: Text('$newtagname'),
       ),
@@ -40,7 +40,8 @@ class TagNamesModel extends ChangeNotifier {
   }
 
   void readreadytag() {
-    tagnames = Tag.readyTagFile.readAsStringSync().split(RegExp(r'\n')).map(
+    tagnamesListTile =
+        Tag.readyTagFile.readAsStringSync().split(RegExp(r'\n')).map(
       (tagname) {
         return ListTile(
           key: GlobalKey(),
@@ -49,7 +50,6 @@ class TagNamesModel extends ChangeNotifier {
         );
       },
     ).toList();
-    debugPrint('koko');
     notifyListeners();
   }
 }
@@ -84,6 +84,7 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   bool _selectMode = false;
+  List<String> tagnames;
 
   @override
   void initState() {
@@ -120,35 +121,7 @@ class _HomeState extends State<Home> {
                   })
             ],
           ),
-          drawer: Drawer(
-            child: Column(
-              children: <Widget>[
-                Expanded(
-                  child: ListView(
-                    children: [
-                      const DrawerHeader(
-                        child: Text('Drawer'),
-                        decoration: BoxDecoration(
-                          color: Colors.grey,
-                        ),
-                      ),
-                      //TODO readytagの内容を入れる
-                      ...Provider.of<TagNamesModel>(context).tagnames
-                    ],
-                  ),
-                ),
-                ListTile(
-                    title: const Center(
-                      child: Text('モード切替'),
-                    ),
-                    onTap: () {
-                      Provider.of<ModeModel>(context, listen: false)
-                          .onModeSwitch();
-                      Navigator.pop(context);
-                    }),
-              ],
-            ),
-          ),
+          drawer: const HomeDrawer(),
           body: StreamBuilder<String>(
               stream: tagUpdateEvent.stream,
               builder: (context, snapshot) {
@@ -192,9 +165,6 @@ class _HomeState extends State<Home> {
                       }
                       return false;
                     });
-
-                    Provider.of<TagNamesModel>(context, listen: false)
-                        .readreadytag();
 
                     return true;
                   }),
@@ -553,6 +523,59 @@ class _HomeState extends State<Home> {
         );
       });
     }
+  }
+}
+
+class HomeDrawer extends StatefulWidget {
+  const HomeDrawer({
+    Key key,
+  }) : super(key: key);
+
+  @override
+  _HomeDrawerState createState() => _HomeDrawerState();
+}
+
+class _HomeDrawerState extends State<HomeDrawer> {
+  @override
+  Widget build(BuildContext context) {
+    if (Tag.readyTagFile == null) {
+      return null;
+    }
+
+    //TODO UserAccountsDrawerHeader入れる
+
+    Provider.of<TagNamesModel>(context, listen: false).tagnamesListTile = Tag
+        .readyTagFile
+        .readAsStringSync()
+        .split(RegExp(r'\n'))
+        .map<Widget>((tagname) {
+      return ListTile(
+        leading: const Icon(Icons.label_outline),
+        title: Text('$tagname'),
+      );
+    }).toList();
+
+    debugPrint('${Provider.of<TagNamesModel>(context).tagnamesListTile}');
+    return Drawer(
+      child: Column(
+        children: <Widget>[
+          Expanded(
+            child: ListView(
+              children: Provider.of<TagNamesModel>(context).tagnamesListTile,
+            ),
+          ),
+          ListTile(
+            title: const Center(
+              child: Text('モード切替'),
+            ),
+            onTap: () {
+              Provider.of<ModeModel>(context, listen: false).onModeSwitch();
+              Navigator.pop(context);
+            },
+          ),
+        ],
+      ),
+    );
   }
 }
 /*
