@@ -86,6 +86,9 @@ class _HomeState extends State<Home> {
   bool _selectMode = false;
   List<String> tagnames;
 
+  ///selected chipを管理する
+  List<bool> isSelected;
+
   @override
   void initState() {
     super.initState();
@@ -139,6 +142,14 @@ class _HomeState extends State<Home> {
                       debugPrint('tagFileJsonFile created');
                     }
 
+                    //syncTagを設定 なければ作成
+                    Tag.syncTagFile ??= File('$path/syncTag');
+
+                    if (!Tag.syncTagFile.existsSync()) {
+                      await Tag.syncTagFile.create();
+                      debugPrint('syncTagFile created');
+                    }
+
                     //readyTagを設定 なければ作成
                     final readytag = File('$path/readyTag');
 
@@ -151,20 +162,23 @@ class _HomeState extends State<Home> {
                     }
 
                     //readyTagFileからtagnamesを作成
-                    tagnames = Tag.readyTagFile
-                        .readAsStringSync()
-                        .split(RegExp(r'\n'));
+                    tagnames = Tag.readyTagFile.readAsLinesSync();
 
                     //選ばれているチップがなければ、1つ目のタグを設定
                     selectedChip ??= tagnames[0];
 
                     //選択状態を管理するリストがなければ、1つ目を選んだ状態のリストを設定
-                    isSelected ??= List.generate(tagnames.length, (index) {
+                    isSelected ??= List.generate(
+                        tagnames.length +
+                            (await Tag.syncTagFile.readAsLines()).length,
+                        (index) {
                       if (index == 0) {
                         return true;
                       }
                       return false;
                     });
+
+                    debugPrint('$isSelected');
 
                     return true;
                   }),
@@ -309,24 +323,43 @@ class _HomeState extends State<Home> {
   }
 
   Widget tagHomeBody() {
-    var _tagChips = <Widget>[];
+    final _tagChips = <Widget>[];
 
-    if (tagnames[0].isEmpty) {
-      _tagChips = <Widget>[];
-    } else {
-      for (var i = 0; i < tagnames.length; i++) {
+    final syncTagFileLine = Tag.syncTagFile.readAsLinesSync();
+
+    for (var i = 0; i < syncTagFileLine.length + tagnames.length; i++) {
+      if (i < syncTagFileLine.length) {
         _tagChips.add(
           ChoiceChip(
             selected: isSelected[i],
             label: Text(
-              tagnames[i],
+              syncTagFileLine[i],
+              style: const TextStyle(fontSize: 20),
+            ),
+            onSelected: (bool newValue) {
+              if (!isSelected[i]) {
+                selectedChip = syncTagFileLine[i];
+                isSelected = List.generate(isSelected.length, (index) => false);
+                setState(() {
+                  isSelected[i] = newValue;
+                });
+              }
+            },
+          ),
+        );
+      } else {
+        _tagChips.add(
+          ChoiceChip(
+            selected: isSelected[i],
+            label: Text(
+              tagnames[i - syncTagFileLine.length],
               style: const TextStyle(
                 fontSize: 20,
               ),
             ),
             onSelected: (bool newValue) {
               if (!isSelected[i]) {
-                selectedChip = tagnames[i];
+                selectedChip = tagnames[i - syncTagFileLine.length];
                 isSelected = List.generate(isSelected.length, (index) => false);
                 setState(() {
                   isSelected[i] = newValue;

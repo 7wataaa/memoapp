@@ -268,20 +268,26 @@ class _CreatePageState extends State<CreatePage> {
       ),
     ];
 
-    final readytag = await Tag.readyTagFile.readAsString();
-
-    debugPrint('readytag => ${readytag.split(RegExp(r'\n'))}');
-
-    for (final tagstr in readytag.split(RegExp(r'\n')).toList()) {
+    for (final tagstr in await Tag.readyTagFile.readAsLines()) {
       if (tagstr.isEmpty) {
         continue;
       }
 
       menuEntry.insert(
         0,
-        new PopupMenuItem(
+        PopupMenuItem(
           value: '$tagstr',
           child: Text('$tagstr'),
+        ),
+      );
+    }
+
+    for (final str in await Tag.syncTagFile.readAsLines()) {
+      menuEntry.insert(
+        0,
+        PopupMenuItem(
+          value: '$str',
+          child: Text('$str'),
         ),
       );
     }

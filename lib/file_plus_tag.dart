@@ -106,13 +106,11 @@ class Tag {
 
   static File readyTagFile;
 
+  static File syncTagFile;
+
   String tagName;
 
-  dynamic toJson() {
-    return {'tagName': tagName};
-  }
-
-  Chip getTagChip() {
+  Chip createTagChip() {
     return Chip(
       label: Text(
         tagName,
@@ -123,8 +121,9 @@ class Tag {
       onDeleted: () async {
         final taglist = await readyTagFile.readAsLines();
         taglist.removeWhere((tagname) => tagname == tagName);
-        readyTagFile.writeAsStringSync('');
 
+        //'[tag1, tag2]'からtag1\ntag2にする
+        readyTagFile.writeAsStringSync('');
         for (var str in taglist) {
           str = readyTagFile.readAsStringSync().isEmpty ? str : '\n$str';
           readyTagFile.writeAsStringSync(str, mode: FileMode.append);
@@ -142,6 +141,15 @@ class Tag {
         FilePlusTag.tagsFileJsonFile.writeAsString(jsonEncode(pathtotags));
 
         tagChipEvent.add('');
+      },
+    );
+  }
+
+  Widget createSyncTagChip() {
+    return ActionChip(
+      label: Text(tagName),
+      onPressed: () {
+        debugPrint(tagName);
       },
     );
   }

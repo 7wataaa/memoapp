@@ -31,7 +31,7 @@ class _TagCreatePageBodyState extends State<TagCreatePageBody> {
     return StreamBuilder<String>(
         stream: tagChipEvent.stream,
         builder: (context, snapshot) {
-          return FutureBuilder<List<Chip>>(
+          return FutureBuilder<List<Widget>>(
               future: loadChips(),
               builder: (context, snapshot) {
                 return Column(
@@ -79,7 +79,8 @@ class _TagCreatePageBodyState extends State<TagCreatePageBody> {
                                   return;
                                 }
                                 for (final chip in snapshot.data) {
-                                  if ((chip.label as Text).data == inputValue) {
+                                  if (((chip as Chip).label as Text).data ==
+                                      inputValue) {
                                     debugPrint('!! 重複した名前');
                                     return;
                                   }
@@ -96,14 +97,14 @@ class _TagCreatePageBodyState extends State<TagCreatePageBody> {
                                     mode: FileMode.append,
                                   );
                                 });
-                                isSelected = List.generate(
+                                /* isSelected = List.generate(
                                     Tag.readyTagFile.readAsLinesSync().length,
                                     (i) {
                                   if (i == 0) {
                                     return true;
                                   }
                                   return false;
-                                });
+                                }); */
                               })
                         ],
                       ),
@@ -114,25 +115,19 @@ class _TagCreatePageBodyState extends State<TagCreatePageBody> {
         });
   }
 
-  Future<List<Chip>> loadChips() async {
-    final result = <Chip>[];
-    final taglist = <Tag>[];
+  Future<List<Widget>> loadChips() async {
+    final result = <Widget>[];
 
-    if ((await Tag.readyTagFile.readAsString()).isEmpty) {
-      debugPrint('!! readyTag is empty');
-      return result;
+    if (!(await Tag.syncTagFile.readAsString()).isEmpty) {
+      for (final str in await Tag.syncTagFile.readAsLines()) {
+        result.add(Tag(str).createSyncTagChip());
+      }
     }
 
-    final readyTagFile = await Tag.readyTagFile.readAsString();
-    readyTagFile.split(RegExp(r'\n')).forEach((str) {
-      if (str.isEmpty) {
-        return;
+    if (!(await Tag.readyTagFile.readAsString()).isEmpty) {
+      for (final str in await Tag.readyTagFile.readAsLines()) {
+        result.add(Tag(str).createTagChip());
       }
-      taglist.add(Tag(str));
-    });
-
-    for (final tag in taglist) {
-      result.add(tag.getTagChip());
     }
 
     return result;
