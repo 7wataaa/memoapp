@@ -79,10 +79,12 @@ class _TagCreatePageBodyState extends State<TagCreatePageBody> {
                                   return;
                                 }
                                 for (final chip in snapshot.data) {
-                                  if (((chip as Chip).label as Text).data ==
-                                      inputValue) {
-                                    debugPrint('!! 重複した名前');
-                                    return;
+                                  if (chip is Chip) {
+                                    if ((chip.label as Text).data ==
+                                        inputValue) {
+                                      debugPrint('!! 重複した名前');
+                                      return;
+                                    }
                                   }
                                 }
 
@@ -97,15 +99,7 @@ class _TagCreatePageBodyState extends State<TagCreatePageBody> {
                                     mode: FileMode.append,
                                   );
                                 });
-                                /* isSelected = List.generate(
-                                    Tag.readyTagFile.readAsLinesSync().length,
-                                    (i) {
-                                  if (i == 0) {
-                                    return true;
-                                  }
-                                  return false;
-                                }); */
-                              })
+                              }),
                         ],
                       ),
                     )

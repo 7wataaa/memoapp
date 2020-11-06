@@ -28,10 +28,10 @@ class ModeModel extends ChangeNotifier {
 }
 
 class TagNamesModel extends ChangeNotifier {
-  List<Widget> tagnamesListTile = [];
+  List<Widget> drawerListTile = [];
 
   void onAddTagname(String newtagname) {
-    tagnamesListTile.add(
+    drawerListTile.add(
       ListTile(
         title: Text('$newtagname'),
       ),
@@ -40,7 +40,7 @@ class TagNamesModel extends ChangeNotifier {
   }
 
   void readreadytag() {
-    tagnamesListTile =
+    drawerListTile =
         Tag.readyTagFile.readAsStringSync().split(RegExp(r'\n')).map(
       (tagname) {
         return ListTile(
@@ -343,6 +343,7 @@ class _HomeState extends State<Home> {
                 setState(() {
                   isSelected[i] = newValue;
                 });
+                debugPrint('koko');
               }
             },
           ),
@@ -577,24 +578,33 @@ class _HomeDrawerState extends State<HomeDrawer> {
 
     //TODO UserAccountsDrawerHeader入れる
 
-    Provider.of<TagNamesModel>(context, listen: false).tagnamesListTile = Tag
-        .readyTagFile
-        .readAsStringSync()
-        .split(RegExp(r'\n'))
-        .map<Widget>((tagname) {
-      return ListTile(
-        leading: const Icon(Icons.label_outline),
-        title: Text('$tagname'),
-      );
-    }).toList();
+    Provider.of<TagNamesModel>(context, listen: false).drawerListTile = [
+      ...Tag.syncTagFile.readAsLinesSync().map<Widget>((tagstr) {
+        return ListTile(
+          leading: const Icon(Icons.label),
+          title: Text(tagstr),
+          onTap: () {},
+        );
+      }),
+      ...Tag.readyTagFile
+          .readAsStringSync()
+          .split(RegExp(r'\n'))
+          .map<Widget>((tagname) {
+        return ListTile(
+          leading: const Icon(Icons.label_outline),
+          title: Text('$tagname'),
+          onTap: () {},
+        );
+      }).toList(),
+    ];
 
-    debugPrint('${Provider.of<TagNamesModel>(context).tagnamesListTile}');
+    debugPrint('${Provider.of<TagNamesModel>(context).drawerListTile}');
     return Drawer(
       child: Column(
         children: <Widget>[
           Expanded(
             child: ListView(
-              children: Provider.of<TagNamesModel>(context).tagnamesListTile,
+              children: Provider.of<TagNamesModel>(context).drawerListTile,
             ),
           ),
           ListTile(
