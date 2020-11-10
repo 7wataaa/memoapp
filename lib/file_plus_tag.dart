@@ -128,63 +128,112 @@ class Tag {
                   SimpleDialogOption(
                     child: const Text('同期化'),
                     onPressed: () {
-                      final tmplist = readyTagFile.readAsLinesSync()
-                        ..removeWhere((tagstr) => tagstr == tagName);
-
-                      readyTagFile.writeAsStringSync('');
-
-                      for (final _name in tmplist) {
-                        readyTagFile.writeAsStringSync(
-                          readyTagFile.readAsStringSync().isEmpty
-                              ? _name
-                              : '\n$_name',
-                          mode: FileMode.append,
-                        );
-                      }
-
-                      syncTagFile.writeAsStringSync(
-                        syncTagFile.readAsStringSync().isEmpty
-                            ? tagName
-                            : '\n$tagName',
-                        mode: FileMode.append,
-                      );
-
-                      tagChipEvent.add('');
-
                       Navigator.pop(context);
+
+                      showDialog<AlertDialog>(
+                        context: context,
+                        builder: (context) {
+                          return AlertDialog(
+                            title: const Text('同期'),
+                            content: Text('$tagName を動悸させますか'),
+                            actions: [
+                              FlatButton(
+                                child: const Text('キャンセル'),
+                                onPressed: () => Navigator.pop(context),
+                              ),
+                              FlatButton(
+                                child: const Text('同期'),
+                                onPressed: () {
+                                  final tmplist = readyTagFile.readAsLinesSync()
+                                    ..removeWhere(
+                                        (tagstr) => tagstr == tagName);
+
+                                  readyTagFile.writeAsStringSync('');
+
+                                  for (final _name in tmplist) {
+                                    readyTagFile.writeAsStringSync(
+                                      readyTagFile.readAsStringSync().isEmpty
+                                          ? _name
+                                          : '\n$_name',
+                                      mode: FileMode.append,
+                                    );
+                                  }
+
+                                  syncTagFile.writeAsStringSync(
+                                    syncTagFile.readAsStringSync().isEmpty
+                                        ? tagName
+                                        : '\n$tagName',
+                                    mode: FileMode.append,
+                                  );
+
+                                  tagChipEvent.add('');
+
+                                  Navigator.pop(context);
+                                },
+                              )
+                            ],
+                          );
+                        },
+                      );
                     },
                   ),
                   SimpleDialogOption(
-                    child: const Text('削除'),
-                    onPressed: () async {
-                      final taglist = await readyTagFile.readAsLines();
-                      taglist.removeWhere((tagname) => tagname == tagName);
+                      child: const Text('削除'),
+                      onPressed: () async {
+                        Navigator.pop(context);
 
-                      //'[tag1, tag2]'からtag1\ntag2にする
-                      readyTagFile.writeAsStringSync('');
+                        showDialog<AlertDialog>(
+                            context: context,
+                            builder: (context) {
+                              return AlertDialog(
+                                title: const Text('本当に削除しますか'),
+                                content: Text('$tagName を削除します'),
+                                actions: [
+                                  FlatButton(
+                                    child: const Text('キャンセル'),
+                                    onPressed: () => Navigator.pop(context),
+                                  ),
+                                  FlatButton(
+                                    child: const Text('削除'),
+                                    onPressed: () async {
+                                      final taglist =
+                                          await readyTagFile.readAsLines();
+                                      taglist.removeWhere(
+                                          (tagname) => tagname == tagName);
 
-                      for (var str in taglist) {
-                        str = readyTagFile.readAsStringSync().isEmpty
-                            ? str
-                            : '\n$str';
-                        readyTagFile.writeAsStringSync(str,
-                            mode: FileMode.append);
-                      }
+                                      //'[tag1, tag2]'からtag1\ntag2にする
+                                      readyTagFile.writeAsStringSync('');
 
-                      final pathtotags = FilePlusTag.returnPathToTagsFromJson();
+                                      for (var str in taglist) {
+                                        str = readyTagFile
+                                                .readAsStringSync()
+                                                .isEmpty
+                                            ? str
+                                            : '\n$str';
+                                        readyTagFile.writeAsStringSync(str,
+                                            mode: FileMode.append);
+                                      }
 
-                      for (final key in pathtotags.keys) {
-                        (pathtotags[key] as List)
-                            .removeWhere((dynamic item) => item == tagName);
-                      }
-                      FilePlusTag.tagsFileJsonFile
-                          .writeAsString(jsonEncode(pathtotags));
+                                      final pathtotags = FilePlusTag
+                                          .returnPathToTagsFromJson();
 
-                      tagChipEvent.add('');
+                                      for (final key in pathtotags.keys) {
+                                        (pathtotags[key] as List).removeWhere(
+                                            (dynamic item) => item == tagName);
+                                      }
+                                      FilePlusTag.tagsFileJsonFile
+                                          .writeAsString(
+                                              jsonEncode(pathtotags));
 
-                      Navigator.pop(context);
-                    },
-                  )
+                                      tagChipEvent.add('');
+
+                                      Navigator.pop(context);
+                                    },
+                                  ),
+                                ],
+                              );
+                            });
+                      })
                 ],
               ));
         },
@@ -211,36 +260,59 @@ class Tag {
                   children: [
                     SimpleDialogOption(
                       child: const Text('削除'),
-                      onPressed: () async {
-                        final staglist = await syncTagFile.readAsLines();
-                        staglist.removeWhere((tagname) => tagname == tagName);
-
-                        //'[tag1, tag2]'からtag1\ntag2にする
-                        syncTagFile.writeAsStringSync('');
-                        for (var str in staglist) {
-                          str = syncTagFile.readAsStringSync().isEmpty
-                              ? str
-                              : '\n$str';
-                          syncTagFile.writeAsStringSync(str,
-                              mode: FileMode.append);
-                        }
-
-                        final pathTagsMap =
-                            FilePlusTag.returnPathToTagsFromJson();
-
-                        for (final key in pathTagsMap.keys) {
-                          (pathTagsMap[key] as List)
-                              .removeWhere((dynamic item) => item == tagName);
-                          /* if ((pathtotags[key] as List<dynamic>).isEmpty) {
-                          pathtotags.remove(key);
-                          } */
-                        }
-                        FilePlusTag.tagsFileJsonFile
-                            .writeAsString(jsonEncode(pathTagsMap));
-
-                        tagChipEvent.add('');
-
+                      onPressed: () {
                         Navigator.pop(context);
+
+                        showDialog<AlertDialog>(
+                            context: context,
+                            builder: (context) {
+                              return AlertDialog(
+                                title: const Text('本当に削除しますか'),
+                                content: Text('$tagName を削除します'),
+                                actions: [
+                                  FlatButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    child: const Text('キャンセル'),
+                                  ),
+                                  FlatButton(
+                                      onPressed: () async {
+                                        final staglist =
+                                            await syncTagFile.readAsLines();
+                                        staglist.removeWhere(
+                                            (tagname) => tagname == tagName);
+
+                                        //'[tag1, tag2]'からtag1\ntag2にする
+                                        syncTagFile.writeAsStringSync('');
+                                        for (var str in staglist) {
+                                          str = syncTagFile
+                                                  .readAsStringSync()
+                                                  .isEmpty
+                                              ? str
+                                              : '\n$str';
+                                          syncTagFile.writeAsStringSync(str,
+                                              mode: FileMode.append);
+                                        }
+
+                                        final pathTagsMap = FilePlusTag
+                                            .returnPathToTagsFromJson();
+
+                                        for (final key in pathTagsMap.keys) {
+                                          (pathTagsMap[key] as List)
+                                              .removeWhere((dynamic item) =>
+                                                  item == tagName);
+                                        }
+                                        FilePlusTag.tagsFileJsonFile
+                                            .writeAsString(
+                                                jsonEncode(pathTagsMap));
+
+                                        tagChipEvent.add('');
+
+                                        Navigator.pop(context);
+                                      },
+                                      child: const Text('削除'))
+                                ],
+                              );
+                            });
                       },
                     ),
                   ],

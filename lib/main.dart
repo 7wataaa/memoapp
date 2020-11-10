@@ -333,7 +333,6 @@ class _HomeState extends State<Home> {
   Widget tagHomeBody() {
     final _tagHomeChips = <Widget>[];
 
-    final readyTagFileLine = Tag.readyTagFile.readAsLinesSync();
     final syncTagFileLine = Tag.syncTagFile.readAsLinesSync();
 
     for (var i = 0; i < tagnames.length; i++) {
