@@ -40,8 +40,7 @@ class TagNamesModel extends ChangeNotifier {
   }
 
   void readreadytag() {
-    drawerListTile =
-        Tag.readyTagFile.readAsStringSync().split(RegExp(r'\n')).map(
+    drawerListTile = Tag.readyTagFile.readAsLinesSync().map(
       (tagname) {
         return ListTile(
           key: GlobalKey(),
@@ -50,6 +49,7 @@ class TagNamesModel extends ChangeNotifier {
         );
       },
     ).toList();
+
     notifyListeners();
   }
 }
@@ -162,23 +162,27 @@ class _HomeState extends State<Home> {
                     }
 
                     //readyTagFileからtagnamesを作成
-                    tagnames = Tag.readyTagFile.readAsLinesSync();
+                    tagnames = [
+                      ...Tag.readyTagFile.readAsLinesSync(),
+                      ...Tag.syncTagFile.readAsLinesSync()
+                    ];
 
-                    //選ばれているチップがなければ、1つ目のタグを設定
-                    selectedChip ??= tagnames[0];
+                    if (tagnames.isNotEmpty) {
+                      //選ばれているチップがなければ、1つ目のタグを設定
+                      selectedChip ??= tagnames[0];
 
-                    //選択状態を管理するリストがなければ、1つ目を選んだ状態のリストを設定
-                    isSelected ??= List.generate(
-                        tagnames.length +
-                            (await Tag.syncTagFile.readAsLines()).length,
-                        (index) {
-                      if (index == 0) {
-                        return true;
+                      //選択状態を管理するリストがなければ、1つ目を選んだ状態のリストを設定
+                      isSelected ??= List.generate(tagnames.length, (index) {
+                        return index == 0;
+                      });
+
+                      //リストに更新があれば作り直す
+                      if (isSelected.length != tagnames.length) {
+                        isSelected = List.generate(tagnames.length, (index) {
+                          return index == 0;
+                        });
                       }
-                      return false;
-                    });
-
-                    debugPrint('$isSelected');
+                    }
 
                     return true;
                   }),
@@ -327,10 +331,13 @@ class _HomeState extends State<Home> {
 
     final syncTagFileLine = Tag.syncTagFile.readAsLinesSync();
 
-    for (var i = 0; i < syncTagFileLine.length + tagnames.length; i++) {
+    for (var i = 0; i < tagnames.length; i++) {
       if (i < syncTagFileLine.length) {
         _tagChips.add(
           ChoiceChip(
+            avatar: const CircleAvatar(
+              child: Icon(Icons.sync),
+            ),
             selected: isSelected[i],
             label: Text(
               syncTagFileLine[i],
@@ -343,7 +350,6 @@ class _HomeState extends State<Home> {
                 setState(() {
                   isSelected[i] = newValue;
                 });
-                debugPrint('koko');
               }
             },
           ),
@@ -508,19 +514,19 @@ class _HomeState extends State<Home> {
         context: context,
         builder: (BuildContext context) {
           final deleteList = <dynamic>[];
-          final deleteListToString = <String>[];
+          final deletePathList = <String>[];
 
           for (final key in fsEntityToCheck.keys) {
             if (fsEntityToCheck[key]) {
               deleteList.add(key);
-              deleteListToString
+              deletePathList
                   .add('${RegExp(r'([^/]+?)?$').stringMatch(key.path)}');
             }
           }
 
           return AlertDialog(
             title: const Text('delete'),
-            content: Text('$deleteListToString を削除します'),
+            content: Text('$deletePathList を削除します'),
             actions: [
               FlatButton(
                 child: const Text('キャンセル'),
@@ -586,10 +592,7 @@ class _HomeDrawerState extends State<HomeDrawer> {
           onTap: () {},
         );
       }),
-      ...Tag.readyTagFile
-          .readAsStringSync()
-          .split(RegExp(r'\n'))
-          .map<Widget>((tagname) {
+      ...Tag.readyTagFile.readAsLinesSync().map<Widget>((tagname) {
         return ListTile(
           leading: const Icon(Icons.label_outline),
           title: Text('$tagname'),
@@ -598,7 +601,6 @@ class _HomeDrawerState extends State<HomeDrawer> {
       }).toList(),
     ];
 
-    debugPrint('${Provider.of<TagNamesModel>(context).drawerListTile}');
     return Drawer(
       child: Column(
         children: <Widget>[
@@ -608,6 +610,7 @@ class _HomeDrawerState extends State<HomeDrawer> {
             ),
           ),
           ListTile(
+            tileColor: const Color(0xFFE0E0E0),
             title: const Center(
               child: Text('モード切替'),
             ),

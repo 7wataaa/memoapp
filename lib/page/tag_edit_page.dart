@@ -24,7 +24,20 @@ class TagCreatePageBody extends StatefulWidget {
 
 class _TagCreatePageBodyState extends State<TagCreatePageBody> {
   final _textEditingController = TextEditingController();
+  final _focusNode = FocusNode();
   String inputValue = '';
+
+  @override
+  void initState() {
+    super.initState();
+
+    _focusNode.addListener(() {
+      if (_focusNode.hasFocus) {
+        _textEditingController.selection = TextSelection(
+            baseOffset: 0, extentOffset: _textEditingController.text.length);
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,6 +47,10 @@ class _TagCreatePageBodyState extends State<TagCreatePageBody> {
           return FutureBuilder<List<Widget>>(
               future: loadChips(),
               builder: (context, snapshot) {
+                final existingtags = [
+                  ...Tag.readyTagFile.readAsLinesSync(),
+                  ...Tag.syncTagFile.readAsLinesSync(),
+                ];
                 return Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -63,6 +80,7 @@ class _TagCreatePageBodyState extends State<TagCreatePageBody> {
                                 bottom: 0,
                               ),
                               child: TextField(
+                                focusNode: _focusNode,
                                 decoration: const InputDecoration(
                                     labelText: 'タグの名前を入力...'),
                                 controller: _textEditingController,
@@ -78,20 +96,22 @@ class _TagCreatePageBodyState extends State<TagCreatePageBody> {
                                   debugPrint('!! inputvalue is empty');
                                   return;
                                 }
-                                for (final chip in snapshot.data) {
-                                  if (chip is Chip) {
-                                    if ((chip.label as Text).data ==
-                                        inputValue) {
-                                      debugPrint('!! 重複した名前');
-                                      return;
-                                    }
-                                  }
+
+                                if (existingtags.contains(inputValue)) {
+                                  debugPrint('!! 重複した名前');
+                                  return;
                                 }
 
                                 final writestr =
                                     Tag.readyTagFile.readAsStringSync().isEmpty
                                         ? inputValue
                                         : '\n$inputValue';
+
+                                _textEditingController.selection =
+                                    TextSelection(
+                                        baseOffset: 0,
+                                        extentOffset:
+                                            _textEditingController.text.length);
 
                                 setState(() {
                                   Tag.readyTagFile.writeAsStringSync(

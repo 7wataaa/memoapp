@@ -110,47 +110,145 @@ class Tag {
 
   String tagName;
 
-  Chip createTagChip() {
-    return Chip(
-      label: Text(
-        tagName,
-        style: const TextStyle(
-          fontSize: 18,
+  Widget createTagChip() {
+    //TODO chipを変える
+    return Builder(
+      builder: (context) => ActionChip(
+        label: Text(
+          tagName,
+          style: const TextStyle(
+            fontSize: 18,
+          ),
         ),
+        onPressed: () {
+          showDialog<SimpleDialog>(
+              context: context,
+              child: SimpleDialog(
+                title: Text('$tagName'),
+                children: [
+                  SimpleDialogOption(
+                    child: const Text('同期化'),
+                    onPressed: () {
+                      final tmplist = readyTagFile.readAsLinesSync()
+                        ..removeWhere((tagstr) => tagstr == tagName);
+
+                      readyTagFile.writeAsStringSync('');
+
+                      for (final _name in tmplist) {
+                        readyTagFile.writeAsStringSync(
+                          readyTagFile.readAsStringSync().isEmpty
+                              ? _name
+                              : '\n$_name',
+                          mode: FileMode.append,
+                        );
+                      }
+
+                      syncTagFile.writeAsStringSync(
+                        syncTagFile.readAsStringSync().isEmpty
+                            ? tagName
+                            : '\n$tagName',
+                        mode: FileMode.append,
+                      );
+
+                      tagChipEvent.add('');
+
+                      Navigator.pop(context);
+                    },
+                  ),
+                  SimpleDialogOption(
+                    child: const Text('削除'),
+                    onPressed: () async {
+                      final taglist = await readyTagFile.readAsLines();
+                      taglist.removeWhere((tagname) => tagname == tagName);
+
+                      //'[tag1, tag2]'からtag1\ntag2にする
+                      readyTagFile.writeAsStringSync('');
+
+                      for (var str in taglist) {
+                        str = readyTagFile.readAsStringSync().isEmpty
+                            ? str
+                            : '\n$str';
+                        readyTagFile.writeAsStringSync(str,
+                            mode: FileMode.append);
+                      }
+
+                      final pathtotags = FilePlusTag.returnPathToTagsFromJson();
+
+                      for (final key in pathtotags.keys) {
+                        (pathtotags[key] as List)
+                            .removeWhere((dynamic item) => item == tagName);
+                      }
+                      FilePlusTag.tagsFileJsonFile
+                          .writeAsString(jsonEncode(pathtotags));
+
+                      tagChipEvent.add('');
+
+                      Navigator.pop(context);
+                    },
+                  )
+                ],
+              ));
+        },
       ),
-      onDeleted: () async {
-        final taglist = await readyTagFile.readAsLines();
-        taglist.removeWhere((tagname) => tagname == tagName);
-
-        //'[tag1, tag2]'からtag1\ntag2にする
-        readyTagFile.writeAsStringSync('');
-        for (var str in taglist) {
-          str = readyTagFile.readAsStringSync().isEmpty ? str : '\n$str';
-          readyTagFile.writeAsStringSync(str, mode: FileMode.append);
-        }
-
-        final pathtotags = FilePlusTag.returnPathToTagsFromJson();
-
-        for (final key in pathtotags.keys) {
-          (pathtotags[key] as List)
-              .removeWhere((dynamic item) => item == tagName);
-          /* if ((pathtotags[key] as List<dynamic>).isEmpty) {
-            pathtotags.remove(key);
-          } */
-        }
-        FilePlusTag.tagsFileJsonFile.writeAsString(jsonEncode(pathtotags));
-
-        tagChipEvent.add('');
-      },
     );
   }
 
   Widget createSyncTagChip() {
-    return ActionChip(
-      label: Text(tagName),
-      onPressed: () {
-        debugPrint(tagName);
-      },
+    return Builder(
+      builder: (context) => ActionChip(
+        avatar: const CircleAvatar(
+          child: Icon(Icons.sync),
+        ),
+        label: Text(
+          tagName,
+          style: const TextStyle(fontSize: 18),
+        ),
+        onPressed: () {
+          showDialog<SimpleDialog>(
+              context: context,
+              builder: (context) {
+                return SimpleDialog(
+                  title: Text('$tagName'),
+                  children: [
+                    SimpleDialogOption(
+                      child: const Text('削除'),
+                      onPressed: () async {
+                        final staglist = await syncTagFile.readAsLines();
+                        staglist.removeWhere((tagname) => tagname == tagName);
+
+                        //'[tag1, tag2]'からtag1\ntag2にする
+                        syncTagFile.writeAsStringSync('');
+                        for (var str in staglist) {
+                          str = syncTagFile.readAsStringSync().isEmpty
+                              ? str
+                              : '\n$str';
+                          syncTagFile.writeAsStringSync(str,
+                              mode: FileMode.append);
+                        }
+
+                        final pathTagsMap =
+                            FilePlusTag.returnPathToTagsFromJson();
+
+                        for (final key in pathTagsMap.keys) {
+                          (pathTagsMap[key] as List)
+                              .removeWhere((dynamic item) => item == tagName);
+                          /* if ((pathtotags[key] as List<dynamic>).isEmpty) {
+                          pathtotags.remove(key);
+                          } */
+                        }
+                        FilePlusTag.tagsFileJsonFile
+                            .writeAsString(jsonEncode(pathTagsMap));
+
+                        tagChipEvent.add('');
+
+                        Navigator.pop(context);
+                      },
+                    ),
+                  ],
+                );
+              });
+        },
+      ),
     );
   }
 }
