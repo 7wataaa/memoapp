@@ -86,6 +86,9 @@ class _HomeState extends State<Home> {
   bool _selectMode = false;
   List<String> tagnames;
 
+  ///ファイルをこのタグがついたものにソートするために使う
+  String selectedChip;
+
   ///selected chipを管理する
   List<bool> isSelected;
 
@@ -163,8 +166,8 @@ class _HomeState extends State<Home> {
 
                     //readyTagFileからtagnamesを作成
                     tagnames = [
+                      ...Tag.syncTagFile.readAsLinesSync(),
                       ...Tag.readyTagFile.readAsLinesSync(),
-                      ...Tag.syncTagFile.readAsLinesSync()
                     ];
 
                     if (tagnames.isNotEmpty) {
@@ -181,6 +184,7 @@ class _HomeState extends State<Home> {
                         isSelected = List.generate(tagnames.length, (index) {
                           return index == 0;
                         });
+                        selectedChip = tagnames[0];
                       }
                     }
 
@@ -327,13 +331,14 @@ class _HomeState extends State<Home> {
   }
 
   Widget tagHomeBody() {
-    final _tagChips = <Widget>[];
+    final _tagHomeChips = <Widget>[];
 
+    final readyTagFileLine = Tag.readyTagFile.readAsLinesSync();
     final syncTagFileLine = Tag.syncTagFile.readAsLinesSync();
 
     for (var i = 0; i < tagnames.length; i++) {
       if (i < syncTagFileLine.length) {
-        _tagChips.add(
+        _tagHomeChips.add(
           ChoiceChip(
             avatar: const CircleAvatar(
               child: Icon(Icons.sync),
@@ -355,18 +360,18 @@ class _HomeState extends State<Home> {
           ),
         );
       } else {
-        _tagChips.add(
+        _tagHomeChips.add(
           ChoiceChip(
             selected: isSelected[i],
             label: Text(
-              tagnames[i - syncTagFileLine.length],
+              tagnames[i],
               style: const TextStyle(
                 fontSize: 20,
               ),
             ),
             onSelected: (bool newValue) {
               if (!isSelected[i]) {
-                selectedChip = tagnames[i - syncTagFileLine.length];
+                selectedChip = tagnames[i];
                 isSelected = List.generate(isSelected.length, (index) => false);
                 setState(() {
                   isSelected[i] = newValue;
@@ -378,7 +383,7 @@ class _HomeState extends State<Home> {
       }
     }
 
-    if (_tagChips.isEmpty) {
+    if (_tagHomeChips.isEmpty) {
       return const Center(
         child: Text('タグがありません'),
       );
@@ -397,9 +402,9 @@ class _HomeState extends State<Home> {
               separatorBuilder: (context, index) => Container(
                 margin: const EdgeInsets.only(left: 5),
               ),
-              itemCount: _tagChips.length,
+              itemCount: _tagHomeChips.length,
               itemBuilder: (context, i) {
-                return _tagChips[i];
+                return _tagHomeChips[i];
               },
             ),
           ),
@@ -409,10 +414,12 @@ class _HomeState extends State<Home> {
             future: taggedFileTiles('$selectedChip'),
             builder: (context, snapshot) {
               selectedChip ??= tagnames[0];
-              if (snapshot.hasData) {
+              if (snapshot.hasData && snapshot.data.isNotEmpty) {
                 return ListView(
                   children: snapshot.data,
                 );
+              } else if (snapshot.hasData) {
+                return const Center(child: Text('このタグが付けられたファイルはありません'));
               } else {
                 return const Center(child: CircularProgressIndicator());
               }
@@ -424,6 +431,7 @@ class _HomeState extends State<Home> {
   }
 
   Future<List<Widget>> taggedFileTiles(String tagname) async {
+    debugPrint('$tagname');
     final result = <FileWidget>[];
 
     //await Future<Duration>.delayed(const Duration(seconds: 3));

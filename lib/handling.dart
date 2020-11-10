@@ -35,6 +35,3 @@ StreamController<String> tagChipEvent = StreamController<String>.broadcast();
 StreamController<String> tagUpdateEvent = StreamController<String>.broadcast();
 
 Map<FileSystemEntity, bool> fsEntityToCheck = {};
-
-///ファイルをこのタグがついたものにソートするために使う
-String selectedChip;

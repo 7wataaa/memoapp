@@ -87,9 +87,9 @@ class _FileState extends State<FileWidget> {
     //TODO onEditTags()の実装
   }
 
-  void onDelete() async {
+  Future<void> onDelete() async {
     Navigator.pop(context);
-    //TODO 実際に削除するしてから戻すようにする
+    //TODO 実際に削除する, してから戻すようにする
     Scaffold.of(context).showSnackBar(
       SnackBar(
         content: Text(

@@ -111,7 +111,6 @@ class Tag {
   String tagName;
 
   Widget createTagChip() {
-    //TODO chipを変える
     return Builder(
       builder: (context) => ActionChip(
         label: Text(
