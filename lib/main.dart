@@ -37,6 +37,7 @@ class FirebaseInitializeModel extends ChangeNotifier {
     try {
       await Firebase.initializeApp();
       initialized = true;
+      debugPrint('$initialized');
       notifyListeners();
     } catch (e) {
       debugPrint('$e');
@@ -91,6 +92,7 @@ class _HomeState extends State<Home> {
   void initState() {
     super.initState();
     rootSet();
+    context.read(firebaseInitializeProvider).initializeFlutterApp();
   }
 
   @override
