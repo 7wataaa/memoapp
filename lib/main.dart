@@ -222,98 +222,106 @@ class _HomeState extends State<Home> {
     return StreamBuilder(
       stream: fileSystemEvent.stream,
       builder: (context, snapshot) {
-        if (_selectMode) {
-          fsEntityToCheck = {};
-          return Column(
-            children: [
-              Expanded(
-                child: Scrollbar(
-                  child: ListView(
-                    children: _checkboxTiles(path),
-                  ),
+        if (_normalTiles(path).isEmpty) {
+          return const Center(
+            child: Text('ファイルもしくはフォルダがありません'),
+          );
+        }
+        fsEntityToCheck = {};
+        return _selectMode ? _selectModetiles() : _normalModetiles();
+      },
+    );
+  }
+
+  Scrollbar _normalModetiles() {
+    return Scrollbar(
+      child: ListView(
+        children: _normalTiles(path),
+      ),
+    );
+  }
+
+  Widget _selectModetiles() {
+    return Column(
+      children: [
+        Expanded(
+          child: Scrollbar(
+            child: ListView(
+              children: _checkboxTiles(path),
+            ),
+          ),
+        ),
+        Container(
+          child: Container(
+            margin: const EdgeInsets.only(
+              bottom: 13,
+              left: 10,
+              right: 10,
+            ),
+            decoration: const BoxDecoration(
+              border: Border(
+                top: BorderSide(
+                  width: 0.5,
+                  color: Colors.black,
                 ),
               ),
-              Container(
-                child: Container(
-                  margin: const EdgeInsets.only(
-                    bottom: 13,
-                    left: 10,
-                    right: 10,
-                  ),
-                  decoration: const BoxDecoration(
-                    border: Border(
-                      top: BorderSide(
-                        width: 0.5,
-                        color: Colors.black,
-                      ),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Container(
+                  child: Stack(
+                    overflow: Overflow.visible,
+                    alignment: Alignment.bottomCenter,
                     children: [
-                      Container(
-                        child: Stack(
-                          overflow: Overflow.visible,
-                          alignment: Alignment.bottomCenter,
-                          children: [
-                            IconButton(
-                              iconSize: 35,
-                              icon: const Icon(
-                                Icons.forward,
-                                color: Color(0xFF484848),
-                              ),
-                              onPressed: () {},
-                            ),
-                            const Positioned(
-                              bottom: -8,
-                              child: const Text(
-                                'move',
-                                style: TextStyle(fontSize: 14),
-                              ),
-                            )
-                          ],
+                      IconButton(
+                        iconSize: 35,
+                        icon: const Icon(
+                          Icons.forward,
+                          color: Color(0xFF484848),
                         ),
+                        onPressed: () {},
                       ),
-                      Container(
-                        child: Stack(
-                          overflow: Overflow.visible,
-                          alignment: Alignment.bottomCenter,
-                          children: [
-                            IconButton(
-                              iconSize: 35,
-                              icon: const Icon(
-                                Icons.delete,
-                                color: Color(0xFF484848),
-                              ),
-                              onPressed: () {
-                                _deleteSelectedEntities();
-                              },
-                            ),
-                            const Positioned(
-                              bottom: -8,
-                              child: const Text(
-                                'delete',
-                                style: TextStyle(fontSize: 14),
-                              ),
-                            )
-                          ],
+                      const Positioned(
+                        bottom: -8,
+                        child: const Text(
+                          'move',
+                          style: TextStyle(fontSize: 14),
                         ),
-                      ),
+                      )
                     ],
                   ),
                 ),
-              )
-            ],
-          );
-        } else {
-          //通常モード時
-          return Scrollbar(
-            child: ListView(
-              children: _normalTiles(path),
+                Container(
+                  child: Stack(
+                    overflow: Overflow.visible,
+                    alignment: Alignment.bottomCenter,
+                    children: [
+                      IconButton(
+                        iconSize: 35,
+                        icon: const Icon(
+                          Icons.delete,
+                          color: Color(0xFF484848),
+                        ),
+                        onPressed: () {
+                          _deleteSelectedEntities();
+                        },
+                      ),
+                      const Positioned(
+                        bottom: -8,
+                        child: const Text(
+                          'delete',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+              ],
             ),
-          );
-        }
-      },
+          ),
+        )
+      ],
     );
   }
 
