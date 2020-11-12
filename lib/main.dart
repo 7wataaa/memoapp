@@ -1,19 +1,21 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:firebase_core/firebase_core.dart';
+//import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_riverpod/all.dart';
 import 'package:memoapp/file_plus_tag.dart';
 import 'package:memoapp/handling.dart';
 import 'package:memoapp/page/create_page.dart';
 import 'package:memoapp/widget/file_widget.dart';
 import 'package:memoapp/widget/folder_widget.dart';
-import 'package:provider/provider.dart';
 import 'package:screen/screen.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(ProviderScope(child: MyApp()));
   Screen.keepOn(true); //完成したら消す
 }
 
@@ -27,32 +29,31 @@ class ModeModel extends ChangeNotifier {
   }
 }
 
-class TagNamesModel extends ChangeNotifier {
-  List<Widget> drawerListTile = [];
+class FirebaseInitializeModel extends ChangeNotifier {
+  bool initialized = false;
+  bool error = false;
 
-  void readreadytag() {
-    drawerListTile = Tag.readyTagFile.readAsLinesSync().map(
-      (tagname) {
-        return ListTile(
-          key: GlobalKey(),
-          title: Text(tagname),
-          leading: const Icon(Icons.label_outline),
-        );
-      },
-    ).toList();
-
-    notifyListeners();
+  Future<void> initializeFlutterApp() async {
+    try {
+      await Firebase.initializeApp();
+      initialized = true;
+      notifyListeners();
+    } catch (e) {
+      debugPrint('$e');
+      error = true;
+      notifyListeners();
+    }
   }
 }
+
+final modeProvider = ChangeNotifierProvider((ref) => ModeModel());
+final firebaseInitializeProvider =
+    ChangeNotifierProvider((ref) => FirebaseInitializeModel());
 
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      initialRoute: '~/',
-      routes: <String, WidgetBuilder>{
-        '~/': (BuildContext context) => Home(),
-      },
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
@@ -74,7 +75,10 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+  ///複数選択
   bool _selectMode = false;
+
+  ///タグの名前りすと
   List<String> tagnames;
 
   ///ファイルをこのタグがついたものにソートするために使う
@@ -93,131 +97,123 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async => false,
-      child: MultiProvider(
-        providers: [
-          ChangeNotifierProvider<ModeModel>(create: (_) => ModeModel()),
-          ChangeNotifierProvider<TagNamesModel>(
-            create: (_) => TagNamesModel(),
-          )
-        ],
-        builder: (context, widget) => Scaffold(
-          appBar: AppBar(
-            title: const Text('MEMO'),
-            backgroundColor: const Color(0xFF212121),
-            actions: <Widget>[
-              IconButton(
-                  icon: _selectMode
-                      ? const Icon(Icons.check_box)
-                      : const Icon(Icons.check_box_outline_blank),
-                  onPressed: () {
-                    tagUpdateEvent.add('');
-                    fileSystemEvent.sink.add('');
-                    setState(() {
-                      _selectMode = !_selectMode;
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('MEMO'),
+          backgroundColor: const Color(0xFF212121),
+          actions: <Widget>[
+            IconButton(
+                icon: _selectMode
+                    ? const Icon(Icons.check_box)
+                    : const Icon(Icons.check_box_outline_blank),
+                onPressed: () {
+                  tagUpdateEvent.add('');
+                  fileSystemEvent.sink.add('');
+                  setState(() {
+                    _selectMode = !_selectMode;
+                  });
+                })
+          ],
+        ),
+        drawer: const HomeDrawer(),
+        body: StreamBuilder<String>(
+            stream: tagUpdateEvent.stream,
+            builder: (context, snapshot) {
+              return FutureBuilder<bool>(
+                future: Future(() async {
+                  //共通のパスを設定
+                  path = await localPath();
+
+                  //tagsFile.jsonを設定 なければ作成
+                  FilePlusTag.tagsFileJsonFile ??= File('$path/tagsFile.json');
+
+                  if (!FilePlusTag.tagsFileJsonFile.existsSync()) {
+                    await FilePlusTag.tagsFileJsonFile.create();
+                    debugPrint('tagFileJsonFile created');
+                  }
+
+                  //syncTagを設定 なければ作成
+                  Tag.syncTagFile ??= File('$path/syncTag');
+
+                  if (!Tag.syncTagFile.existsSync()) {
+                    await Tag.syncTagFile.create();
+                    debugPrint('syncTagFile created');
+                  }
+
+                  //readyTagを設定 なければ作成
+                  final readytag = File('$path/readyTag');
+
+                  Tag.readyTagFile ??= readytag;
+
+                  if (!readytag.existsSync()) {
+                    Tag.readyTagFile = readytag;
+                    await readytag.create();
+                    debugPrint('readyTagFile created');
+                  }
+
+                  //readyTagFileからtagnamesを作成
+                  tagnames = [
+                    ...Tag.syncTagFile.readAsLinesSync(),
+                    ...Tag.readyTagFile.readAsLinesSync(),
+                  ];
+
+                  if (tagnames.isNotEmpty) {
+                    //選ばれているチップがなければ、1つ目のタグを設定
+                    selectedChip ??= tagnames[0];
+
+                    //選択状態を管理するリストがなければ、1つ目を選んだ状態のリストを設定
+                    isSelected ??= List.generate(tagnames.length, (index) {
+                      return index == 0;
                     });
-                  })
-            ],
-          ),
-          drawer: const HomeDrawer(),
-          body: StreamBuilder<String>(
-              stream: tagUpdateEvent.stream,
-              builder: (context, snapshot) {
-                return FutureBuilder<bool>(
-                  future: Future(() async {
-                    //共通のパスを設定
-                    path = await localPath();
 
-                    //tagsFile.jsonを設定 なければ作成
-                    FilePlusTag.tagsFileJsonFile ??=
-                        File('$path/tagsFile.json');
-
-                    if (!FilePlusTag.tagsFileJsonFile.existsSync()) {
-                      await FilePlusTag.tagsFileJsonFile.create();
-                      debugPrint('tagFileJsonFile created');
-                    }
-
-                    //syncTagを設定 なければ作成
-                    Tag.syncTagFile ??= File('$path/syncTag');
-
-                    if (!Tag.syncTagFile.existsSync()) {
-                      await Tag.syncTagFile.create();
-                      debugPrint('syncTagFile created');
-                    }
-
-                    //readyTagを設定 なければ作成
-                    final readytag = File('$path/readyTag');
-
-                    Tag.readyTagFile ??= readytag;
-
-                    if (!readytag.existsSync()) {
-                      Tag.readyTagFile = readytag;
-                      await readytag.create();
-                      debugPrint('readyTagFile created');
-                    }
-
-                    //readyTagFileからtagnamesを作成
-                    tagnames = [
-                      ...Tag.syncTagFile.readAsLinesSync(),
-                      ...Tag.readyTagFile.readAsLinesSync(),
-                    ];
-
-                    if (tagnames.isNotEmpty) {
-                      //選ばれているチップがなければ、1つ目のタグを設定
-                      selectedChip ??= tagnames[0];
-
-                      //選択状態を管理するリストがなければ、1つ目を選んだ状態のリストを設定
-                      isSelected ??= List.generate(tagnames.length, (index) {
+                    //リストに更新があれば作り直す
+                    if (isSelected.length != tagnames.length) {
+                      isSelected = List.generate(tagnames.length, (index) {
                         return index == 0;
                       });
-
-                      //リストに更新があれば作り直す
-                      if (isSelected.length != tagnames.length) {
-                        isSelected = List.generate(tagnames.length, (index) {
-                          return index == 0;
-                        });
-                        selectedChip = tagnames[0];
-                      }
+                      selectedChip = tagnames[0];
                     }
+                  }
 
-                    return true;
-                  }),
-                  builder: (context, snapshot) {
-                    if (snapshot.hasData) {
-                      return ChangeNotifierProvider(
-                        create: (_) => ModeModel(),
-                        child: Provider.of<ModeModel>(context).isTagmode
+                  return true;
+                }),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    return Consumer(
+                      builder: (context, watch, child) {
+                        return watch(modeProvider).isTagmode
                             ? tagHomeBody()
-                            : rootHomeBody(),
-                      );
-                    }
-                    return const Center(
-                      child: CircularProgressIndicator(),
+                            : rootHomeBody();
+                      },
                     );
-                  },
-                );
-              }),
-          floatingActionButton: _selectMode
-              ? null
-              : FloatingActionButton(
-                  heroTag: 'PageBtn',
-                  backgroundColor: const Color(0xFF212121),
-                  child: const Icon(Icons.add),
-                  onPressed: () async {
-                    final rootdir = Directory('${await localPath()}/root');
-                    await Navigator.push<MaterialPageRoute>(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              //TODO タグ画面のときに選択しているものをデフォで追加する
-                              CreatePage(tDir: rootdir, isRoot: true),
-                        ));
+                  }
+                  return const Center(
+                    child: CircularProgressIndicator(),
+                  );
+                },
+              );
+            }),
+        floatingActionButton: _selectMode
+            ? null
+            : FloatingActionButton(
+                heroTag: 'PageBtn',
+                backgroundColor: const Color(0xFF212121),
+                child: const Icon(Icons.add),
+                onPressed: () async {
+                  final rootdir = Directory('${await localPath()}/root');
+                  await Navigator.push<MaterialPageRoute>(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            //TODO タグ画面のときに選択しているものをデフォで追加する
+                            CreatePage(tDir: rootdir, isRoot: true),
+                      ));
 
-                    setState(() {
-                      tagUpdateEvent.add('');
-                    });
-                  },
-                ),
-        ),
+                  setState(() {
+                    tagUpdateEvent.add('');
+                  });
+                },
+              ),
       ),
     );
   }
@@ -582,7 +578,7 @@ class _HomeDrawerState extends State<HomeDrawer> {
 
     //TODO UserAccountsDrawerHeaderどうにかする
 
-    Provider.of<TagNamesModel>(context, listen: false).drawerListTile = [
+    final drawerList = [
       const UserAccountsDrawerHeader(
         decoration: const BoxDecoration(color: Colors.grey),
         currentAccountPicture: CircleAvatar(
@@ -612,7 +608,7 @@ class _HomeDrawerState extends State<HomeDrawer> {
         children: <Widget>[
           Expanded(
             child: ListView(
-              children: Provider.of<TagNamesModel>(context).drawerListTile,
+              children: drawerList,
             ),
           ),
           ListTile(
@@ -621,7 +617,7 @@ class _HomeDrawerState extends State<HomeDrawer> {
               child: Text('モード切替'),
             ),
             onTap: () {
-              Provider.of<ModeModel>(context, listen: false).onModeSwitch();
+              context.read(modeProvider).onModeSwitch();
               Navigator.pop(context);
             },
           ),
