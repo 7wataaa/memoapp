@@ -30,15 +30,6 @@ class ModeModel extends ChangeNotifier {
 class TagNamesModel extends ChangeNotifier {
   List<Widget> drawerListTile = [];
 
-  void onAddTagname(String newtagname) {
-    drawerListTile.add(
-      ListTile(
-        title: Text('$newtagname'),
-      ),
-    );
-    notifyListeners();
-  }
-
   void readreadytag() {
     drawerListTile = Tag.readyTagFile.readAsLinesSync().map(
       (tagname) {
@@ -589,9 +580,17 @@ class _HomeDrawerState extends State<HomeDrawer> {
       return null;
     }
 
-    //TODO UserAccountsDrawerHeader入れる
+    //TODO UserAccountsDrawerHeaderどうにかする
 
     Provider.of<TagNamesModel>(context, listen: false).drawerListTile = [
+      const UserAccountsDrawerHeader(
+        decoration: const BoxDecoration(color: Colors.grey),
+        currentAccountPicture: CircleAvatar(
+          child: Icon(Icons.person_add),
+        ),
+        accountName: Text('none'),
+        accountEmail: Text('none'),
+      ),
       ...Tag.syncTagFile.readAsLinesSync().map<Widget>((tagstr) {
         return ListTile(
           leading: const Icon(Icons.label),
