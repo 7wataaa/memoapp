@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
-//import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -14,7 +14,10 @@ import 'package:memoapp/widget/file_widget.dart';
 import 'package:memoapp/widget/folder_widget.dart';
 import 'package:screen/screen.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  ProviderContainer().read(firebaseInitializeProvider).initialized = true;
   runApp(ProviderScope(child: MyApp()));
   Screen.keepOn(true); //完成したら消す
 }
@@ -47,9 +50,10 @@ class FirebaseInitializeModel extends ChangeNotifier {
   }
 }
 
-final modeProvider = ChangeNotifierProvider((ref) => ModeModel());
+final modeProvider = ChangeNotifierProvider.autoDispose((ref) => ModeModel());
+
 final firebaseInitializeProvider =
-    ChangeNotifierProvider((ref) => FirebaseInitializeModel());
+    ChangeNotifierProvider.autoDispose((ref) => FirebaseInitializeModel());
 
 class MyApp extends StatelessWidget {
   @override
@@ -92,11 +96,13 @@ class _HomeState extends State<Home> {
   void initState() {
     super.initState();
     rootSet();
-    context.read(firebaseInitializeProvider).initializeFlutterApp();
   }
 
   @override
   Widget build(BuildContext context) {
+    FirebaseAuth.instance.authStateChanges().listen((User user) {
+      print(user == null ? 'ユーザーはサインアウトしています' : 'ユーザーはサインインしてます!!');
+    });
     return WillPopScope(
       onWillPop: () async => false,
       child: Scaffold(
@@ -586,16 +592,21 @@ class _HomeDrawerState extends State<HomeDrawer> {
       return null;
     }
 
-    //TODO UserAccountsDrawerHeaderどうにかする
-
     final drawerList = [
-      const UserAccountsDrawerHeader(
+      UserAccountsDrawerHeader(
         decoration: const BoxDecoration(color: Colors.grey),
-        currentAccountPicture: CircleAvatar(
-          child: Icon(Icons.person_add),
+        currentAccountPicture: GestureDetector(
+          child: const CircleAvatar(
+            //TODO ユーザーの画像を持ってくる
+            child: const Icon(Icons.person_add),
+            radius: 60,
+          ),
+          onTap: () {
+            debugPrint('koko');
+          },
         ),
-        accountName: Text('none'),
-        accountEmail: Text('none'),
+        accountName: const Text('none'),
+        accountEmail: const Text('none'),
       ),
       ...Tag.syncTagFile.readAsLinesSync().map<Widget>((tagstr) {
         return ListTile(
