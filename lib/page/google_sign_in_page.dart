@@ -23,6 +23,7 @@ class GoogleSignInPage extends StatelessWidget {
                 } on PlatformException catch (e) {
                   debugPrint('$e');
                 }
+                Navigator.pop(context);
               },
             ),
             RaisedButton(

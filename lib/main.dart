@@ -10,8 +10,9 @@ import 'package:google_sign_in/google_sign_in.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-  ProviderContainer().read(firebaseInitializeProvider).initialized = true;
+  await ProviderContainer()
+      .read(firebaseInitializeProvider)
+      .initializeFlutterApp();
   runApp(ProviderScope(child: MyApp()));
   Screen.keepOn(true); //完成したら消す
 }
