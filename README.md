@@ -1,6 +1,7 @@
 # memoapp
 
-A new Flutter project.
+個人制作で進めているメモのアプリです。
+今後リリースしたら追記します
 
 ## Getting Started
 

@@ -56,7 +56,7 @@ class Tag {
 
                                   context
                                       .read(firestoreProvider)
-                                      .addCurrentUser();
+                                      .createMemoUser();
                                   Navigator.pop(context);
                                 },
                               )

@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/all.dart';
+import 'package:memoapp/tag.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:memoapp/page/home_page.dart';
 import 'package:screen/screen.dart';
@@ -77,21 +78,25 @@ final authProvider =
 
 class FireStoreModel extends ChangeNotifier {
   FirebaseFirestore store = FirebaseFirestore.instance;
-  final users = FirebaseFirestore.instance.collection('users');
+  final _users = FirebaseFirestore.instance.collection('users');
 
-  void addCurrentUser() {
-    final _user = FirebaseAuth.instance.currentUser;
+  void createMemoUser() {
+    final _currentUser = FirebaseAuth.instance.currentUser;
+
+    final _currentUsersFiles = store
+        .collection('files')
+        .doc("${_currentUser.uid}'sFiles")
+          ..set(<String, dynamic>{
+            'tagnames': Tag.syncTagFile.readAsLinesSync()
+          }); //ガバ
+
     final _currentUserData = <String, dynamic>{
-      'uid': _user.uid,
-      //'name': _user.displayName,
-      //TODO このユーザーのファイル置き場を指定する
+      'uid': _currentUser.uid,
+      'files': _currentUsersFiles,
     };
 
-    users.doc('${FirebaseAuth.instance.currentUser.uid}').set(_currentUserData);
+    _users.doc('${_currentUser.uid}').set(_currentUserData);
   }
-
-  //TODO ファイル置き場を作成する
-
 }
 
 final firestoreProvider =
