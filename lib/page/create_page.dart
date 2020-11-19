@@ -1,11 +1,10 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-
 import 'package:memoapp/file_plus_tag.dart';
-
 import 'package:memoapp/handling.dart';
 import 'package:memoapp/page/tag_edit_page.dart';
+import 'package:memoapp/tag.dart';
 
 class CreatePage extends StatefulWidget {
   const CreatePage({@required this.tDir, this.isRoot});

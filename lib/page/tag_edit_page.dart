@@ -1,8 +1,8 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:memoapp/file_plus_tag.dart';
 import 'package:memoapp/handling.dart';
+import 'package:memoapp/tag.dart';
 
 class TagEditPage extends StatelessWidget {
   @override

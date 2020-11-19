@@ -1,12 +1,13 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/all.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:memoapp/page/home_page.dart';
 import 'package:screen/screen.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,14 +18,6 @@ Future<void> main() async {
   Screen.keepOn(true); //完成したら消す
 }
 
-final modeProvider = ChangeNotifierProvider.autoDispose((ref) => ModeModel());
-
-final firebaseInitializeProvider =
-    ChangeNotifierProvider.autoDispose((ref) => FirebaseInitializeModel());
-
-final authProvider =
-    ChangeNotifierProvider.autoDispose((ref) => FirebaseAuthModel());
-
 class ModeModel extends ChangeNotifier {
   bool isTagmode = false;
 
@@ -34,6 +27,8 @@ class ModeModel extends ChangeNotifier {
     notifyListeners();
   }
 }
+
+final modeProvider = ChangeNotifierProvider.autoDispose((ref) => ModeModel());
 
 class FirebaseInitializeModel extends ChangeNotifier {
   bool initialized = false;
@@ -52,6 +47,9 @@ class FirebaseInitializeModel extends ChangeNotifier {
     }
   }
 }
+
+final firebaseInitializeProvider =
+    ChangeNotifierProvider((ref) => FirebaseInitializeModel());
 
 class FirebaseAuthModel extends ChangeNotifier {
   FirebaseAuth auth = FirebaseAuth.instance;
@@ -73,6 +71,31 @@ class FirebaseAuthModel extends ChangeNotifier {
     await auth.signOut();
   }
 }
+
+final authProvider =
+    ChangeNotifierProvider.autoDispose((ref) => FirebaseAuthModel());
+
+class FireStoreModel extends ChangeNotifier {
+  FirebaseFirestore store = FirebaseFirestore.instance;
+  final users = FirebaseFirestore.instance.collection('users');
+
+  void addCurrentUser() {
+    final _user = FirebaseAuth.instance.currentUser;
+    final _currentUserData = <String, dynamic>{
+      'uid': _user.uid,
+      //'name': _user.displayName,
+      //TODO このユーザーのファイル置き場を指定する
+    };
+
+    users.doc('${FirebaseAuth.instance.currentUser.uid}').set(_currentUserData);
+  }
+
+  //TODO ファイル置き場を作成する
+
+}
+
+final firestoreProvider =
+    ChangeNotifierProvider.autoDispose((ref) => FireStoreModel());
 
 class MyApp extends StatelessWidget {
   @override

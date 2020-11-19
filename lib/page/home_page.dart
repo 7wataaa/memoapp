@@ -9,6 +9,7 @@ import 'package:memoapp/handling.dart';
 import 'package:memoapp/main.dart';
 import 'package:memoapp/page/create_page.dart';
 import 'package:memoapp/page/google_sign_in_page.dart';
+import 'package:memoapp/tag.dart';
 import 'package:memoapp/widget/file_widget.dart';
 import 'package:memoapp/widget/folder_widget.dart';
 

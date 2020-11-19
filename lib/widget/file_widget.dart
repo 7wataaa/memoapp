@@ -7,6 +7,7 @@ import 'package:memoapp/file_plus_tag.dart';
 import 'package:memoapp/handling.dart';
 import 'package:memoapp/page/edit_page.dart';
 import 'package:memoapp/page/select_page.dart';
+import 'package:memoapp/tag.dart';
 
 class FileWidget extends StatefulWidget {
   const FileWidget({@required this.name, @required this.file, this.tags});

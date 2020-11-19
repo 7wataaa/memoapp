@@ -1,13 +1,9 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-
 import 'package:memoapp/handling.dart';
-
 import 'package:memoapp/page/create_page.dart';
-
 import 'package:memoapp/widget/file_widget.dart';
-
 import 'package:memoapp/widget/folder_widget.dart';
 
 class FolderListPage extends StatefulWidget {

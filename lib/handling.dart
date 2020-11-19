@@ -30,6 +30,7 @@ String path;
 
 StreamController<String> fileSystemEvent = StreamController<String>.broadcast();
 
+///tag_edit_pageのタグの表示更新要
 StreamController<String> tagChipEvent = StreamController<String>.broadcast();
 
 StreamController<String> tagUpdateEvent = StreamController<String>.broadcast();
