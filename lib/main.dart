@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -5,6 +8,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/all.dart';
+import 'package:memoapp/file_plus_tag.dart';
 import 'package:memoapp/tag.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:memoapp/page/home_page.dart';
@@ -90,12 +94,57 @@ class FireStoreModel extends ChangeNotifier {
             'tagnames': Tag.syncTagFile.readAsLinesSync()
           }); //ガバ
 
-    final _currentUserData = <String, dynamic>{
+    final _tmpCurrentUserData = <String, dynamic>{
       'uid': _currentUser.uid,
       'files': _currentUsersFiles,
     };
 
-    _users.doc('${_currentUser.uid}').set(_currentUserData);
+    _users.doc('${_currentUser.uid}').set(_tmpCurrentUserData);
+  }
+
+  //TODO そのタグが付いているファイルを同期させる
+  //readytagfileからそのタグが付いているファイルを持ってきてどうにかする
+  void addTaggedFiles(String tagname) {
+    final _currentUser = FirebaseAuth.instance.currentUser;
+
+    final _ownFiles = store
+        .collection('files')
+        .doc("${_currentUser.uid}'sFiles")
+        .collection('ownFiles');
+
+    final _taggedFileJson =
+        jsonDecode(FilePlusTag.tagsFileJsonFile.readAsStringSync())
+            as Map<String, dynamic>;
+
+    final _tmpFiles = <File>[];
+
+    for (final _path in _taggedFileJson.keys) {
+      if (_taggedFileJson[_path] is! List) {
+        assert(false);
+        return;
+      }
+
+      if ((_taggedFileJson[_path] as List).contains(tagname)) {
+        _tmpFiles.add(File(_path));
+      }
+    }
+
+    for (final _taggedFile in _tmpFiles) {
+      final _fileName = RegExp(r'([^/]+?)?$').stringMatch(_taggedFile.path);
+
+      final _tags = (jsonDecode(FilePlusTag.tagsFileJsonFile.readAsStringSync())
+          as Map<String, dynamic>)['${_taggedFile.path}'] as List<dynamic>;
+
+      debugPrint('$_tags');
+
+      final _setData = <String, dynamic>{
+        'name': _fileName,
+        'content': _taggedFile.readAsStringSync(),
+        'tag': _tags,
+      };
+
+      _ownFiles.doc('$_fileName').set(_setData);
+    }
   }
 }
 

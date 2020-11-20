@@ -86,6 +86,12 @@ class _FileState extends State<FileWidget> {
 
   void onEditTags() {
     //TODO onEditTags()の実装
+    final _tags = (jsonDecode(FilePlusTag.tagsFileJsonFile.readAsStringSync())
+                as Map<String, dynamic>)[
+            '${RegExp(r'([^/]+?)?$').stringMatch(widget.file.path)}']
+        as List<String>;
+
+    debugPrint('$_tags');
   }
 
   Future<void> onDelete() async {

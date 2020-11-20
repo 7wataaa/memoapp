@@ -54,9 +54,9 @@ class Tag {
                                   onTagSync();
                                   //TODO ここでfirestoreにタグを実装させる
 
-                                  context
-                                      .read(firestoreProvider)
-                                      .createMemoUser();
+                                  context.read(firestoreProvider)
+                                    ..createMemoUser()
+                                    ..addTaggedFiles(tagName);
                                   Navigator.pop(context);
                                 },
                               )
