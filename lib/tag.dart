@@ -1,11 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:memoapp/file_plus_tag.dart';
 import 'package:memoapp/handling.dart';
 import 'package:memoapp/main.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class Tag {
   Tag(this.tagName);
@@ -40,6 +41,18 @@ class Tag {
                       showDialog<AlertDialog>(
                         context: context,
                         builder: (context) {
+                          if (FirebaseAuth.instance.currentUser == null) {
+                            return AlertDialog(
+                              title: const Text('この機能は使用できません'),
+                              content: Text('$tagName を同期させるにはログインしてください'),
+                              actions: [
+                                FlatButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text('戻る'),
+                                )
+                              ],
+                            );
+                          }
                           return AlertDialog(
                             title: const Text('同期'),
                             content: Text('$tagName を同期させますか?'),
@@ -52,8 +65,6 @@ class Tag {
                                 child: const Text('同期'),
                                 onPressed: () {
                                   onTagSync();
-                                  //TODO ここでfirestoreにタグを実装させる
-
                                   context.read(firestoreProvider)
                                     ..createMemoUser()
                                     ..addTaggedFiles(tagName);
@@ -143,6 +154,8 @@ class Tag {
         mode: FileMode.append,
       );
     }
+
+    //TODO firestoreにtagnamesを上げる
 
     final _isSyncTagFileEmpty = syncTagFile.readAsStringSync().isEmpty;
     syncTagFile.writeAsStringSync(

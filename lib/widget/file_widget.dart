@@ -100,7 +100,8 @@ class _FileState extends State<FileWidget> {
     Scaffold.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          '${RegExp(r'([^/]+?)?$').stringMatch(widget.file.path)}',
+          '${RegExp(r'([^/]+?)?$').stringMatch(widget.file.path)}'
+          'を削除しました',
           style: const TextStyle(
             fontSize: 20,
           ),
