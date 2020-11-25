@@ -18,8 +18,8 @@ class Tag {
   String tagName;
 
   Widget createTagChip() {
-    return Builder(
-      builder: (context) => ActionChip(
+    return Builder(builder: (context) {
+      return ActionChip(
         label: Text(
           tagName,
           style: const TextStyle(
@@ -32,7 +32,6 @@ class Tag {
               child: SimpleDialog(
                 title: Text('$tagName'),
                 children: [
-                  //TODO サインインしていたら同期化を表示させる
                   SimpleDialogOption(
                     child: const Text('同期化'),
                     onPressed: () {
@@ -68,6 +67,7 @@ class Tag {
                                   context.read(firestoreProvider)
                                     ..createMemoUser()
                                     ..addTaggedFiles(tagName);
+                                  context.read(tagnamesprovider).load();
                                   Navigator.pop(context);
                                 },
                               )
@@ -137,8 +137,8 @@ class Tag {
                 ],
               ));
         },
-      ),
-    );
+      );
+    });
   }
 
   void onTagSync() {
@@ -162,8 +162,6 @@ class Tag {
       _isSyncTagFileEmpty ? tagName : '\n$tagName',
       mode: FileMode.append,
     );
-
-    tagChipEvent.add('');
   }
 
   Widget createSyncTagChip() {
@@ -201,6 +199,7 @@ class Tag {
                                   ),
                                   FlatButton(
                                       onPressed: () async {
+                                        //TODO firestoreから消す処理
                                         final staglist =
                                             await syncTagFile.readAsLines();
                                         staglist.removeWhere(

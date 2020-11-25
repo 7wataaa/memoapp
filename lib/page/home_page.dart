@@ -523,6 +523,14 @@ class HomeDrawer extends StatefulWidget {
 
 class _HomeDrawerState extends State<HomeDrawer> {
   @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    context.read(tagnamesprovider).load();
+    debugPrint('load called');
+  }
+
+  @override
   Widget build(BuildContext context) {
     if (Tag.readyTagFile == null) {
       return null;
@@ -531,53 +539,62 @@ class _HomeDrawerState extends State<HomeDrawer> {
     final _user = FirebaseAuth.instance.currentUser;
     final _userisNotNull = _user != null;
 
-    final drawerList = [
-      UserAccountsDrawerHeader(
-        decoration: const BoxDecoration(color: Colors.grey),
-        currentAccountPicture: GestureDetector(
-          child: CircleAvatar(
-            child: _userisNotNull ? null : const Icon(Icons.person_add_alt_1),
-            backgroundImage: _userisNotNull
-                ? NetworkImage(FirebaseAuth.instance.currentUser.photoURL)
-                : null,
-            radius: 60,
-          ),
-          onTap: () async {
-            await Navigator.push<MaterialPageRoute>(
-              context,
-              MaterialPageRoute(
-                builder: (context) => GoogleSignInPage(),
-              ),
-            );
-            setState(() {});
-          },
-        ),
-        accountName: Text(_userisNotNull ? _user.displayName : 'none'),
-        accountEmail: Text(_userisNotNull ? _user.email : 'none'),
-      ),
-      ...Tag.syncTagFile.readAsLinesSync().map<Widget>((tagstr) {
-        return ListTile(
-          leading: const Icon(Icons.label),
-          title: Text(tagstr),
-          onTap: () {},
-        );
-      }),
-      ...Tag.readyTagFile.readAsLinesSync().map<Widget>((tagname) {
-        return ListTile(
-          leading: const Icon(Icons.label_outline),
-          title: Text('$tagname'),
-          onTap: () {},
-        );
-      }).toList(),
-    ];
-
     return Drawer(
       child: Column(
         children: <Widget>[
           Expanded(
-            child: ListView(
-              children: drawerList,
-            ),
+            child: Consumer(builder: (context, watch, child) {
+              final _synctagname = watch(tagnamesprovider.state);
+              final drawerList = <Widget>[
+                UserAccountsDrawerHeader(
+                  decoration: const BoxDecoration(color: Colors.grey),
+                  currentAccountPicture: GestureDetector(
+                    child: CircleAvatar(
+                      child: _userisNotNull
+                          ? null
+                          : const Icon(Icons.person_add_alt_1),
+                      backgroundImage: _userisNotNull
+                          ? NetworkImage(
+                              FirebaseAuth.instance.currentUser.photoURL)
+                          : null,
+                      radius: 60,
+                    ),
+                    onTap: () async {
+                      await Navigator.push<MaterialPageRoute>(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => GoogleSignInPage(),
+                        ),
+                      );
+                      setState(() {});
+                    },
+                  ),
+                  accountName:
+                      Text(_userisNotNull ? _user.displayName : 'none'),
+                  accountEmail: Text(_userisNotNull ? _user.email : 'none'),
+                ),
+                ..._synctagname.map<Widget>((tagstr) {
+                  return ListTile(
+                    key: GlobalKey(),
+                    leading: const Icon(Icons.label),
+                    title: Text('$tagstr'),
+                    onTap: () {},
+                  );
+                }),
+                ...Tag.readyTagFile.readAsLinesSync().map<Widget>((tagname) {
+                  return ListTile(
+                    key: GlobalKey(),
+                    leading: const Icon(Icons.label_outline),
+                    title: Text('$tagname'),
+                    onTap: () {},
+                  );
+                }),
+              ];
+
+              return ListView(
+                children: drawerList,
+              );
+            }),
           ),
           ListTile(
             tileColor: const Color(0xFFE0E0E0),

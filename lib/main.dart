@@ -151,6 +151,33 @@ class FireStoreModel extends ChangeNotifier {
 final firestoreProvider =
     ChangeNotifierProvider.autoDispose((ref) => FireStoreModel());
 
+class SyncTagNamesModel extends StateNotifier<List<String>> {
+  SyncTagNamesModel() : super(<String>[]);
+
+  Future<void> load() async {
+    final _user = FirebaseAuth.instance.currentUser;
+    if (_user == null) {
+      return;
+    }
+
+    final _tagnames = ((await FirebaseFirestore.instance
+                .collection('files')
+                .doc("${_user.uid}'sFiles")
+                .get())
+            .data()['tagnames'] as List<dynamic>)
+        .cast<String>();
+
+    if (!const ListEquality<String>().equals(state, _tagnames)) {
+      state = _tagnames;
+      debugPrint('event koko');
+      return;
+    }
+    debugPrint('eventjanai');
+  }
+}
+
+final tagnamesprovider = StateNotifierProvider((ref) => SyncTagNamesModel());
+
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
