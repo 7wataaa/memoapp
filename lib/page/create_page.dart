@@ -1,6 +1,8 @@
 import 'dart:io';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:flutter/material.dart';
+import 'package:memoapp/main.dart';
 import 'package:memoapp/file_plus_tag.dart';
 import 'package:memoapp/handling.dart';
 import 'package:memoapp/page/tag_edit_page.dart';
@@ -156,13 +158,40 @@ class _CreatePageState extends State<CreatePage> {
                     ),
                   ),
                 ),
-                FutureBuilder<List<PopupMenuEntry<String>>>(
-                    future: addmenuentry(),
-                    builder: (context, snapshot) {
-                      return PopupMenuButton(
-                          onSelected: _onSelected,
-                          itemBuilder: (BuildContext context) => snapshot.data);
-                    }),
+                Consumer(
+                  builder: (context, watch, child) {
+                    final synctagnames = watch(synctagnamesprovider.state);
+                    final menuEntry = <PopupMenuEntry<String>>[
+                      const PopupMenuItem(
+                        value: 'PDw8ZGVmYXVsdEl0ZW06IGFkZD4+Pg==',
+                        child: Text('タグを追加...'),
+                      ),
+                    ];
+
+                    for (final tagstr in Tag.readyTagFile.readAsLinesSync()) {
+                      if (tagstr.isEmpty) {
+                        continue;
+                      }
+
+                      menuEntry.insert(
+                        0,
+                        PopupMenuItem(
+                          value: '$tagstr',
+                          child: Text('$tagstr'),
+                        ),
+                      );
+                    }
+                    return PopupMenuButton(
+                        onSelected: _onSelected,
+                        itemBuilder: (BuildContext context) => [
+                              ...synctagnames.map((str) => PopupMenuItem(
+                                    child: Text('$str'),
+                                    value: str,
+                                  )),
+                              ...menuEntry,
+                            ]);
+                  },
+                ),
               ],
             ),
           ),
@@ -267,7 +296,7 @@ class _CreatePageState extends State<CreatePage> {
       ),
     ];
 
-    for (final tagstr in await Tag.readyTagFile.readAsLines()) {
+    for (final tagstr in Tag.readyTagFile.readAsLinesSync()) {
       if (tagstr.isEmpty) {
         continue;
       }
@@ -277,16 +306,6 @@ class _CreatePageState extends State<CreatePage> {
         PopupMenuItem(
           value: '$tagstr',
           child: Text('$tagstr'),
-        ),
-      );
-    }
-
-    for (final str in await Tag.syncTagFile.readAsLines()) {
-      menuEntry.insert(
-        0,
-        PopupMenuItem(
-          value: '$str',
-          child: Text('$str'),
         ),
       );
     }

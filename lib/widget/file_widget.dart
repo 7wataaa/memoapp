@@ -95,7 +95,6 @@ class _FileState extends State<FileWidget> {
                       final entityname =
                           RegExp(r'([^/]+?)?$').stringMatch(widget.file.path);
 
-                      //TODO 実際に削除する, してから戻すようにする
                       Scaffold.of(scontext).showSnackBar(
                         SnackBar(
                           content: Text(

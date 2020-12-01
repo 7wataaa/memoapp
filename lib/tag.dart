@@ -66,7 +66,7 @@ class Tag {
                                   onTagSync();
                                   context.read(firestoreProvider)
                                     ..createMemoUser()
-                                    ..addTaggedFiles(tagName);
+                                    ..uploadTaggedFiles(tagName);
                                   context.read(synctagnamesprovider).load();
                                   Navigator.pop(context);
                                 },

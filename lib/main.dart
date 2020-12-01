@@ -116,9 +116,7 @@ class FireStoreModel extends ChangeNotifier {
     _users.doc('${_currentUser.uid}').set(_tmpCurrentUserData);
   }
 
-  //TODO そのタグが付いているファイルを同期させる
-  //readytagfileからそのタグが付いているファイルを持ってきてどうにかする
-  void addTaggedFiles(String tagname) {
+  void uploadTaggedFiles(String tagname) {
     final _currentUser = FirebaseAuth.instance.currentUser;
 
     final _ownFiles = store
