@@ -525,9 +525,8 @@ class _HomeDrawerState extends State<HomeDrawer> {
   @override
   void initState() {
     super.initState();
-    debugPrint('load called');
     WidgetsBinding.instance
-        .addPostFrameCallback((_) => context.read(tagnamesprovider).load());
+        .addPostFrameCallback((_) => context.read(synctagnamesprovider).load());
   }
 
   @override
@@ -537,14 +536,17 @@ class _HomeDrawerState extends State<HomeDrawer> {
     }
 
     final _user = FirebaseAuth.instance.currentUser;
-    final _userisNotNull = _user != null;
+
+    debugPrint('consumer元のbuildメソッド内');
 
     return Drawer(
       child: Column(
         children: <Widget>[
           Expanded(
             child: Consumer(builder: (context, watch, child) {
-              final _synctagname = watch(tagnamesprovider.state);
+              debugPrint('consumer内のメソッド');
+              final _userisNotNull = _user != null;
+              final _synctagname = watch(synctagnamesprovider.state);
               final drawerList = <Widget>[
                 UserAccountsDrawerHeader(
                   decoration: const BoxDecoration(color: Colors.grey),

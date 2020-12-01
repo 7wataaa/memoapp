@@ -76,8 +76,6 @@ class FirebaseAuthModel extends ChangeNotifier {
 
     assert(googleUser != null);
 
-    debugPrint('koko');
-
     final googleAuth = await googleUser.authentication;
 
     final credential = GoogleAuthProvider.credential(
@@ -172,9 +170,10 @@ class SyncTagNamesModel extends StateNotifier<List<String>> {
 
   Future<void> load() async {
     final _user = FirebaseAuth.instance.currentUser;
-
+    debugPrint('load called');
     if (_user == null) {
       state = [];
+      debugPrint('_user == null');
       return;
     }
 
@@ -187,14 +186,14 @@ class SyncTagNamesModel extends StateNotifier<List<String>> {
 
     if (!const ListEquality<String>().equals(state, _tagnames)) {
       state = _tagnames;
-      debugPrint('event koko');
       return;
     }
-    debugPrint('eventjanai');
   }
 }
 
-final tagnamesprovider = StateNotifierProvider((ref) => SyncTagNamesModel());
+///state = firestoreにあるアカウントのtagnames
+final synctagnamesprovider =
+    StateNotifierProvider((ref) => SyncTagNamesModel());
 
 class MyApp extends StatelessWidget {
   @override

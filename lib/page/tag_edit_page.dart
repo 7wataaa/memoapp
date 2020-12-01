@@ -40,13 +40,13 @@ class _TagCreatePageBodyState extends State<TagCreatePageBody> {
     });
 
     WidgetsBinding.instance.addPostFrameCallback(
-        (timeStamp) => context.read(tagnamesprovider).load());
+        (timeStamp) => context.read(synctagnamesprovider).load());
   }
 
   @override
   Widget build(BuildContext context) {
     return Consumer(builder: (context, watch, child) {
-      final _synctags = watch(tagnamesprovider.state);
+      final _synctags = watch(synctagnamesprovider.state);
 
       ///同期されているtagnamesと保存されているtagnamesでのChip
       final _tags = <Widget>[
