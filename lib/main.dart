@@ -63,16 +63,18 @@ class FirebaseAuthModel extends ChangeNotifier {
     GoogleSignInAccount googleUser;
 
     if (Platform.isIOS) {
-      await GoogleSignIn(
+      googleUser = await GoogleSignIn(
         scopes: ['email', 'https://www.googleapis.com/auth/contacts.readonly'],
         hostedDomain: '',
         clientId: '',
       ).signIn();
       debugPrint('iOSでのサインイン');
     } else {
-      await GoogleSignIn().signIn();
+      googleUser = await GoogleSignIn().signIn();
       debugPrint('iOSではないOSでのサインイン');
     }
+
+    assert(googleUser != null);
 
     debugPrint('koko');
 

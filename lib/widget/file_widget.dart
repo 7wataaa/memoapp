@@ -25,6 +25,7 @@ class _FileState extends State<FileWidget> {
 
   @override
   Widget build(BuildContext context) {
+    //この時点でのcontextを残しておくのはpopupでScaffoldがなくなってしまうため? (また調べる必要あり)
     final scontext = context;
     return Container(
       padding: const EdgeInsets.only(left: 10, right: 0, top: 5, bottom: 0),
