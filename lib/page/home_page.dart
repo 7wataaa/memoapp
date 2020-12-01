@@ -535,8 +535,6 @@ class _HomeDrawerState extends State<HomeDrawer> {
       return null;
     }
 
-    final _user = FirebaseAuth.instance.currentUser;
-
     debugPrint('consumer元のbuildメソッド内');
 
     return Drawer(
@@ -544,8 +542,11 @@ class _HomeDrawerState extends State<HomeDrawer> {
         children: <Widget>[
           Expanded(
             child: Consumer(builder: (context, watch, child) {
+              final _user = FirebaseAuth.instance.currentUser;
               debugPrint('consumer内のメソッド');
               final _userisNotNull = _user != null;
+              assert(_userisNotNull ==
+                  (FirebaseAuth.instance.currentUser != null));
               final _synctagname = watch(synctagnamesprovider.state);
               final drawerList = <Widget>[
                 UserAccountsDrawerHeader(

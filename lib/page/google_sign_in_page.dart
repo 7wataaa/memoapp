@@ -20,6 +20,8 @@ class GoogleSignInPage extends StatelessWidget {
               onPressed: () async {
                 try {
                   await context.read(authProvider).signInWithGoogle();
+
+                  await context.read(synctagnamesprovider).load();
                 } on PlatformException catch (e) {
                   debugPrint('$e');
                 }
