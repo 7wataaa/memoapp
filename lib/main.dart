@@ -8,10 +8,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/all.dart';
-import 'package:memoapp/file_plus_tag.dart';
-import 'package:memoapp/tag.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:memoapp/file_plus_tag.dart';
 import 'package:memoapp/page/home_page.dart';
+import 'package:memoapp/tag.dart';
 import 'package:screen/screen.dart';
 
 Future<void> main() async {
@@ -60,7 +60,21 @@ class FirebaseAuthModel extends ChangeNotifier {
   FirebaseAuth auth = FirebaseAuth.instance;
 
   Future<void> signInWithGoogle() async {
-    final googleUser = await GoogleSignIn().signIn();
+    GoogleSignInAccount googleUser;
+
+    if (Platform.isIOS) {
+      await GoogleSignIn(
+        scopes: ['email', 'https://www.googleapis.com/auth/contacts.readonly'],
+        hostedDomain: '',
+        clientId: '',
+      ).signIn();
+      debugPrint('iOSでのサインイン');
+    } else {
+      await GoogleSignIn().signIn();
+      debugPrint('iOSではないOSでのサインイン');
+    }
+
+    debugPrint('koko');
 
     final googleAuth = await googleUser.authentication;
 
@@ -156,7 +170,9 @@ class SyncTagNamesModel extends StateNotifier<List<String>> {
 
   Future<void> load() async {
     final _user = FirebaseAuth.instance.currentUser;
+
     if (_user == null) {
+      state = [];
       return;
     }
 

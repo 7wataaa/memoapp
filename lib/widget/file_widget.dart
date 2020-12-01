@@ -25,6 +25,7 @@ class _FileState extends State<FileWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final scontext = context;
     return Container(
       padding: const EdgeInsets.only(left: 10, right: 0, top: 5, bottom: 0),
       child: ListTile(
@@ -65,7 +66,56 @@ class _FileState extends State<FileWidget> {
                   ),
                   SimpleDialogOption(
                     child: const Text('削除'),
-                    onPressed: onDelete,
+                    onPressed: () {
+                      final targetFile = widget.file;
+                      var originalTags = <String>[];
+
+                      //実際のファイルの削除
+                      widget.file.deleteSync();
+                      fileSystemEvent.sink.add('');
+
+                      //filepath : [tagname]
+                      final pathTags = jsonDecode(
+                              FilePlusTag.tagsFileJsonFile.readAsStringSync())
+                          as Map<String, dynamic>;
+                      //tagsFileJsonFileに登録されているパスを削除する
+                      if (pathTags.containsKey(widget.file.path)) {
+                        originalTags = (pathTags[widget.file.path] as List)
+                            .map<String>((dynamic str) => str as String)
+                            .toList();
+
+                        pathTags.remove(widget.file.path);
+                        FilePlusTag.tagsFileJsonFile
+                            .writeAsStringSync(jsonEncode(pathTags));
+                      }
+
+                      Navigator.pop(context);
+
+                      final entityname =
+                          RegExp(r'([^/]+?)?$').stringMatch(widget.file.path);
+
+                      //TODO 実際に削除する, してから戻すようにする
+                      Scaffold.of(scontext).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            '$entityname を削除しました',
+                            style: const TextStyle(
+                              fontSize: 20,
+                            ),
+                          ),
+                          action: SnackBarAction(
+                            label: '取り消す',
+                            onPressed: () {
+                              targetFile.createSync();
+                              pathTags[targetFile.path] = originalTags;
+                              FilePlusTag.tagsFileJsonFile
+                                  .writeAsStringSync(jsonEncode(pathTags));
+                              fileSystemEvent.sink.add('');
+                            },
+                          ),
+                        ),
+                      );
+                    },
                   )
                 ],
               );
@@ -94,33 +144,7 @@ class _FileState extends State<FileWidget> {
     debugPrint('$_tags');
   }
 
-  Future<void> onDelete() async {
-    Navigator.pop(context);
-    //TODO 実際に削除する, してから戻すようにする
-    Scaffold.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          '${RegExp(r'([^/]+?)?$').stringMatch(widget.file.path)}'
-          'を削除しました',
-          style: const TextStyle(
-            fontSize: 20,
-          ),
-        ),
-      ),
-    );
-
-    await widget.file.delete();
-    fileSystemEvent.sink.add('');
-
-    final pathTags =
-        jsonDecode(await FilePlusTag.tagsFileJsonFile.readAsString()) as Map;
-
-    if (pathTags.containsKey(widget.file.path)) {
-      debugPrint('登録されていたタグを削除');
-      pathTags.remove(widget.file.path);
-      FilePlusTag.tagsFileJsonFile.writeAsString(jsonEncode(pathTags));
-    }
-  }
+  Future<void> onDelete() async {}
 
   void onMove() {
     Navigator.pop(context);

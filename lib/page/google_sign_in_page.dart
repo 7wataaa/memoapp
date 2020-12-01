@@ -23,17 +23,18 @@ class GoogleSignInPage extends StatelessWidget {
                 } on PlatformException catch (e) {
                   debugPrint('$e');
                 }
-                Navigator.pop(context);
+                //Navigator.pop(context);
               },
             ),
             RaisedButton(
               child: const Text('logout'),
               onPressed: () async {
                 try {
-                  await context
-                      .read(authProvider)
-                      .googleSignOut()
-                      .then((value) => Navigator.pop(context));
+                  context
+                    ..read(tagnamesprovider).load()
+                    ..read(authProvider)
+                        .googleSignOut()
+                        .then((value) => Navigator.pop(context));
                   //Navigator.pop(context);
                 } on PlatformException catch (e) {
                   debugPrint('$e');

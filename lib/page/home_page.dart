@@ -524,10 +524,10 @@ class HomeDrawer extends StatefulWidget {
 class _HomeDrawerState extends State<HomeDrawer> {
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    context.read(tagnamesprovider).load();
     debugPrint('load called');
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => context.read(tagnamesprovider).load());
   }
 
   @override

@@ -39,7 +39,8 @@ class _TagCreatePageBodyState extends State<TagCreatePageBody> {
       }
     });
 
-    context.read(tagnamesprovider).load();
+    WidgetsBinding.instance.addPostFrameCallback(
+        (timeStamp) => context.read(tagnamesprovider).load());
   }
 
   @override
