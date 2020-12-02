@@ -16,12 +16,16 @@ class GoogleSignInPage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             RaisedButton(
-              child: const Text('login'),
+              child: const Text('email login'),
+              onPressed: () {},
+            ),
+            RaisedButton(
+              child: const Text('google login'),
               onPressed: () async {
                 try {
                   await context.read(authProvider).signInWithGoogle();
-
-                  await context.read(synctagnamesprovider).load();
+                  debugPrint('koko');
+                  await context.read(synctagnamesprovider).loadsynctagnames();
 
                   Navigator.pop(context);
                 } on PlatformException catch (e) {
@@ -36,7 +40,7 @@ class GoogleSignInPage extends StatelessWidget {
                 try {
                   await context.read(authProvider).googleSignOut();
 
-                  await context.read(synctagnamesprovider).load();
+                  await context.read(synctagnamesprovider).loadsynctagnames();
 
                   Navigator.pop(context);
                 } on PlatformException catch (e) {

@@ -84,21 +84,21 @@ class _HomeState extends State<Home> {
                     debugPrint('syncTagFile created');
                   }
 
-                  //readyTagを設定 なければ作成
-                  final readytag = File('$path/readyTag');
+                  //localTagを設定 なければ作成
+                  final localtagfile = File('$path/localTag');
 
-                  Tag.readyTagFile ??= readytag;
+                  Tag.localTagFile ??= localtagfile;
 
-                  if (!readytag.existsSync()) {
-                    Tag.readyTagFile = readytag;
-                    await readytag.create();
-                    debugPrint('readyTagFile created');
+                  if (!localtagfile.existsSync()) {
+                    Tag.localTagFile = localtagfile;
+                    await localtagfile.create();
+                    debugPrint('localTagFile created');
                   }
 
-                  //readyTagFileからtagnamesを作成
+                  //localTagFileからtagnamesを作成
                   tagnames = [
                     ...Tag.syncTagFile.readAsLinesSync(),
-                    ...Tag.readyTagFile.readAsLinesSync(),
+                    ...Tag.localTagFile.readAsLinesSync(),
                   ];
 
                   if (tagnames.isNotEmpty) {
@@ -525,13 +525,13 @@ class _HomeDrawerState extends State<HomeDrawer> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance
-        .addPostFrameCallback((_) => context.read(synctagnamesprovider).load());
+    WidgetsBinding.instance.addPostFrameCallback(
+        (_) => context.read(synctagnamesprovider).loadsynctagnames());
   }
 
   @override
   Widget build(BuildContext context) {
-    if (Tag.readyTagFile == null) {
+    if (Tag.localTagFile == null) {
       return null;
     }
 
@@ -544,19 +544,19 @@ class _HomeDrawerState extends State<HomeDrawer> {
             child: Consumer(builder: (context, watch, child) {
               final _user = FirebaseAuth.instance.currentUser;
               debugPrint('consumer内のメソッド');
-              final _userisNotNull = _user != null;
-              assert(_userisNotNull ==
-                  (FirebaseAuth.instance.currentUser != null));
+              final userisNotNull = _user != null;
+              assert(
+                  userisNotNull == (FirebaseAuth.instance.currentUser != null));
               final _synctagname = watch(synctagnamesprovider.state);
               final drawerList = <Widget>[
                 UserAccountsDrawerHeader(
                   decoration: const BoxDecoration(color: Colors.grey),
                   currentAccountPicture: GestureDetector(
                     child: CircleAvatar(
-                      child: _userisNotNull
+                      child: userisNotNull
                           ? null
                           : const Icon(Icons.person_add_alt_1),
-                      backgroundImage: _userisNotNull
+                      backgroundImage: userisNotNull
                           ? NetworkImage(
                               FirebaseAuth.instance.currentUser.photoURL)
                           : null,
@@ -573,8 +573,8 @@ class _HomeDrawerState extends State<HomeDrawer> {
                     },
                   ),
                   accountName:
-                      Text(_userisNotNull ? _user.displayName : 'none'),
-                  accountEmail: Text(_userisNotNull ? _user.email : 'none'),
+                      Text(userisNotNull ? _user.displayName : 'guest'),
+                  accountEmail: Text(userisNotNull ? _user.email : '-'),
                 ),
                 ..._synctagname.map<Widget>((tagstr) {
                   return ListTile(
@@ -584,7 +584,7 @@ class _HomeDrawerState extends State<HomeDrawer> {
                     onTap: () {},
                   );
                 }),
-                ...Tag.readyTagFile.readAsLinesSync().map<Widget>((tagname) {
+                ...Tag.localTagFile.readAsLinesSync().map<Widget>((tagname) {
                   return ListTile(
                     key: GlobalKey(),
                     leading: const Icon(Icons.label_outline),

@@ -168,7 +168,7 @@ class _CreatePageState extends State<CreatePage> {
                       ),
                     ];
 
-                    for (final tagstr in Tag.readyTagFile.readAsLinesSync()) {
+                    for (final tagstr in Tag.localTagFile.readAsLinesSync()) {
                       if (tagstr.isEmpty) {
                         continue;
                       }
@@ -296,7 +296,7 @@ class _CreatePageState extends State<CreatePage> {
       ),
     ];
 
-    for (final tagstr in Tag.readyTagFile.readAsLinesSync()) {
+    for (final tagstr in Tag.localTagFile.readAsLinesSync()) {
       if (tagstr.isEmpty) {
         continue;
       }

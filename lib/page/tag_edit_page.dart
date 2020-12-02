@@ -40,7 +40,7 @@ class _TagCreatePageBodyState extends State<TagCreatePageBody> {
     });
 
     WidgetsBinding.instance.addPostFrameCallback(
-        (timeStamp) => context.read(synctagnamesprovider).load());
+        (timeStamp) => context.read(synctagnamesprovider).loadsynctagnames());
   }
 
   @override
@@ -51,8 +51,8 @@ class _TagCreatePageBodyState extends State<TagCreatePageBody> {
       ///同期されているtagnamesと保存されているtagnamesでのChip
       final _tags = <Widget>[
         ..._synctags.map((s) => Tag(s).createSyncTagChip()),
-        if (!(Tag.readyTagFile.readAsStringSync()).isEmpty)
-          ...Tag.readyTagFile
+        if (!(Tag.localTagFile.readAsStringSync()).isEmpty)
+          ...Tag.localTagFile
               .readAsLinesSync()
               .map((s) => Tag(s).createTagChip())
       ];
@@ -115,7 +115,7 @@ class _TagCreatePageBodyState extends State<TagCreatePageBody> {
                       }
 
                       final writestr =
-                          Tag.readyTagFile.readAsStringSync().isEmpty
+                          Tag.localTagFile.readAsStringSync().isEmpty
                               ? inputValue
                               : '\n$inputValue';
 
@@ -124,7 +124,7 @@ class _TagCreatePageBodyState extends State<TagCreatePageBody> {
                           extentOffset: _textEditingController.text.length);
 
                       setState(() {
-                        Tag.readyTagFile.writeAsStringSync(
+                        Tag.localTagFile.writeAsStringSync(
                           writestr,
                           mode: FileMode.append,
                         );

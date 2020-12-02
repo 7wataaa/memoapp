@@ -11,7 +11,6 @@ import 'package:flutter_riverpod/all.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:memoapp/file_plus_tag.dart';
 import 'package:memoapp/page/home_page.dart';
-import 'package:memoapp/tag.dart';
 import 'package:screen/screen.dart';
 
 Future<void> main() async {
@@ -36,20 +35,9 @@ class ModeModel extends ChangeNotifier {
 final modeProvider = ChangeNotifierProvider.autoDispose((ref) => ModeModel());
 
 class FirebaseInitializeModel extends ChangeNotifier {
-  bool initialized = false;
-  bool error = false;
-
   Future<void> initializeFlutterApp() async {
-    try {
-      await Firebase.initializeApp();
-      initialized = true;
-      debugPrint('$initialized');
-      notifyListeners();
-    } catch (e) {
-      debugPrint('$e');
-      error = true;
-      notifyListeners();
-    }
+    await Firebase.initializeApp();
+    notifyListeners();
   }
 }
 
@@ -83,7 +71,21 @@ class FirebaseAuthModel extends ChangeNotifier {
       idToken: googleAuth.idToken,
     );
 
-    return auth.signInWithCredential(credential);
+    final authuser = await auth.signInWithCredential(credential);
+
+    if (authuser.additionalUserInfo.isNewUser) {
+      final currentUser = FirebaseAuth.instance.currentUser;
+
+      if (currentUser == null) {
+        throw Error();
+      }
+
+      //firestoreの雛形的なものを作成する
+      FirebaseFirestore.instance
+          .collection('files')
+          .doc('${currentUser.uid}')
+          .set(<String, dynamic>{'tagnames': <String>[]});
+    }
   }
 
   Future<void> googleSignOut() async {
@@ -96,32 +98,13 @@ final authProvider =
 
 class FireStoreModel extends ChangeNotifier {
   FirebaseFirestore store = FirebaseFirestore.instance;
-  final _users = FirebaseFirestore.instance.collection('users');
-
-  void createMemoUser() {
-    final _currentUser = FirebaseAuth.instance.currentUser;
-
-    final _currentUsersFiles = store
-        .collection('files')
-        .doc("${_currentUser.uid}'sFiles")
-          ..set(<String, dynamic>{
-            'tagnames': Tag.syncTagFile.readAsLinesSync()
-          }); //ガバ
-
-    final _tmpCurrentUserData = <String, dynamic>{
-      'uid': _currentUser.uid,
-      'files': _currentUsersFiles,
-    };
-
-    _users.doc('${_currentUser.uid}').set(_tmpCurrentUserData);
-  }
 
   void uploadTaggedFiles(String tagname) {
     final _currentUser = FirebaseAuth.instance.currentUser;
 
     final _ownFiles = store
         .collection('files')
-        .doc("${_currentUser.uid}'sFiles")
+        .doc('${_currentUser.uid}')
         .collection('ownFiles');
 
     final _taggedFileJson =
@@ -166,21 +149,20 @@ final firestoreProvider =
 class SyncTagNamesModel extends StateNotifier<List<String>> {
   SyncTagNamesModel() : super(<String>[]);
 
-  Future<void> load() async {
-    final _user = FirebaseAuth.instance.currentUser;
+  Future<void> loadsynctagnames() async {
+    final storeinstance = FirebaseFirestore.instance;
+    final user = FirebaseAuth.instance.currentUser;
     debugPrint('load called');
-    if (_user == null) {
+    if (user == null) {
       state = [];
-      debugPrint('_user == null');
+      debugPrint('user == null');
       return;
     }
 
-    final _tagnames = ((await FirebaseFirestore.instance
-                .collection('files')
-                .doc("${_user.uid}'sFiles")
-                .get())
-            .data()['tagnames'] as List<dynamic>)
-        .cast<String>();
+    final _tagnames =
+        ((await storeinstance.collection('files').doc('${user.uid}').get())
+                .data()['tagnames'] as List<dynamic>)
+            .cast<String>();
 
     if (!const ListEquality<String>().equals(state, _tagnames)) {
       state = _tagnames;
@@ -220,4 +202,10 @@ class MyApp extends StatelessWidget {
 入力時に文字がいっぱいだと右下がfabにかぶって押せない
 
 リネーム時に元の名前を入れとくと使いやすい
+
+要確認→リネーム時のタグの扱い
+
+ログイン必須にするメリットとログインしないでいいメリットを考えると、校舎がいいのかも
+
+ログインしたら機能が追加されるっていう感じがいいのかも
 */

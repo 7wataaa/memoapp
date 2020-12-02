@@ -11,7 +11,7 @@ import 'package:memoapp/main.dart';
 class Tag {
   Tag(this.tagName);
 
-  static File readyTagFile;
+  static File localTagFile;
 
   static File syncTagFile;
 
@@ -64,10 +64,12 @@ class Tag {
                                 child: const Text('同期'),
                                 onPressed: () {
                                   onTagSync();
-                                  context.read(firestoreProvider)
-                                    ..createMemoUser()
-                                    ..uploadTaggedFiles(tagName);
-                                  context.read(synctagnamesprovider).load();
+                                  context
+                                      .read(firestoreProvider)
+                                      .uploadTaggedFiles(tagName);
+                                  context
+                                      .read(synctagnamesprovider)
+                                      .loadsynctagnames();
                                   Navigator.pop(context);
                                 },
                               )
@@ -97,20 +99,20 @@ class Tag {
                                     child: const Text('削除'),
                                     onPressed: () async {
                                       final taglist =
-                                          await readyTagFile.readAsLines();
+                                          await localTagFile.readAsLines();
                                       taglist.removeWhere(
                                           (tagname) => tagname == tagName);
 
                                       //'[tag1, tag2]'からtag1\ntag2にする
-                                      readyTagFile.writeAsStringSync('');
+                                      localTagFile.writeAsStringSync('');
 
                                       for (var str in taglist) {
-                                        str = readyTagFile
+                                        str = localTagFile
                                                 .readAsStringSync()
                                                 .isEmpty
                                             ? str
                                             : '\n$str';
-                                        readyTagFile.writeAsStringSync(str,
+                                        localTagFile.writeAsStringSync(str,
                                             mode: FileMode.append);
                                       }
 
@@ -142,15 +144,15 @@ class Tag {
   }
 
   void onTagSync() {
-    final tmplist = readyTagFile.readAsLinesSync()
+    final tmplist = localTagFile.readAsLinesSync()
       ..removeWhere((tagstr) => tagstr == tagName);
 
-    readyTagFile.writeAsStringSync('');
+    localTagFile.writeAsStringSync('');
 
     for (final _name in tmplist) {
-      final _isreadytagfileEmpty = readyTagFile.readAsStringSync().isEmpty;
-      readyTagFile.writeAsStringSync(
-        _isreadytagfileEmpty ? _name : '\n$_name',
+      final _islocaltagfileEmpty = localTagFile.readAsStringSync().isEmpty;
+      localTagFile.writeAsStringSync(
+        _islocaltagfileEmpty ? _name : '\n$_name',
         mode: FileMode.append,
       );
     }
@@ -200,23 +202,6 @@ class Tag {
                                   FlatButton(
                                       onPressed: () async {
                                         //TODO firestoreから消す処理
-                                        final staglist =
-                                            await syncTagFile.readAsLines();
-                                        staglist.removeWhere(
-                                            (tagname) => tagname == tagName);
-
-                                        //'[tag1, tag2]'からtag1\ntag2にする
-                                        syncTagFile.writeAsStringSync('');
-                                        for (var str in staglist) {
-                                          str = syncTagFile
-                                                  .readAsStringSync()
-                                                  .isEmpty
-                                              ? str
-                                              : '\n$str';
-                                          syncTagFile.writeAsStringSync(str,
-                                              mode: FileMode.append);
-                                        }
-
                                         final pathTagsMap = FilePlusTag
                                             .returnPathToTagsFromJson();
 
