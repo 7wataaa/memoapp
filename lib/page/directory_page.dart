@@ -122,7 +122,7 @@ class _FolderListPageState extends State<FolderListPage> {
                               ),
                               const Positioned(
                                 bottom: -8,
-                                child: const Text(
+                                child: Text(
                                   'move',
                                   style: TextStyle(fontSize: 14),
                                 ),
@@ -156,7 +156,7 @@ class _FolderListPageState extends State<FolderListPage> {
                               ),
                               const Positioned(
                                 bottom: -8,
-                                child: const Text(
+                                child: Text(
                                   'delete',
                                   style: TextStyle(fontSize: 14),
                                 ),

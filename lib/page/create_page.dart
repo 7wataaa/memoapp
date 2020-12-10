@@ -270,7 +270,7 @@ class _CreatePageState extends State<CreatePage> {
                   Navigator.pop(context);
                   break;
                 case 'folder':
-                  Directory('$_path/$_nameStr').create();
+                  Directory('$_path/$_nameStr').createSync();
                   debugPrint('folder created');
                   Navigator.pop(context);
                   break;

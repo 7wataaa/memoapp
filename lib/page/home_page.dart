@@ -22,14 +22,8 @@ class _HomeState extends State<Home> {
   ///複数選択
   bool _selectMode = false;
 
-  ///タグの名前りすと
-  List<String> tagnames;
-
-  ///ファイルをこのタグがついたものにソートするために使う
-  String selectedChip;
-
-  ///selected chipを管理する
-  List<bool> isSelected;
+  ///File('$path/root')みたいな、osごとの保存場所のパス
+  String path;
 
   @override
   void initState() {
@@ -51,7 +45,6 @@ class _HomeState extends State<Home> {
                     ? const Icon(Icons.check_box)
                     : const Icon(Icons.check_box_outline_blank),
                 onPressed: () {
-                  tagUpdateEvent.add('');
                   fileSystemEvent.sink.add('');
                   setState(() {
                     _selectMode = !_selectMode;
@@ -60,83 +53,48 @@ class _HomeState extends State<Home> {
           ],
         ),
         drawer: const HomeDrawer(),
-        body: StreamBuilder<String>(
-            stream: tagUpdateEvent.stream,
-            builder: (context, snapshot) {
-              return FutureBuilder<bool>(
-                future: Future(() async {
-                  //共通のパスを設定
-                  path = await localPath();
+        body: FutureBuilder<bool>(
+          future: Future(() async {
+            //共通のパスを設定
+            path = await localPath();
 
-                  //tagsFile.jsonを設定 なければ作成
-                  FilePlusTag.tagsFileJsonFile ??= File('$path/tagsFile.json');
+            //tagsFile.jsonを設定 なければ作成
+            FilePlusTag.tagsFileJsonFile ??= File('$path/tagsFile.json');
 
-                  if (!FilePlusTag.tagsFileJsonFile.existsSync()) {
-                    await FilePlusTag.tagsFileJsonFile.create();
-                    debugPrint('tagFileJsonFile created');
-                  }
+            if (!FilePlusTag.tagsFileJsonFile.existsSync()) {
+              await FilePlusTag.tagsFileJsonFile.create();
+              debugPrint('tagFileJsonFile created');
+            }
 
-                  //syncTagを設定 なければ作成
-                  Tag.syncTagFile ??= File('$path/syncTag');
+            //localTagを設定 なければ作成
+            final localtagfile = File('$path/localTag');
 
-                  if (!Tag.syncTagFile.existsSync()) {
-                    await Tag.syncTagFile.create();
-                    debugPrint('syncTagFile created');
-                  }
+            Tag.localTagFile ??= localtagfile;
 
-                  //localTagを設定 なければ作成
-                  final localtagfile = File('$path/localTag');
+            if (!localtagfile.existsSync()) {
+              Tag.localTagFile = localtagfile;
+              await localtagfile.create();
+              debugPrint('localTagFile created');
+            }
 
-                  Tag.localTagFile ??= localtagfile;
-
-                  if (!localtagfile.existsSync()) {
-                    Tag.localTagFile = localtagfile;
-                    await localtagfile.create();
-                    debugPrint('localTagFile created');
-                  }
-
-                  //localTagFileからtagnamesを作成
-                  tagnames = [
-                    ...Tag.syncTagFile.readAsLinesSync(),
-                    ...Tag.localTagFile.readAsLinesSync(),
-                  ];
-
-                  if (tagnames.isNotEmpty) {
-                    //選ばれているチップがなければ、1つ目のタグを設定
-                    selectedChip ??= tagnames[0];
-
-                    //選択状態を管理するリストがなければ、1つ目を選んだ状態のリストを設定
-                    isSelected ??= List.generate(tagnames.length, (index) {
-                      return index == 0;
-                    });
-
-                    //リストに更新があれば作り直す
-                    if (isSelected.length != tagnames.length) {
-                      isSelected = List.generate(tagnames.length, (index) {
-                        return index == 0;
-                      });
-                      selectedChip = tagnames[0];
-                    }
-                  }
-
-                  return true;
-                }),
-                builder: (context, snapshot) {
-                  if (snapshot.hasData) {
-                    return Consumer(
-                      builder: (context, watch, child) {
-                        return watch(modeProvider).isTagmode
-                            ? tagHomeBody()
-                            : rootHomeBody();
-                      },
-                    );
-                  }
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
+            debugPrint('------------koko------------');
+            return true;
+          }),
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              return Consumer(
+                builder: (context, watch, child) {
+                  return watch(modeProvider).isTagmode
+                      ? tagHomeBody()
+                      : rootHomeBody();
                 },
               );
-            }),
+            }
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          },
+        ),
         floatingActionButton: _selectMode
             ? null
             : FloatingActionButton(
@@ -152,10 +110,6 @@ class _HomeState extends State<Home> {
                             //TODO タグ画面のときに選択しているものをデフォで追加する
                             CreatePage(tDir: rootdir, isRoot: true),
                       ));
-
-                  setState(() {
-                    tagUpdateEvent.add('');
-                  });
                 },
               ),
       ),
@@ -228,7 +182,7 @@ class _HomeState extends State<Home> {
                       ),
                       const Positioned(
                         bottom: -8,
-                        child: const Text(
+                        child: Text(
                           'move',
                           style: TextStyle(fontSize: 14),
                         ),
@@ -253,7 +207,7 @@ class _HomeState extends State<Home> {
                       ),
                       const Positioned(
                         bottom: -8,
-                        child: const Text(
+                        child: Text(
                           'delete',
                           style: TextStyle(fontSize: 14),
                         ),
@@ -269,61 +223,75 @@ class _HomeState extends State<Home> {
     );
   }
 
+  final selectedMap = <String, bool>{'aiueo': true, 'abcde': false};
+
+  final synctagnames = <String>[];
+
+  final localtagnames = <String>['aiueo', 'abcde'];
   Widget tagHomeBody() {
-    final _tagHomeChips = <Widget>[];
+    /* final synctagnames = watch(synctagnamesprovider.state);
+      final localtagnames = watch(localtagnamesprovider.state);
+      context
+          .read(selectedmapprovider)
+          .createtagnamesMap(synctagnames, localtagnames);
+      final selectedMap = watch(selectedmapprovider.state); */
 
-    final syncTagFileLine = Tag.syncTagFile.readAsLinesSync();
-
-    for (var i = 0; i < tagnames.length; i++) {
-      if (i < syncTagFileLine.length) {
-        _tagHomeChips.add(
-          ChoiceChip(
-            avatar: const CircleAvatar(
-              child: Icon(Icons.sync),
-            ),
-            selected: isSelected[i],
-            label: Text(
-              syncTagFileLine[i],
-              style: const TextStyle(fontSize: 20),
-            ),
-            onSelected: (bool newValue) {
-              if (!isSelected[i]) {
-                selectedChip = syncTagFileLine[i];
-                isSelected = List.generate(isSelected.length, (index) => false);
-                setState(() {
-                  isSelected[i] = newValue;
-                });
-              }
-            },
-          ),
-        );
-      } else {
-        _tagHomeChips.add(
-          ChoiceChip(
-            selected: isSelected[i],
-            label: Text(
-              tagnames[i],
-              style: const TextStyle(
-                fontSize: 20,
-              ),
-            ),
-            onSelected: (bool newValue) {
-              if (!isSelected[i]) {
-                selectedChip = tagnames[i];
-                isSelected = List.generate(isSelected.length, (index) => false);
-                setState(() {
-                  isSelected[i] = newValue;
-                });
-              }
-            },
-          ),
-        );
-      }
-    }
-
-    if (_tagHomeChips.isEmpty) {
+    debugPrint('koko $selectedMap');
+    if (synctagnames.isEmpty && localtagnames.isEmpty) {
       return const Center(
         child: Text('タグがありません'),
+      );
+    }
+
+    final tagnames = [...synctagnames, ...localtagnames];
+
+    //trueが一つ存在しているかどうか
+    bool trueCountIs1() {
+      var truecount = 0;
+      for (final value in selectedMap.values) {
+        if (value) {
+          truecount++;
+        }
+      }
+      debugPrint('true count = $truecount');
+      return truecount <= 1;
+    }
+
+    assert(trueCountIs1());
+
+    final chiplist = <Widget>[];
+
+    for (var i = 0; i < tagnames.length; i++) {
+      final tagname = localtagnames[i];
+      debugPrint('$tagname = ${selectedMap[tagname]}');
+
+      chiplist.add(
+        ChoiceChip(
+          label: Text(
+            tagname,
+            style: const TextStyle(
+              fontSize: 20,
+            ),
+          ),
+          selected: selectedMap[tagname],
+          onSelected: (bool newBool) {
+            if (!newBool) {
+              return;
+            }
+            for (final e in selectedMap.keys) {
+              if (selectedMap[e]) {
+                debugPrint('old true key is $e');
+                selectedMap[e] = false;
+              }
+            }
+
+            setState(() {
+              selectedMap[tagname] = true;
+            });
+
+            debugPrint('$selectedMap');
+          },
+        ),
       );
     }
 
@@ -340,26 +308,59 @@ class _HomeState extends State<Home> {
               separatorBuilder: (context, index) => Container(
                 margin: const EdgeInsets.only(left: 5),
               ),
-              itemCount: _tagHomeChips.length,
+              itemCount: tagnames.length,
               itemBuilder: (context, i) {
-                return _tagHomeChips[i];
+                debugPrint('i = $i $selectedMap');
+                return chiplist[i];
               },
             ),
           ),
         ),
         Expanded(
-          child: FutureBuilder<List<Widget>>(
-            future: taggedFileTiles('$selectedChip'),
-            builder: (context, snapshot) {
-              selectedChip ??= tagnames[0];
-              if (snapshot.hasData && snapshot.data.isNotEmpty) {
+          child: Builder(
+            builder: (context) {
+              final result = <FileWidget>[];
+
+              final tagsFileJsonFileStr =
+                  FilePlusTag.tagsFileJsonFile.readAsStringSync();
+
+              final pathtagsMap = (jsonDecode(tagsFileJsonFileStr != ''
+                      ? tagsFileJsonFileStr
+                      : '{}') as Map<String, dynamic>)
+                  .cast<String, List<dynamic>>();
+
+              var selectedkey = '';
+
+              for (final key in selectedMap.keys) {
+                if (selectedMap[key]) {
+                  selectedkey = key;
+                  break;
+                }
+              }
+
+              //root下のファイルを探索 ここから
+              Directory('$path/root')
+                  .listSync(recursive: true)
+                  .forEach((fsEntity) {
+                if (fsEntity is File) {
+                  if (pathtagsMap[fsEntity.path] == null) {
+                    return;
+                  }
+
+                  //TODO tagnameに選ばれているタグを入れる
+                  if ((pathtagsMap[fsEntity.path]).contains(selectedkey)) {
+                    result.add(FilePlusTag(fsEntity).getWidget());
+                  }
+                }
+              });
+              //ここまでfor
+
+              if (result.isNotEmpty) {
                 return ListView(
-                  children: snapshot.data,
+                  children: result,
                 );
-              } else if (snapshot.hasData) {
-                return const Center(child: Text('このタグが付けられたファイルはありません'));
               } else {
-                return const Center(child: CircularProgressIndicator());
+                return const Center(child: Text('このタグが付けられたファイルはありません'));
               }
             },
           ),
@@ -368,24 +369,26 @@ class _HomeState extends State<Home> {
     );
   }
 
-  Future<List<Widget>> taggedFileTiles(String tagname) async {
+  ///[tagname]がついているファイルをtagsFileJsonFileから見つけて、一覧のリストを返す
+  List<Widget> taggedFileTiles(String tagname) {
     debugPrint('$tagname');
     final result = <FileWidget>[];
 
     //await Future<Duration>.delayed(const Duration(seconds: 3));
+    final pathtagsMap =
+        (jsonDecode(FilePlusTag.tagsFileJsonFile.readAsStringSync())
+                as Map<String, dynamic>)
+            .cast<String, List<dynamic>>();
 
-    Directory('$path/root').listSync(recursive: true).forEach((entity) {
-      if (entity is File) {
-        final fileplustag = FilePlusTag(entity)..loadPathToTagsFromJson();
+    Directory('$path/root').listSync(recursive: true).forEach((fsEntity) {
+      if (fsEntity is File) {
+        final fileplustag = FilePlusTag(fsEntity);
 
-        final pathtagsMap = FilePlusTag.pathToTags;
-
-        if (pathtagsMap[fileplustag.file.path] == null ||
-            (pathtagsMap[fileplustag.file.path] as List).isEmpty) {
+        if (pathtagsMap[fileplustag.file.path] == null) {
           return;
         }
 
-        if ((pathtagsMap[fileplustag.file.path] as List).contains(tagname)) {
+        if ((pathtagsMap[fileplustag.file.path]).contains(tagname)) {
           result.add(fileplustag.getWidget());
         }
       }
@@ -535,19 +538,20 @@ class _HomeDrawerState extends State<HomeDrawer> {
       return null;
     }
 
-    debugPrint('consumer元のbuildメソッド内');
-
     return Drawer(
       child: Column(
         children: <Widget>[
           Expanded(
             child: Consumer(builder: (context, watch, child) {
               final _user = FirebaseAuth.instance.currentUser;
-              debugPrint('consumer内のメソッド');
+
               final userisNotNull = _user != null;
               assert(
                   userisNotNull == (FirebaseAuth.instance.currentUser != null));
-              final _synctagname = watch(synctagnamesprovider.state);
+
+              final synctagnames = watch(synctagnamesprovider.state);
+              final localtagnames = watch(localtagnamesprovider.state);
+
               final drawerList = <Widget>[
                 UserAccountsDrawerHeader(
                   decoration: const BoxDecoration(color: Colors.grey),
@@ -573,10 +577,10 @@ class _HomeDrawerState extends State<HomeDrawer> {
                     },
                   ),
                   accountName:
-                      Text(userisNotNull ? _user.displayName : 'guest'),
+                      Text(userisNotNull ? _user.displayName : 'Guest'),
                   accountEmail: Text(userisNotNull ? _user.email : '-'),
                 ),
-                ..._synctagname.map<Widget>((tagstr) {
+                ...synctagnames.map<Widget>((tagstr) {
                   return ListTile(
                     key: GlobalKey(),
                     leading: const Icon(Icons.label),
@@ -584,7 +588,7 @@ class _HomeDrawerState extends State<HomeDrawer> {
                     onTap: () {},
                   );
                 }),
-                ...Tag.localTagFile.readAsLinesSync().map<Widget>((tagname) {
+                ...localtagnames.map<Widget>((tagname) {
                   return ListTile(
                     key: GlobalKey(),
                     leading: const Icon(Icons.label_outline),

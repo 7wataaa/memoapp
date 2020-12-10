@@ -25,14 +25,9 @@ Future<void> rootSet() async {
   }
 }
 
-///File('$path/root')みたいな、osごとの保存場所のパス
-String path;
-
 StreamController<String> fileSystemEvent = StreamController<String>.broadcast();
 
 ///tag_edit_pageのタグの表示更新要
 StreamController<String> tagChipEvent = StreamController<String>.broadcast();
-
-StreamController<String> tagUpdateEvent = StreamController<String>.broadcast();
 
 Map<FileSystemEntity, bool> fsEntityToCheck = {};

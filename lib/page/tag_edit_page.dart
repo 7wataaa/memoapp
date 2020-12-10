@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:memoapp/main.dart';
@@ -45,96 +43,82 @@ class _TagCreatePageBodyState extends State<TagCreatePageBody> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer(builder: (context, watch, child) {
-      final _synctags = watch(synctagnamesprovider.state);
-
-      ///同期されているtagnamesと保存されているtagnamesでのChip
-      final _tags = <Widget>[
-        ..._synctags.map((s) => Tag(s).createSyncTagChip()),
-        if (!(Tag.localTagFile.readAsStringSync()).isEmpty)
-          ...Tag.localTagFile
-              .readAsLinesSync()
-              .map((s) => Tag(s).createTagChip())
-      ];
-
-      debugPrint('$_tags');
-      debugPrint('$_synctags');
-
-      final existingtags = <String>[
-        ..._synctags,
-        ...Tag.syncTagFile.readAsLinesSync(),
-      ];
-
-      return Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            margin: const EdgeInsets.only(
-              left: 5,
-              right: 5,
-              top: 10,
-              bottom: 0,
-            ),
-            child: Wrap(
-              spacing: 5,
-              children: _tags,
-            ),
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          margin: const EdgeInsets.only(
+            left: 5,
+            right: 5,
+            top: 10,
+            bottom: 0,
           ),
-          Container(
-            child: Row(
-              children: [
-                Flexible(
-                  child: Container(
-                    padding: const EdgeInsets.only(
-                      left: 15,
-                      right: 0,
-                      top: 5,
-                      bottom: 0,
-                    ),
-                    child: TextField(
-                      focusNode: _focusNode,
-                      decoration:
-                          const InputDecoration(labelText: 'タグの名前を入力...'),
-                      controller: _textEditingController,
-                      onChanged: (value) => inputValue = value,
-                      autofocus: true,
-                    ),
+          child: Consumer(builder: (context, watch, child) {
+            final synctagnames = watch(synctagnamesprovider.state);
+            final localtagnames = watch(localtagnamesprovider.state);
+
+            ///同期されているtagnamesと保存されているtagnamesでのChip
+            final tagChips = <Widget>[
+              ...synctagnames.map((s) => Tag(s).createSyncTagChip()),
+              ...localtagnames.map((s) => Tag(s).createTagChip()),
+            ];
+
+            debugPrint('tagChips = $tagChips');
+
+            return Wrap(
+              spacing: 5,
+              children: tagChips,
+            );
+          }),
+        ),
+        Container(
+          child: Row(
+            children: [
+              Flexible(
+                child: Container(
+                  padding: const EdgeInsets.only(
+                    left: 15,
+                    right: 0,
+                    top: 5,
+                    bottom: 0,
+                  ),
+                  child: TextField(
+                    focusNode: _focusNode,
+                    decoration: const InputDecoration(labelText: 'タグの名前を入力...'),
+                    controller: _textEditingController,
+                    onChanged: (value) => inputValue = value,
+                    autofocus: true,
                   ),
                 ),
-                IconButton(
-                    icon: const Icon(Icons.create),
-                    onPressed: () {
-                      if (inputValue.isEmpty) {
-                        debugPrint('!! inputvalue is empty');
-                        return;
-                      }
+              ),
+              IconButton(
+                  icon: const Icon(Icons.create),
+                  onPressed: () {
+                    if (inputValue.isEmpty) {
+                      debugPrint('!! inputvalue is empty');
+                      return;
+                    }
+                    if ([
+                      ...context.read(synctagnamesprovider.state),
+                      ...context.read(localtagnamesprovider.state),
+                    ].contains(inputValue)) {
+                      debugPrint('!! 重複した名前');
+                      return;
+                    }
 
-                      if (existingtags.contains(inputValue)) {
-                        debugPrint('!! 重複した名前');
-                        return;
-                      }
+                    context
+                        .read(localtagnamesprovider)
+                        .writelocalTagname(inputValue);
 
-                      final writestr =
-                          Tag.localTagFile.readAsStringSync().isEmpty
-                              ? inputValue
-                              : '\n$inputValue';
-
-                      _textEditingController.selection = TextSelection(
-                          baseOffset: 0,
-                          extentOffset: _textEditingController.text.length);
-
-                      setState(() {
-                        Tag.localTagFile.writeAsStringSync(
-                          writestr,
-                          mode: FileMode.append,
-                        );
-                      });
-                    }),
-              ],
-            ),
-          )
-        ],
-      );
-    });
+                    _textEditingController.selection = TextSelection(
+                        baseOffset: 0,
+                        extentOffset: _textEditingController.text.length);
+                    //TODO kokoでlocaltagnamesproviderを呼ぶ
+                  }),
+            ],
+          ),
+        )
+      ],
+    );
   }
 }

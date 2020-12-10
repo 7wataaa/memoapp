@@ -7,7 +7,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter_riverpod/all.dart';
+import 'package:memoapp/tag.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:memoapp/file_plus_tag.dart';
 import 'package:memoapp/page/home_page.dart';
@@ -19,8 +20,10 @@ Future<void> main() async {
       .read(firebaseInitializeProvider)
       .initializeFlutterApp();
   runApp(ProviderScope(child: MyApp()));
-  Screen.keepOn(true); //完成したら消す
+  await Screen.keepOn(true); //完成したら消す
 }
+
+final modeProvider = ChangeNotifierProvider.autoDispose((ref) => ModeModel());
 
 class ModeModel extends ChangeNotifier {
   bool isTagmode = false;
@@ -32,7 +35,8 @@ class ModeModel extends ChangeNotifier {
   }
 }
 
-final modeProvider = ChangeNotifierProvider.autoDispose((ref) => ModeModel());
+final firebaseInitializeProvider =
+    ChangeNotifierProvider((ref) => FirebaseInitializeModel());
 
 class FirebaseInitializeModel extends ChangeNotifier {
   Future<void> initializeFlutterApp() async {
@@ -41,8 +45,8 @@ class FirebaseInitializeModel extends ChangeNotifier {
   }
 }
 
-final firebaseInitializeProvider =
-    ChangeNotifierProvider((ref) => FirebaseInitializeModel());
+final authProvider =
+    ChangeNotifierProvider.autoDispose((ref) => FirebaseAuthModel());
 
 class FirebaseAuthModel extends ChangeNotifier {
   FirebaseAuth auth = FirebaseAuth.instance;
@@ -81,7 +85,7 @@ class FirebaseAuthModel extends ChangeNotifier {
       }
 
       //firestoreの雛形的なものを作成する
-      FirebaseFirestore.instance
+      await FirebaseFirestore.instance
           .collection('files')
           .doc('${currentUser.uid}')
           .set(<String, dynamic>{'tagnames': <String>[]});
@@ -93,8 +97,8 @@ class FirebaseAuthModel extends ChangeNotifier {
   }
 }
 
-final authProvider =
-    ChangeNotifierProvider.autoDispose((ref) => FirebaseAuthModel());
+final firestoreProvider =
+    ChangeNotifierProvider.autoDispose((ref) => FireStoreModel());
 
 class FireStoreModel extends ChangeNotifier {
   FirebaseFirestore store = FirebaseFirestore.instance;
@@ -102,13 +106,13 @@ class FireStoreModel extends ChangeNotifier {
   void uploadTaggedFiles(String tagname) {
     final _currentUser = FirebaseAuth.instance.currentUser;
 
-    final _ownFiles = store
+    final userFiles = store
         .collection('files')
         .doc('${_currentUser.uid}')
-        .collection('ownFiles');
+        .collection('userFiles');
 
     final _taggedFileJson =
-        jsonDecode(FilePlusTag.tagsFileJsonFile.readAsStringSync())
+        jsonDecode(FilePlusTag.tagsFileJsonFile.readAsStringSync() ?? '{}')
             as Map<String, dynamic>;
 
     final _tmpFiles = <File>[];
@@ -138,29 +142,31 @@ class FireStoreModel extends ChangeNotifier {
         'tag': _tags,
       };
 
-      _ownFiles.doc('$_fileName').set(_setData);
+      userFiles.doc('$_fileName').set(_setData);
     }
   }
 }
 
-final firestoreProvider =
-    ChangeNotifierProvider.autoDispose((ref) => FireStoreModel());
+///state = firestoreにあるアカウントのtagnames
+final synctagnamesprovider =
+    StateNotifierProvider((ref) => SyncTagNamesModel());
 
 class SyncTagNamesModel extends StateNotifier<List<String>> {
   SyncTagNamesModel() : super(<String>[]);
+  final _storeinstance = FirebaseFirestore.instance;
 
+  ///files/_user.uid/にあるtagnamesをstateに入れるやつ
   Future<void> loadsynctagnames() async {
-    final storeinstance = FirebaseFirestore.instance;
-    final user = FirebaseAuth.instance.currentUser;
+    final _user = FirebaseAuth.instance.currentUser;
     debugPrint('load called');
-    if (user == null) {
+    if (_user == null) {
       state = [];
-      debugPrint('user == null');
+      debugPrint('user is null');
       return;
     }
 
     final _tagnames =
-        ((await storeinstance.collection('files').doc('${user.uid}').get())
+        ((await _storeinstance.collection('files').doc('${_user.uid}').get())
                 .data()['tagnames'] as List<dynamic>)
             .cast<String>();
 
@@ -169,11 +175,95 @@ class SyncTagNamesModel extends StateNotifier<List<String>> {
       return;
     }
   }
+
+  ///元のリストに[tagname]を追加したリストをセットするだけ
+  Future<void> uploadtagname(String tagname) async {
+    final _user = FirebaseAuth.instance.currentUser;
+    assert(_user != null);
+
+    final userdocument = _storeinstance.collection('files').doc('${_user.uid}');
+
+    final synctagnames = (await userdocument.get()).get('tagnames')
+        as List<dynamic>
+      ..add(tagname);
+
+    await userdocument.set(<String, dynamic>{'tagnames': synctagnames});
+  }
 }
 
-///state = firestoreにあるアカウントのtagnames
-final synctagnamesprovider =
-    StateNotifierProvider((ref) => SyncTagNamesModel());
+final localtagnamesprovider =
+    StateNotifierProvider((ref) => LocalTagNamesModel());
+
+class LocalTagNamesModel extends StateNotifier<List<String>> {
+  LocalTagNamesModel() : super(<String>[...Tag.localTagFile.readAsLinesSync()]);
+
+  void loadLocalTagnames() {
+    state = Tag.localTagFile.readAsLinesSync();
+  }
+
+  void writelocalTagname(String newlocaltagname) {
+    assert(Tag.localTagFile.existsSync());
+
+    final localTagFile = Tag.localTagFile;
+
+    final localtagnames = localTagFile.readAsLinesSync()..add(newlocaltagname);
+
+    final str = StringBuffer();
+
+    for (final localtagname in localtagnames) {
+      str.write('$localtagname\n');
+    }
+
+    localTagFile.writeAsStringSync(str.toString().trimRight());
+
+    loadLocalTagnames();
+  }
+}
+
+final selectedmapprovider = StateNotifierProvider((ref) => SelectedMapModel());
+
+class SelectedMapModel extends StateNotifier<Map<String, bool>> {
+  SelectedMapModel() : super(<String, bool>{});
+
+  void createtagnamesMap(
+      List<String> synctagnames, List<String> localtagnames) {
+    final map = <String, bool>{};
+
+    for (final sname in synctagnames) {
+      map[sname] = false;
+    }
+    for (final lname in localtagnames) {
+      map[lname] = false;
+    }
+
+    //state = map;
+  }
+
+  ///(true,false,false)みたいなのから真ん中の[keystr]で(false,true,false)にする
+  void toggleValues(String keystr) {
+    final map = state;
+
+    for (final k in map.keys) {
+      if (map[k] ?? false) {
+        map[k] = false;
+      }
+    }
+
+    map[keystr] = true;
+  }
+
+  String selectedTagname() {
+    final map = state;
+
+    for (final key in map.keys) {
+      if (map[key] ?? false) {
+        debugPrint('selectedTagname = $key');
+        return key;
+      }
+    }
+    return '';
+  }
+}
 
 class MyApp extends StatelessWidget {
   @override
@@ -208,4 +298,6 @@ class MyApp extends StatelessWidget {
 ログイン必須にするメリットとログインしないでいいメリットを考えると、校舎がいいのかも
 
 ログインしたら機能が追加されるっていう感じがいいのかも
+
+同期させるファイルとローカルのみのファイルをそもそも分けておく→タグの追加も同じタイプのみ→syncタグがなくなったらローカルのみのファイルに戻る。
 */

@@ -63,13 +63,7 @@ class Tag {
                               FlatButton(
                                 child: const Text('同期'),
                                 onPressed: () {
-                                  onTagSync();
-                                  context
-                                      .read(firestoreProvider)
-                                      .uploadTaggedFiles(tagName);
-                                  context
-                                      .read(synctagnamesprovider)
-                                      .loadsynctagnames();
+                                  onSync(context);
                                   Navigator.pop(context);
                                 },
                               )
@@ -84,7 +78,7 @@ class Tag {
                       onPressed: () async {
                         Navigator.pop(context);
 
-                        showDialog<AlertDialog>(
+                        await showDialog<AlertDialog>(
                             context: context,
                             builder: (context) {
                               return AlertDialog(
@@ -116,15 +110,18 @@ class Tag {
                                             mode: FileMode.append);
                                       }
 
-                                      final pathtotags = FilePlusTag
-                                          .returnPathToTagsFromJson();
+                                      final pathtotags = (jsonDecode(FilePlusTag
+                                                  .tagsFileJsonFile
+                                                  .readAsStringSync())
+                                              as Map<String, dynamic>)
+                                          .cast<String, List<String>>();
 
                                       for (final key in pathtotags.keys) {
-                                        (pathtotags[key] as List).removeWhere(
+                                        (pathtotags[key]).removeWhere(
                                             (dynamic item) => item == tagName);
                                       }
                                       FilePlusTag.tagsFileJsonFile
-                                          .writeAsString(
+                                          .writeAsStringSync(
                                               jsonEncode(pathtotags));
 
                                       tagChipEvent.add('');
@@ -143,27 +140,23 @@ class Tag {
     });
   }
 
-  void onTagSync() {
+  void onSync(BuildContext context) {
     final tmplist = localTagFile.readAsLinesSync()
       ..removeWhere((tagstr) => tagstr == tagName);
 
     localTagFile.writeAsStringSync('');
 
     for (final _name in tmplist) {
-      final _islocaltagfileEmpty = localTagFile.readAsStringSync().isEmpty;
+      final islocaltagfileEmpty = localTagFile.readAsStringSync().isEmpty;
       localTagFile.writeAsStringSync(
-        _islocaltagfileEmpty ? _name : '\n$_name',
+        islocaltagfileEmpty ? _name : '\n$_name',
         mode: FileMode.append,
       );
     }
 
-    //TODO firestoreにtagnamesを上げる
-
-    final _isSyncTagFileEmpty = syncTagFile.readAsStringSync().isEmpty;
-    syncTagFile.writeAsStringSync(
-      _isSyncTagFileEmpty ? tagName : '\n$tagName',
-      mode: FileMode.append,
-    );
+    context.read(synctagnamesprovider).uploadtagname(tagName);
+    context.read(firestoreProvider).uploadTaggedFiles(tagName);
+    context.read(synctagnamesprovider).loadsynctagnames();
   }
 
   Widget createSyncTagChip() {
@@ -202,16 +195,19 @@ class Tag {
                                   FlatButton(
                                       onPressed: () async {
                                         //TODO firestoreから消す処理
-                                        final pathTagsMap = FilePlusTag
-                                            .returnPathToTagsFromJson();
+                                        final pathTagsMap = (jsonDecode(
+                                                    FilePlusTag.tagsFileJsonFile
+                                                        .readAsStringSync())
+                                                as Map<String, dynamic>)
+                                            .cast<String, List<String>>();
 
                                         for (final key in pathTagsMap.keys) {
-                                          (pathTagsMap[key] as List)
-                                              .removeWhere((dynamic item) =>
+                                          (pathTagsMap[key]).removeWhere(
+                                              (dynamic item) =>
                                                   item == tagName);
                                         }
                                         FilePlusTag.tagsFileJsonFile
-                                            .writeAsString(
+                                            .writeAsStringSync(
                                                 jsonEncode(pathTagsMap));
 
                                         tagChipEvent.add('');

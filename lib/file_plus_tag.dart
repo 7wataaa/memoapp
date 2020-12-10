@@ -11,13 +11,6 @@ class FilePlusTag {
 
   final File file;
   static File tagsFileJsonFile;
-  static Map<String, dynamic> pathToTags;
-
-  Map<String, dynamic> get pathtag {
-    loadPathToTagsFromJson();
-    debugPrint('$pathToTags');
-    return pathToTags;
-  }
 
   ///このファイルでのFileWidgetを返す
   FileWidget getWidget() {
@@ -30,7 +23,7 @@ class FilePlusTag {
 
   ///fileに対応したtagリストをファイルから取得する
   List<Tag> getTags() {
-    loadPathToTagsFromJson();
+    final pathToTags = loadPathToTagsFromJson();
 
     if (pathToTags.isEmpty) {
       debugPrint('!! _pathtotags is empty');
@@ -52,8 +45,8 @@ class FilePlusTag {
     return result;
   }
 
-  ///[pathToTags] に tagsFile.json の Mapを代入する
-  void loadPathToTagsFromJson() {
+  ///tagsFile.json の Map
+  Map<String, dynamic> loadPathToTagsFromJson() {
     final tagsFileValue = tagsFileJsonFile.readAsStringSync();
 
     //jsondecodeの引数にnullが入れられないから
@@ -61,13 +54,13 @@ class FilePlusTag {
       tagsFileJsonFile.writeAsStringSync('{}');
     }
 
-    pathToTags = Map<String, dynamic>.from(
-        jsonDecode(tagsFileJsonFile.readAsStringSync()) as Map);
+    return jsonDecode(tagsFileJsonFile.readAsStringSync())
+        as Map<String, dynamic>;
   }
 
   ///[tag]をtagsFileに追加
   void addTag(Tag tag) {
-    loadPathToTagsFromJson();
+    final pathToTags = loadPathToTagsFromJson();
 
     if (!pathToTags.containsKey(file.path)) {
       pathToTags[file.path] = <String>[];
@@ -81,18 +74,5 @@ class FilePlusTag {
   void fileCreateAndAddTag(List<Tag> taglist) {
     file.createSync();
     taglist.forEach(addTag);
-  }
-
-  static Map<String, dynamic> returnPathToTagsFromJson() {
-    final tagsFileValue = tagsFileJsonFile.readAsStringSync();
-
-    if (tagsFileValue.isEmpty) {
-      tagsFileJsonFile.writeAsStringSync('{}');
-    }
-
-    final result = Map<String, dynamic>.from(
-        jsonDecode(tagsFileJsonFile.readAsStringSync()) as Map);
-
-    return result;
   }
 }
