@@ -3,6 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:memoapp/main.dart';
 import 'package:memoapp/tag.dart';
 
+final synctagmodeprovider = StateNotifierProvider((ref) => SyncTagModeModel());
+
+class SyncTagModeModel extends StateNotifier<bool> {
+  SyncTagModeModel() : super(true);
+
+  void switchMode() {
+    state = !state;
+  }
+}
+
 class TagEditPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -71,52 +81,62 @@ class _TagCreatePageBodyState extends State<TagCreatePageBody> {
             );
           }),
         ),
-        Container(
-          child: Row(
-            children: [
-              Flexible(
-                child: Container(
-                  padding: const EdgeInsets.only(
-                    left: 15,
-                    right: 0,
-                    top: 5,
-                    bottom: 0,
-                  ),
-                  child: TextField(
-                    focusNode: _focusNode,
-                    decoration: const InputDecoration(labelText: 'タグの名前を入力...'),
-                    controller: _textEditingController,
-                    onChanged: (value) => inputValue = value,
-                    autofocus: true,
-                  ),
+        Row(
+          children: [
+            Consumer(
+              builder: (context, watch, child) {
+                final isSyncTagMode = watch(synctagmodeprovider.state);
+
+                return IconButton(
+                  icon: Icon(isSyncTagMode ? Icons.sync : Icons.sync_disabled),
+                  onPressed: () {
+                    context.read(synctagmodeprovider).switchMode();
+                  },
+                );
+              },
+            ),
+            Flexible(
+              child: Container(
+                padding: const EdgeInsets.only(
+                  left: 0,
+                  right: 0,
+                  top: 0,
+                  bottom: 15,
+                ),
+                child: TextField(
+                  autofocus: true,
+                  focusNode: _focusNode,
+                  decoration: const InputDecoration(labelText: 'タグの名前を入力...'),
+                  controller: _textEditingController,
+                  //style: const TextStyle(fontSize: 16),
+                  onChanged: (value) => inputValue = value,
                 ),
               ),
-              IconButton(
-                  icon: const Icon(Icons.create),
-                  onPressed: () {
-                    if (inputValue.isEmpty) {
-                      debugPrint('!! inputvalue is empty');
-                      return;
-                    }
-                    if ([
-                      ...context.read(synctagnamesprovider.state),
-                      ...context.read(localtagnamesprovider.state),
-                    ].contains(inputValue)) {
-                      debugPrint('!! 重複した名前');
-                      return;
-                    }
+            ),
+            IconButton(
+                icon: const Icon(Icons.create),
+                onPressed: () {
+                  if (inputValue.isEmpty) {
+                    debugPrint('!! inputvalue is empty');
+                    return;
+                  }
+                  if ([
+                    ...context.read(synctagnamesprovider.state),
+                    ...context.read(localtagnamesprovider.state),
+                  ].contains(inputValue)) {
+                    debugPrint('!! 重複した名前');
+                    return;
+                  }
 
-                    context
-                        .read(localtagnamesprovider)
-                        .writelocalTagname(inputValue);
+                  context
+                      .read(localtagnamesprovider)
+                      .writelocalTagname(inputValue);
 
-                    _textEditingController.selection = TextSelection(
-                        baseOffset: 0,
-                        extentOffset: _textEditingController.text.length);
-                    //TODO kokoでlocaltagnamesproviderを呼ぶ
-                  }),
-            ],
-          ),
+                  _textEditingController.selection = TextSelection(
+                      baseOffset: 0,
+                      extentOffset: _textEditingController.text.length);
+                }),
+          ],
         )
       ],
     );

@@ -1,12 +1,12 @@
 import 'dart:io';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:flutter/material.dart';
-import 'package:memoapp/main.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:memoapp/file_plus_tag.dart';
-import 'package:memoapp/handling.dart';
+import 'package:memoapp/main.dart';
 import 'package:memoapp/page/tag_edit_page.dart';
 import 'package:memoapp/tag.dart';
+import 'package:path_provider/path_provider.dart';
 
 class CreatePage extends StatefulWidget {
   const CreatePage({@required this.tDir, this.isRoot});
@@ -247,7 +247,7 @@ class _CreatePageState extends State<CreatePage> {
             label: Text('$_type を保存'),
             onPressed: () async {
               _path = widget.isRoot
-                  ? '${await localPath()}/root'
+                  ? '${(await getApplicationDocumentsDirectory()).path}/root'
                   : Directory.current.path;
 
               final overlapping = File('$_path/$_nameStr').existsSync() ||

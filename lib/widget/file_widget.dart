@@ -7,11 +7,13 @@ import 'package:flutter/material.dart';
 import 'package:memoapp/file_plus_tag.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:memoapp/handling.dart';
-import 'package:memoapp/page/edit_page.dart';
+import 'package:memoapp/page/local_memo_edit_page.dart';
 import 'package:memoapp/page/select_page.dart';
+import 'package:memoapp/page/sync_memo_edit_page.dart';
 import 'package:memoapp/tag.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:memoapp/main.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class FileWidget extends StatefulWidget {
   const FileWidget({@required this.name, @required this.file, this.tags});
@@ -354,6 +356,99 @@ class _FileState extends State<FileWidget> {
     }
 
     return Text(string.toString());
+  }
+}
+
+class SyncFileWidget extends StatefulWidget {
+  const SyncFileWidget({@required this.docsnapshot});
+
+  final QueryDocumentSnapshot docsnapshot;
+
+  @override
+  _SyncFileWidgetState createState() => _SyncFileWidgetState();
+}
+
+class _SyncFileWidgetState extends State<SyncFileWidget> {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.only(left: 10, right: 0, top: 5, bottom: 0),
+      child: ListTile(
+        title: Text('${widget.docsnapshot.get('name')}'),
+        leading: const Icon(Icons.insert_drive_file),
+        subtitle: subtitle(),
+        onTap: () {
+          Navigator.push<SyncMemoEditPage>(
+            context,
+            MaterialPageRoute(
+              builder: (context) => SyncMemoEditPage(widget.docsnapshot),
+            ),
+          );
+        },
+        onLongPress: () {
+          showModalBottomSheet<Container>(
+            context: context,
+            builder: (context) {
+              return Container(
+                padding: const EdgeInsets.only(
+                    left: 10, right: 10, top: 0, bottom: 0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ListTile(
+                      title: Text(
+                        widget.docsnapshot.id,
+                        style: const TextStyle(
+                          fontSize: 30,
+                        ),
+                      ),
+                    ),
+                    ListTile(
+                      title: const Text('開く'),
+                      onTap: () {
+                        Navigator.push<SyncMemoEditPage>(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                SyncMemoEditPage(widget.docsnapshot),
+                          ),
+                        );
+                      },
+                    ),
+                    ListTile(
+                      title: const Text('リネーム'),
+                      onTap: () {},
+                    ),
+                    ListTile(
+                      title: const Text('削除'),
+                      onTap: () {},
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  Widget subtitle() {
+    final owntags =
+        (widget.docsnapshot.get('tag') as List<dynamic>).cast<String>();
+    if (owntags.isEmpty) {
+      return null;
+    }
+
+    final strbuffer = StringBuffer();
+
+    for (final tagname in owntags) {
+      final eachSubtitle = ' #$tagname ';
+
+      strbuffer.write(eachSubtitle);
+    }
+
+    return Text('$strbuffer');
   }
 }
 

@@ -27,7 +27,8 @@ class GoogleSignInPage extends StatelessWidget {
                   child: const Text('google login'),
                   onPressed: () async {
                     canPop = false;
-                    await showGeneralDialog<Center>(
+                    // ignore: unawaited_futures
+                    showGeneralDialog<Center>(
                       context: context,
                       barrierDismissible: false,
                       pageBuilder: (context, animation, secondanimation) {

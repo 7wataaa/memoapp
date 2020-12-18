@@ -1,10 +1,9 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-
 import 'package:flutter/material.dart';
-
 import 'package:memoapp/handling.dart';
+import 'package:path_provider/path_provider.dart';
 
 class Cdpage extends StatefulWidget {
   const Cdpage({@required this.file});
@@ -28,7 +27,10 @@ class _CdpageState extends State<Cdpage> {
         backgroundColor: const Color(0xFF212121),
       ),
       body: FutureBuilder(
-        future: localPath(),
+        future: Future(() async {
+          final directory = await getApplicationDocumentsDirectory();
+          return directory.path;
+        }),
         builder: (context, snapshot) {
           radioDir = [];
           if (!snapshot.hasData) {

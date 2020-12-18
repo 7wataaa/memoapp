@@ -13,20 +13,48 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:memoapp/file_plus_tag.dart';
 import 'package:memoapp/page/home_page.dart';
 import 'package:screen/screen.dart';
+import 'package:path_provider/path_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   await ProviderContainer()
       .read(firebaseInitializeProvider)
       .initializeFlutterApp();
-  runApp(ProviderScope(child: MyApp()));
+
+  final appDocsDirPath = (await getApplicationDocumentsDirectory()).path;
+
+  final rootFolder = Directory('$appDocsDirPath/root');
+
+  if (!rootFolder.existsSync()) {
+    rootFolder.createSync();
+    debugPrint('root folderを$rootFolderに作成');
+  } else {
+    debugPrint('$rootFolder はすでに存在');
+  }
+
+  FilePlusTag.tagsFileJsonFile = File('$appDocsDirPath/tagsFile.json');
+
+  if (!FilePlusTag.tagsFileJsonFile.existsSync()) {
+    await FilePlusTag.tagsFileJsonFile.create();
+    debugPrint('tagFileJsonFile created');
+  }
+
+  Tag.localTagFile = File('$appDocsDirPath/localTag');
+
+  if (!Tag.localTagFile.existsSync()) {
+    Tag.localTagFile.createSync();
+    debugPrint('localTagFile created');
+  }
+
+  runApp(ProviderScope(child: MyApp(appDocsDirPath: appDocsDirPath)));
   await Screen.keepOn(true); //完成したら消す
 }
 
 final modeProvider = ChangeNotifierProvider.autoDispose((ref) => ModeModel());
 
 class ModeModel extends ChangeNotifier {
-  bool isTagmode = false;
+  bool isTagmode = true;
 
   ///tagmode rootmodeの切り替えの通知
   void onModeSwitch() {
@@ -41,6 +69,7 @@ final firebaseInitializeProvider =
 class FirebaseInitializeModel extends ChangeNotifier {
   Future<void> initializeFlutterApp() async {
     await Firebase.initializeApp();
+    debugPrint(FirebaseAuth.instance.currentUser.uid);
     notifyListeners();
   }
 }
@@ -75,11 +104,13 @@ class FirebaseAuthModel extends ChangeNotifier {
       idToken: googleAuth.idToken,
     );
 
-    final authuser = await auth.signInWithCredential(credential);
+    await auth.signInWithCredential(credential);
 
-    if (authuser.additionalUserInfo.isNewUser) {
-      final currentUser = FirebaseAuth.instance.currentUser;
+    final currentUser = FirebaseAuth.instance.currentUser;
+    final store = FirebaseFirestore.instance;
 
+    if (!(await store.collection('files').doc('${currentUser.uid}').get())
+        .exists) {
       if (currentUser == null) {
         throw Error();
       }
@@ -165,9 +196,11 @@ class SyncTagNamesModel extends StateNotifier<List<String>> {
       return;
     }
 
+    debugPrint('${_user.uid}');
+
     final _tagnames =
         ((await _storeinstance.collection('files').doc('${_user.uid}').get())
-                .data()['tagnames'] as List<dynamic>)
+                .get('tagnames') as List<dynamic>)
             .cast<String>();
 
     if (!const ListEquality<String>().equals(state, _tagnames)) {
@@ -265,7 +298,45 @@ class SelectedMapModel extends StateNotifier<Map<String, bool>> {
   }
 }
 
+final selectedtagnameprovider =
+    StateNotifierProvider((ref) => SelectedTagnameModel());
+
+class SelectedTagnameModel extends StateNotifier<String> {
+  SelectedTagnameModel() : super('');
+
+  String get tagname => state;
+
+  set tagname(String str) {
+    state = str;
+  }
+}
+
+final taggedsyncfileprovider =
+    StateNotifierProvider((ref) => TaggedSyncFileModel());
+
+class TaggedSyncFileModel extends StateNotifier<List<QueryDocumentSnapshot>> {
+  TaggedSyncFileModel() : super(<QueryDocumentSnapshot>[]);
+
+  Future<void> fetchTaggedStoreFiles() async {
+    assert(FirebaseAuth.instance.currentUser != null);
+
+    final user = FirebaseAuth.instance.currentUser;
+    final store = FirebaseFirestore.instance;
+
+    final userfiles =
+        store.collection('files').doc('${user.uid}').collection('userFiles');
+
+    final snapshot = await userfiles.get();
+
+    state = snapshot.docs;
+  }
+}
+
 class MyApp extends StatelessWidget {
+  const MyApp({@required this.appDocsDirPath});
+
+  final String appDocsDirPath;
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -279,7 +350,7 @@ class MyApp extends StatelessWidget {
         Locale('ja', 'JP'),
       ],
       title: 'Memo',
-      home: Home(),
+      home: Home(appDocsDirPath),
     );
   }
 }
@@ -300,4 +371,6 @@ class MyApp extends StatelessWidget {
 ログインしたら機能が追加されるっていう感じがいいのかも
 
 同期させるファイルとローカルのみのファイルをそもそも分けておく→タグの追加も同じタイプのみ→syncタグがなくなったらローカルのみのファイルに戻る。
+
+TODO tagを同期させるときに同じ名前を弾く
 */
