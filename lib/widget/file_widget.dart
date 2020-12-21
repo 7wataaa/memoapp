@@ -351,7 +351,7 @@ class _FileState extends State<FileWidget> {
     final string = StringBuffer();
 
     for (final tag in widget.tags) {
-      final name = ' #${tag.tagName} ';
+      final name = ' ${tag.tagName} ';
       string.write(name);
     }
 
@@ -443,7 +443,7 @@ class _SyncFileWidgetState extends State<SyncFileWidget> {
     final strbuffer = StringBuffer();
 
     for (final tagname in owntags) {
-      final eachSubtitle = ' #$tagname ';
+      final eachSubtitle = ' $tagname ';
 
       strbuffer.write(eachSubtitle);
     }

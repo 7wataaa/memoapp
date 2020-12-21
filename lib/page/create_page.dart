@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:memoapp/file_plus_tag.dart';
@@ -45,6 +47,7 @@ class _CreatePageState extends State<CreatePage> {
   final menuEntry = <PopupMenuEntry<String>>[
     const PopupMenuItem(
       value: 'PDw8ZGVmYXVsdEl0ZW06IGFkZD4+Pg==',
+      //このvalueだと同じ名前のタグを作ったときにバグるかも → 新規タグ名に'#'を追加して回避
       child: Text('タグを追加...'),
     ),
   ];
@@ -96,22 +99,23 @@ class _CreatePageState extends State<CreatePage> {
   void _onSelected(String selectedValue) {
     if (selectedValue == 'PDw8ZGVmYXVsdEl0ZW06IGFkZD4+Pg==') {
       pushTagEditPage();
-    } else {
-      if (_tmpTags.map((e) => e.tagName).contains(selectedValue)) {
-        _tmpTags.removeWhere((tag) => tag.tagName == selectedValue);
-      } else {
-        _tmpTags.add(
-          Tag('$selectedValue'),
-        );
-      }
-
-      _labelTagStr.clear();
-      setState(() {
-        for (final tag in _tmpTags) {
-          _labelTagStr.write('#${tag.tagName} ');
-        }
-      });
+      return;
     }
+
+    if (_tmpTags.map((e) => e.tagName).contains(selectedValue)) {
+      _tmpTags.removeWhere((tag) => tag.tagName == selectedValue);
+    } else {
+      _tmpTags.add(
+        Tag('$selectedValue'),
+      );
+    }
+
+    _labelTagStr.clear();
+    setState(() {
+      for (final tag in _tmpTags) {
+        _labelTagStr.write('${tag.tagName} ');
+      }
+    });
   }
 
   @override
@@ -122,7 +126,8 @@ class _CreatePageState extends State<CreatePage> {
         title: Text('${RegExp(r'([^/]+?)?$').stringMatch(widget.tDir.path)}/'),
         actions: <IconButton>[
           IconButton(
-            icon: const Icon(Icons.edit_outlined),
+            tooltip: 'tag edit',
+            icon: const Icon(Icons.label_outline),
             onPressed: () {
               pushTagEditPage();
             },
@@ -246,10 +251,35 @@ class _CreatePageState extends State<CreatePage> {
             icon: const Icon(Icons.check),
             label: Text('$_type を保存'),
             onPressed: () async {
+              final providerContainer = ProviderContainer();
+
+              await providerContainer
+                  .read(synctagnamesprovider)
+                  .loadsynctagnames();
+
+              final synctagnames =
+                  providerContainer.read(synctagnamesprovider.state);
+              final localtagnames =
+                  providerContainer.read(localtagnamesprovider.state);
+
               _path = widget.isRoot
                   ? '${(await getApplicationDocumentsDirectory()).path}/root'
                   : Directory.current.path;
 
+              var fileisSyncFile = false;
+              var fileisLocalFile = false;
+
+              for (final tag in _tmpTags) {
+                if (synctagnames.contains(tag.tagName)) {
+                  fileisSyncFile = true;
+                }
+                if (localtagnames.contains(tag.tagName)) {
+                  fileisLocalFile = true;
+                }
+              }
+              assert(fileisSyncFile || fileisLocalFile);
+
+              //名前が重複しているかどうかファイルとディレクトリも含める
               final overlapping = File('$_path/$_nameStr').existsSync() ||
                   Directory('$_path/$_nameStr').existsSync();
 
@@ -259,14 +289,31 @@ class _CreatePageState extends State<CreatePage> {
               } else if (overlapping) {
                 debugPrint('!! 重複した名前はつけることができません');
                 return;
+              } else if (fileisSyncFile && fileisLocalFile) {
+                debugPrint('!! タグがローカルとサーバーの2種類存在しています');
+                return;
               }
 
               switch (_type) {
                 case 'file':
-                  FilePlusTag(File('$_path/$_nameStr'))
-                    ..fileCreateAndAddTag(_tmpTags)
-                    ..file.writeAsStringSync('${_memoController.text}');
-                  debugPrint('file created');
+                  if (fileisLocalFile) {
+                    FilePlusTag(File('$_path/$_nameStr'))
+                      ..createLocalFileAndAddTag(_tmpTags)
+                      ..file.writeAsStringSync('${_memoController.text}');
+                    debugPrint('file created');
+                  } else {
+                    await FirebaseFirestore.instance
+                        .collection('files')
+                        .doc('${FirebaseAuth.instance.currentUser.uid}')
+                        .collection('userFiles')
+                        .doc('$_nameStr')
+                        .set(<String, dynamic>{
+                      'name': _nameStr,
+                      'content': _memoController.text,
+                      'tag': <String>[..._tmpTags.map((e) => e.tagName)],
+                    });
+                  }
+
                   Navigator.pop(context);
                   break;
                 case 'folder':

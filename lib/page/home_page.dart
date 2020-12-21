@@ -13,6 +13,8 @@ import 'package:memoapp/tag.dart';
 import 'package:memoapp/widget/file_widget.dart';
 import 'package:memoapp/widget/folder_widget.dart';
 
+bool _canPop = false;
+
 class Home extends StatefulWidget {
   const Home(this.appDocsDirPath);
 
@@ -29,7 +31,7 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
-      onWillPop: () async => false,
+      onWillPop: () async => _canPop,
       child: Scaffold(
         appBar: AppBar(
           title: const Text('MEMO'),

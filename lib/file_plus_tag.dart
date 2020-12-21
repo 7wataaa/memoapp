@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/all.dart';
+import 'package:memoapp/main.dart';
 import 'package:memoapp/tag.dart';
 import 'package:memoapp/widget/file_widget.dart';
 
@@ -59,7 +61,7 @@ class FilePlusTag {
   }
 
   ///[tag]をtagsFileに追加
-  void addTag(Tag tag) {
+  void addLocalTag(Tag tag) {
     final pathToTags = loadPathToTagsFromJson();
 
     if (!pathToTags.containsKey(file.path)) {
@@ -71,8 +73,8 @@ class FilePlusTag {
     tagsFileJsonFile.writeAsStringSync(jsonEncode(pathToTags));
   }
 
-  void fileCreateAndAddTag(List<Tag> taglist) {
+  void createLocalFileAndAddTag(List<Tag> taglist) {
     file.createSync();
-    taglist.forEach(addTag);
+    taglist.forEach(addLocalTag);
   }
 }

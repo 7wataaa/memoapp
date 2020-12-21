@@ -36,7 +36,9 @@ Future<void> main() async {
   FilePlusTag.tagsFileJsonFile = File('$appDocsDirPath/tagsFile.json');
 
   if (!FilePlusTag.tagsFileJsonFile.existsSync()) {
-    await FilePlusTag.tagsFileJsonFile.create();
+    FilePlusTag.tagsFileJsonFile
+      ..createSync()
+      ..writeAsStringSync('{}');
     debugPrint('tagFileJsonFile created');
   }
 
@@ -69,7 +71,7 @@ final firebaseInitializeProvider =
 class FirebaseInitializeModel extends ChangeNotifier {
   Future<void> initializeFlutterApp() async {
     await Firebase.initializeApp();
-    debugPrint(FirebaseAuth.instance.currentUser.uid);
+    debugPrint(FirebaseAuth.instance.currentUser?.uid);
     notifyListeners();
   }
 }
@@ -209,7 +211,7 @@ class SyncTagNamesModel extends StateNotifier<List<String>> {
     }
   }
 
-  ///元のリストに[tagname]を追加したリストをセットするだけ
+  ///storeのリストに[tagname]を追加したリストをセットするだけ
   Future<void> uploadtagname(String tagname) async {
     final _user = FirebaseAuth.instance.currentUser;
     assert(_user != null);
@@ -220,7 +222,9 @@ class SyncTagNamesModel extends StateNotifier<List<String>> {
         as List<dynamic>
       ..add(tagname);
 
-    await userdocument.set(<String, dynamic>{'tagnames': synctagnames});
+    await userdocument.update(<String, dynamic>{'tagnames': synctagnames});
+
+    await loadsynctagnames();
   }
 }
 
@@ -248,6 +252,34 @@ class LocalTagNamesModel extends StateNotifier<List<String>> {
     }
 
     localTagFile.writeAsStringSync(str.toString().trimRight());
+
+    loadLocalTagnames();
+  }
+
+  ///localTagFileとtagsFileJsonFileから[tTagname]を削除する
+  void deletelocalTagname(String tTagname) {
+    //localTagFileから削除
+    final tmplist = state..removeWhere((String str) => str == tTagname);
+
+    final stringBuffer = StringBuffer();
+
+    for (final tagname in tmplist) {
+      stringBuffer.write('\n$tagname');
+    }
+
+    Tag.localTagFile.writeAsStringSync('$stringBuffer'.trim());
+
+    //tagsFileJsonFileから削除
+    final pathTagsMap =
+        (jsonDecode(FilePlusTag.tagsFileJsonFile.readAsStringSync())
+                as Map<String, dynamic>)
+            .cast<String, List<dynamic>>();
+
+    for (final key in pathTagsMap.keys) {
+      pathTagsMap[key].removeWhere((dynamic str) => str as String == tTagname);
+    }
+
+    FilePlusTag.tagsFileJsonFile.writeAsStringSync(jsonEncode(pathTagsMap));
 
     loadLocalTagnames();
   }
@@ -339,6 +371,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.read(synctagnamesprovider).loadsynctagnames();
     return MaterialApp(
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,

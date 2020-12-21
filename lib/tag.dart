@@ -13,8 +13,7 @@ class Tag {
 
   static File localTagFile;
 
-  static File syncTagFile;
-
+  ///this.tagName このクラスを作るときに入れられる名前
   String tagName;
 
   Widget createTagChip() {
@@ -32,7 +31,8 @@ class Tag {
               child: SimpleDialog(
                 title: Text('$tagName'),
                 children: [
-                  SimpleDialogOption(
+                  /* ローカルのタグを同期させるのは保留
+                   SimpleDialogOption(
                     child: const Text('同期化'),
                     onPressed: () {
                       Navigator.pop(context);
@@ -72,7 +72,7 @@ class Tag {
                         },
                       );
                     },
-                  ),
+                  ), */
                   SimpleDialogOption(
                       child: const Text('削除'),
                       onPressed: () async {
@@ -92,37 +92,9 @@ class Tag {
                                   FlatButton(
                                     child: const Text('削除'),
                                     onPressed: () async {
-                                      final taglist =
-                                          await localTagFile.readAsLines();
-                                      taglist.removeWhere(
-                                          (tagname) => tagname == tagName);
-
-                                      //'[tag1, tag2]'からtag1\ntag2にする
-                                      localTagFile.writeAsStringSync('');
-
-                                      for (var str in taglist) {
-                                        str = localTagFile
-                                                .readAsStringSync()
-                                                .isEmpty
-                                            ? str
-                                            : '\n$str';
-                                        localTagFile.writeAsStringSync(str,
-                                            mode: FileMode.append);
-                                      }
-
-                                      final pathtotags = (jsonDecode(FilePlusTag
-                                                  .tagsFileJsonFile
-                                                  .readAsStringSync())
-                                              as Map<String, dynamic>)
-                                          .cast<String, List<String>>();
-
-                                      for (final key in pathtotags.keys) {
-                                        (pathtotags[key]).removeWhere(
-                                            (dynamic item) => item == tagName);
-                                      }
-                                      FilePlusTag.tagsFileJsonFile
-                                          .writeAsStringSync(
-                                              jsonEncode(pathtotags));
+                                      context
+                                          .read(localtagnamesprovider)
+                                          .deletelocalTagname(tagName);
 
                                       tagChipEvent.add('');
 
