@@ -196,7 +196,7 @@ class _HomeState extends State<Home> {
 
         if (synctagnames.isEmpty && localtagnames.isEmpty) {
           return const Center(
-            child: Text('タグがありません'),
+            child: Text('タグ付きのファイルが見つかりませんでした'),
           );
         }
 

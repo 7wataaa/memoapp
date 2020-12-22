@@ -167,11 +167,16 @@ class Tag {
                                   FlatButton(
                                       onPressed: () async {
                                         //TODO firestoreから消す処理
+
+                                        await context
+                                            .read(synctagnamesprovider)
+                                            .deleteSyncTag(tagName);
+
                                         final pathTagsMap = (jsonDecode(
                                                     FilePlusTag.tagsFileJsonFile
                                                         .readAsStringSync())
                                                 as Map<String, dynamic>)
-                                            .cast<String, List<String>>();
+                                            .cast<String, List<dynamic>>();
 
                                         for (final key in pathTagsMap.keys) {
                                           (pathTagsMap[key]).removeWhere(

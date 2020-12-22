@@ -198,15 +198,18 @@ class SyncTagNamesModel extends StateNotifier<List<String>> {
       return;
     }
 
-    debugPrint('${_user.uid}');
-
-    final _tagnames =
+    final synctagnames =
         ((await _storeinstance.collection('files').doc('${_user.uid}').get())
                 .get('tagnames') as List<dynamic>)
             .cast<String>();
 
-    if (!const ListEquality<String>().equals(state, _tagnames)) {
-      state = _tagnames;
+    debugPrint('state = $state');
+    debugPrint('synctagnames = $synctagnames');
+    debugPrint(
+        'equals = ${ListEquality<String>().equals(state, synctagnames)}');
+
+    if (!const ListEquality<String>().equals(state, synctagnames)) {
+      state = synctagnames;
       return;
     }
   }
@@ -225,6 +228,42 @@ class SyncTagNamesModel extends StateNotifier<List<String>> {
     await userdocument.update(<String, dynamic>{'tagnames': synctagnames});
 
     await loadsynctagnames();
+  }
+
+  Future<void> deleteSyncTag(String deletetTag) async {
+    final user = FirebaseAuth.instance.currentUser;
+    assert(user != null);
+
+    final synctagnames = <String>[...state];
+    //synctagnames = state にしたらうまく動かない。ここではstateのデータがほしいだけなのでこれでﾖｼ
+
+    assert(synctagnames.contains(deletetTag));
+
+    synctagnames.removeWhere((tagname) => tagname == deletetTag);
+    debugPrint('koko state = $state');
+
+    final userdocument = _storeinstance.collection('files').doc('${user.uid}');
+
+    final userFiles = userdocument.collection('userFiles');
+
+    final files = await userFiles.where('tag', arrayContains: deletetTag).get();
+
+    for (final filesnapshot in files.docs) {
+      final tag = (filesnapshot.get('tag') as List<dynamic>).cast<String>()
+        ..removeWhere((element) => element == deletetTag);
+
+      await filesnapshot.reference.update(<String, dynamic>{
+        'tag': tag,
+      });
+    }
+
+    await userdocument.update(<String, List<String>>{'tagnames': synctagnames});
+
+    await loadsynctagnames();
+
+    await ProviderContainer()
+        .read(taggedsyncfileprovider)
+        .fetchTaggedStoreFiles();
   }
 }
 
