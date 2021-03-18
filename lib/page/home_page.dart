@@ -341,9 +341,9 @@ class _HomeState extends State<Home> {
                         await context
                             .read(taggedsyncfileprovider)
                             .fetchTaggedStoreFiles();
+                        //読み込み時間あり
 
                         final docs = context.read(taggedsyncfileprovider.state);
-                        //TODO providrからもらったリストをfilewidget肉バル
 
                         debugPrint('docs = $docs');
 

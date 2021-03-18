@@ -11,10 +11,15 @@ class SyncTagModeModel extends StateNotifier<bool> {
 
   void switchMode() {
     if (FirebaseAuth.instance.currentUser == null) {
-      debugPrint('!! サインインしていません');
+      debugPrint('!! サインインしていません state = $state');
       return;
     }
     state = !state;
+  }
+
+  void setMode() {
+    debugPrint('setMode: $stateから${FirebaseAuth.instance.currentUser != null}');
+    state = FirebaseAuth.instance.currentUser != null;
   }
 }
 

@@ -277,7 +277,8 @@ class _CreatePageState extends State<CreatePage> {
                   fileisLocalFile = true;
                 }
               }
-              assert(fileisSyncFile || fileisLocalFile);
+              assert((fileisSyncFile || fileisLocalFile) ||
+                  (!fileisSyncFile && !fileisLocalFile));
 
               //名前が重複しているかどうかファイルとディレクトリも含める
               final overlapping = File('$_path/$_nameStr').existsSync() ||
@@ -296,7 +297,8 @@ class _CreatePageState extends State<CreatePage> {
 
               switch (_type) {
                 case 'file':
-                  if (fileisLocalFile) {
+                  if (fileisLocalFile ||
+                      (!fileisLocalFile && !fileisSyncFile)) {
                     FilePlusTag(File('$_path/$_nameStr'))
                       ..createLocalFileAndAddTag(_tmpTags)
                       ..file.writeAsStringSync('${_memoController.text}');

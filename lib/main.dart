@@ -14,6 +14,7 @@ import 'package:memoapp/file_plus_tag.dart';
 import 'package:memoapp/page/home_page.dart';
 import 'package:screen/screen.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:memoapp/page/tag_edit_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -108,6 +109,8 @@ class FirebaseAuthModel extends ChangeNotifier {
 
     await auth.signInWithCredential(credential);
 
+    ProviderContainer().read(synctagmodeprovider).setMode();
+
     final currentUser = FirebaseAuth.instance.currentUser;
     final store = FirebaseFirestore.instance;
 
@@ -127,6 +130,7 @@ class FirebaseAuthModel extends ChangeNotifier {
 
   Future<void> googleSignOut() async {
     await auth.signOut();
+    ProviderContainer().read(synctagmodeprovider).setMode();
   }
 }
 
@@ -202,11 +206,6 @@ class SyncTagNamesModel extends StateNotifier<List<String>> {
         ((await _storeinstance.collection('files').doc('${_user.uid}').get())
                 .get('tagnames') as List<dynamic>)
             .cast<String>();
-
-    debugPrint('state = $state');
-    debugPrint('synctagnames = $synctagnames');
-    debugPrint(
-        'equals = ${ListEquality<String>().equals(state, synctagnames)}');
 
     if (!const ListEquality<String>().equals(state, synctagnames)) {
       state = synctagnames;

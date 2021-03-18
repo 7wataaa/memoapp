@@ -13,7 +13,6 @@ import 'package:memoapp/page/sync_memo_edit_page.dart';
 import 'package:memoapp/tag.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:memoapp/main.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class FileWidget extends StatefulWidget {
   const FileWidget({@required this.name, @required this.file, this.tags});
@@ -385,8 +384,9 @@ class _SyncFileWidgetState extends State<SyncFileWidget> {
             ),
           );
         },
-        onLongPress: () {
-          showModalBottomSheet<Container>(
+        onLongPress: () async {
+          var changenotify = false;
+          await showModalBottomSheet<Container>(
             context: context,
             builder: (context) {
               return Container(
@@ -421,13 +421,24 @@ class _SyncFileWidgetState extends State<SyncFileWidget> {
                     ),
                     ListTile(
                       title: const Text('削除'),
-                      onTap: () {},
+                      onTap: () async {
+                        await widget.docsnapshot.reference.delete();
+                        Navigator.pop(context);
+                        changenotify = true;
+                      },
                     ),
                   ],
                 ),
               );
             },
           );
+
+          if (changenotify) {
+            changenotify = false;
+            setState(() {
+              debugPrint('changenotify is false');
+            });
+          }
         },
       ),
     );

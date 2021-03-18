@@ -36,9 +36,6 @@ class _SyncMemoEditPageState extends State<SyncMemoEditPage> {
           onChanged: (String string) {
             debugPrint(_controller.text);
           },
-          onSubmitted: (s) => debugPrint('onSubmitted s = $s'),
-          onEditingComplete: () =>
-              debugPrint('onEditingComplete text = ${_controller.text}'),
         ),
       ),
     );
