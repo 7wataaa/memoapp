@@ -1,10 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class SyncMemoEditPage extends StatefulWidget {
-  const SyncMemoEditPage(this.documentSnapshot);
+  const SyncMemoEditPage(this.documentSnapshot, this.initContent);
 
   final QueryDocumentSnapshot documentSnapshot;
+
+  final String initContent;
 
   @override
   _SyncMemoEditPageState createState() => _SyncMemoEditPageState();
@@ -16,8 +19,7 @@ class _SyncMemoEditPageState extends State<SyncMemoEditPage> {
   @override
   void initState() {
     super.initState();
-    _controller = TextEditingController(
-        text: '${widget.documentSnapshot.get('content')}');
+    _controller = TextEditingController(text: '${widget.initContent}');
   }
 
   @override
@@ -40,6 +42,19 @@ class _SyncMemoEditPageState extends State<SyncMemoEditPage> {
           onEditingComplete: () =>
               debugPrint('onEditingComplete text = ${_controller.text}'),
         ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'PageBtn',
+        icon: const Icon(Icons.check),
+        label: const Text('save'),
+        backgroundColor: const Color(0xFF212121),
+        onPressed: () async {
+          await widget.documentSnapshot.reference.set(
+              <String, dynamic>{'content': _controller.text},
+              SetOptions(merge: true));
+
+          Navigator.pop(context);
+        },
       ),
     );
   }

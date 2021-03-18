@@ -379,11 +379,19 @@ class _SyncFileWidgetState extends State<SyncFileWidget> {
         title: Text('${widget.docsnapshot.get('name')}'),
         leading: const Icon(Icons.insert_drive_file),
         subtitle: subtitle(),
-        onTap: () {
-          Navigator.push<SyncMemoEditPage>(
+        onTap: () async {
+          final newContent = (await FirebaseFirestore.instance
+                  .collection('files')
+                  .doc(FirebaseAuth.instance.currentUser.uid)
+                  .collection('userFiles')
+                  .doc(widget.docsnapshot.id)
+                  .get())
+              .get('content') as String;
+          await Navigator.push<SyncMemoEditPage>(
             context,
             MaterialPageRoute(
-              builder: (context) => SyncMemoEditPage(widget.docsnapshot),
+              builder: (context) =>
+                  SyncMemoEditPage(widget.docsnapshot, newContent),
             ),
           );
         },
@@ -407,12 +415,20 @@ class _SyncFileWidgetState extends State<SyncFileWidget> {
                     ),
                     ListTile(
                       title: const Text('開く'),
-                      onTap: () {
-                        Navigator.push<SyncMemoEditPage>(
+                      onTap: () async {
+                        final newContent = (await FirebaseFirestore.instance
+                                .collection('files')
+                                .doc(FirebaseAuth.instance.currentUser.uid)
+                                .collection('userFiles')
+                                .doc(widget.docsnapshot.id)
+                                .get())
+                            .get('content') as String;
+
+                        await Navigator.push<SyncMemoEditPage>(
                           context,
                           MaterialPageRoute(
-                            builder: (context) =>
-                                SyncMemoEditPage(widget.docsnapshot),
+                            builder: (context) => SyncMemoEditPage(
+                                widget.docsnapshot, newContent),
                           ),
                         );
                       },
