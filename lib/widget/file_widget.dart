@@ -360,9 +360,11 @@ class _FileState extends State<FileWidget> {
 }
 
 class SyncFileWidget extends StatefulWidget {
-  const SyncFileWidget({@required this.docsnapshot});
+  const SyncFileWidget({@required this.docsnapshot, this.func});
 
   final QueryDocumentSnapshot docsnapshot;
+
+  final Function func;
 
   @override
   _SyncFileWidgetState createState() => _SyncFileWidgetState();
@@ -421,7 +423,22 @@ class _SyncFileWidgetState extends State<SyncFileWidget> {
                     ),
                     ListTile(
                       title: const Text('削除'),
-                      onTap: () {},
+                      onTap: () async {
+                        await context
+                            .read(taggedsyncfileprovider)
+                            .fetchTaggedStoreFiles();
+
+                        await widget.docsnapshot.reference.delete();
+
+                        //ページの再読み込みが必要
+                        await context
+                            .read(taggedsyncfileprovider)
+                            .fetchTaggedStoreFiles();
+
+                        widget.func();
+
+                        Navigator.pop(context);
+                      },
                     ),
                   ],
                 ),

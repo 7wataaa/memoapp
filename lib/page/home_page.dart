@@ -353,6 +353,7 @@ class _HomeState extends State<Home> {
                               .cast<String>()
                               .contains('$selectedkey')) {
                             result.add(SyncFileWidget(
+                              func: () => setState(() {}),
                               docsnapshot: docsnapshot,
                             ));
                           }

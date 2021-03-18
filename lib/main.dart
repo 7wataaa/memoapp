@@ -399,6 +399,8 @@ class TaggedSyncFileModel extends StateNotifier<List<QueryDocumentSnapshot>> {
 
     final snapshot = await userfiles.get();
 
+    debugPrint('syncfile state = $state');
+
     state = snapshot.docs;
   }
 }
